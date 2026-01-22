@@ -1,0 +1,10 @@
+module.exports = {
+  displayName: 'ey-smart-checkin-media-server',
+  preset: '../../jest.preset.js',
+  testEnvironment: 'node',
+  transform: {
+    '^.+\\.[tj]s$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.spec.json' }],
+  },
+  moduleFileExtensions: ['ts', 'js', 'html'],
+  coverageDirectory: '../../coverage/apps/ey-smart-checkin-media-server',
+};

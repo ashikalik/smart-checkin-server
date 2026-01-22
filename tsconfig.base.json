@@ -1,0 +1,24 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2015",
+    "module": "esnext",
+    "lib": ["es2020", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@smart-checkin-server/contracts": ["libs/contracts/src/index.ts"],
+      "@smart-checkin-server/utils": ["libs/utils/src/index.ts"],
+      "@smart-checkin-server/integrations": ["libs/integrations/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}
