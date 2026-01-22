@@ -18,4 +18,9 @@ export class OrchestratorController {
   run(@Body() body: RunRequest) {
     return this.orchestrator.runLoop(body.goal);
   }
+
+  @Post('agent-run')
+  runAgent(@Body() body: RunRequest) {
+    return this.orchestrator.runAgentLoop(body.goal);
+  }
 }
