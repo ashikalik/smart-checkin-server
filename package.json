@@ -3,6 +3,11 @@
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
+   "scripts": {
+    "build:mcp-server": "yarn nx build ey-smart-checkin-mcp-server --skip-nx-cache",
+    "start:mcp-server": "node dist/apps/ey-smart-checkin-mcp-server/main.js",
+    "start:mcp:dev": "nest start --watch"
+  },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
     "@nestjs/schematics": "^11.0.0",
@@ -37,10 +42,12 @@
   },
   "packageManager": "yarn@4.2.1+sha256.15ce76682a8cd2090257b883cd69c637925b29573f9573e8403ec227d5ab6815",
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.3",
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.0"
+    "rxjs": "^7.8.0",
+    "zod": "^4.3.5"
   }
 }
