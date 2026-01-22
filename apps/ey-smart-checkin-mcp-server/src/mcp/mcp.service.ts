@@ -14,41 +14,86 @@ type ToolResponse = {
   isError?: boolean;
 };
 
+type McpSession = {
+  server: McpServer;
+  transport: StreamableHTTPServerTransport;
+};
+
 @Injectable()
 export class McpService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(McpService.name);
-  private readonly server: McpServer;
-  private readonly transport: StreamableHTTPServerTransport;
+  private readonly sessions = new Map<string, McpSession>();
 
   constructor(
     private readonly math: MathService,
     private readonly saver: SaveResultService,
-  ) {
-    this.server = new McpServer({
-      name: 'nest-mcp-math',
-      version: '1.0.0',
-    });
-    this.transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: () => randomUUID(),
-    });
-    this.registerTools();
-  }
+  ) {}
 
   async onModuleInit(): Promise<void> {
-    await this.server.connect(this.transport);
     this.logger.log('MCP server started (streamable HTTP). Endpoint: /mcp');
   }
 
   async onModuleDestroy(): Promise<void> {
-    await this.transport.close();
+    const transports = Array.from(this.sessions.values()).map((session) => session.transport);
+    await Promise.all(transports.map((transport) => transport.close()));
   }
 
   async handleRequest(req: Request, res: Response, body?: unknown): Promise<void> {
-    await this.transport.handleRequest(req, res, body);
+    const sessionId = this.getSessionId(req);
+    if (sessionId && this.sessions.has(sessionId)) {
+      await this.sessions.get(sessionId)!.transport.handleRequest(req, res, body);
+      return;
+    }
+
+    if (!sessionId && this.isInitializeRequest(body)) {
+      const session = this.createSession();
+      await session.server.connect(session.transport);
+      await session.transport.handleRequest(req, res, body);
+      return;
+    }
+
+    res.status(400).json({
+      jsonrpc: '2.0',
+      error: {
+        code: -32000,
+        message: sessionId
+          ? 'Bad Request: Unknown MCP session. Reinitialize.'
+          : 'Bad Request: Missing MCP session. Send initialize request first.',
+      },
+      id: null,
+    });
   }
 
-  private registerTools(): void {
-    const server = this.server;
+  private createSession(): McpSession {
+    const server = new McpServer({
+      name: 'nest-mcp-math',
+      version: '1.0.0',
+    });
+    this.registerTools(server);
+
+    const session: McpSession = {
+      server,
+      transport: new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => randomUUID(),
+        onsessioninitialized: (sessionId) => {
+          this.sessions.set(sessionId, session);
+          this.logger.log(`MCP session initialized: ${sessionId}`);
+        },
+      }),
+    };
+
+    session.transport.onclose = () => {
+      const sid = session.transport.sessionId;
+      if (sid && this.sessions.has(sid)) {
+        this.sessions.delete(sid);
+        this.logger.log(`MCP session closed: ${sid}`);
+      }
+    };
+
+    return session;
+  }
+
+  private registerTools(server: McpServer): void {
     // ---- Math tools ----
     server.registerTool(
       'add',
@@ -113,6 +158,22 @@ export class McpService implements OnModuleInit, OnModuleDestroy {
         }
       },
     );
+  }
+
+  private getSessionId(req: Request): string | undefined {
+    const header = req.headers['mcp-session-id'];
+    if (Array.isArray(header)) {
+      return header[0];
+    }
+    return header;
+  }
+
+  private isInitializeRequest(body?: unknown): boolean {
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return false;
+    }
+    const method = (body as { method?: string }).method;
+    return method === 'initialize';
   }
 
   private respond(data: unknown): ToolResponse {
