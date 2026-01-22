@@ -1,13 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { McpService } from './mcp/mcp.service';
 
 async function bootstrap() {
-  const app = await NestFactory.createApplicationContext(AppModule, {
+  const app = await NestFactory.create(AppModule, {
     logger: ['log', 'error', 'warn'],
   });
 
-  await app.get(McpService).start();
+  const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+  await app.listen(port);
 }
 
 bootstrap().catch((e) => {

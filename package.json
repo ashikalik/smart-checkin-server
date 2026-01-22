@@ -3,10 +3,10 @@
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
-   "scripts": {
+  "scripts": {
     "build:mcp-server": "yarn nx build ey-smart-checkin-mcp-server --skip-nx-cache",
     "start:mcp-server": "node dist/apps/ey-smart-checkin-mcp-server/main.js",
-    "start:mcp:dev": "nest start --watch"
+    "inspect:mcp-server": "npx @modelcontextprotocol/inspector"
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",

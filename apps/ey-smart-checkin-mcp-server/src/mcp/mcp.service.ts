@@ -1,6 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import type { Request, Response } from 'express';
 
 import { TwoNumberSchema } from './schemas/math.schema';
 import { SaveResultSchema } from './schemas/save-result.schema';
@@ -13,20 +15,40 @@ type ToolResponse = {
 };
 
 @Injectable()
-export class McpService {
+export class McpService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(McpService.name);
+  private readonly server: McpServer;
+  private readonly transport: StreamableHTTPServerTransport;
 
   constructor(
     private readonly math: MathService,
     private readonly saver: SaveResultService,
-  ) {}
-
-  async start(): Promise<void> {
-    const server = new McpServer({
+  ) {
+    this.server = new McpServer({
       name: 'nest-mcp-math',
       version: '1.0.0',
     });
+    this.transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: () => randomUUID(),
+    });
+    this.registerTools();
+  }
 
+  async onModuleInit(): Promise<void> {
+    await this.server.connect(this.transport);
+    this.logger.log('MCP server started (streamable HTTP). Endpoint: /mcp');
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    await this.transport.close();
+  }
+
+  async handleRequest(req: Request, res: Response, body?: unknown): Promise<void> {
+    await this.transport.handleRequest(req, res, body);
+  }
+
+  private registerTools(): void {
+    const server = this.server;
     // ---- Math tools ----
     server.registerTool(
       'add',
@@ -91,9 +113,6 @@ export class McpService {
         }
       },
     );
-
-    await server.connect(new StdioServerTransport());
-    this.logger.log('MCP server started (stdio). Tools: add/subtract/multiply/divide/save_result');
   }
 
   private respond(data: unknown): ToolResponse {
