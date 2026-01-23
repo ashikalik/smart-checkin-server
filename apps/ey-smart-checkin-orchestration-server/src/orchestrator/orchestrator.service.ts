@@ -44,44 +44,6 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
     return this.client.listTools();
   }
 
-  async runLoop(goal: string): Promise<{ goal: string; steps: OrchestratorStep[]; final: unknown }> {
-    await this.ensureConnected();
-
-    const steps: OrchestratorStep[] = [];
-    const toolsResult = await this.client.listTools();
-    steps.push({ action: 'list-tools', result: toolsResult });
-
-    const decision = this.decidePlan(goal);
-    if (!decision) {
-      return {
-        goal,
-        steps,
-        final: { message: 'No matching tool plan. Try: add/subtract/multiply/divide/save result.' },
-      };
-    }
-
-    const toolResult = await this.callTool(decision.tool, decision.args);
-    steps.push({ action: 'call-tool', tool: decision.tool, args: decision.args, result: toolResult });
-
-    if (decision.saveResult && typeof decision.operation === 'string') {
-      const numericResult = this.extractNumberFromToolResult(toolResult);
-      if (numericResult === undefined) {
-        steps.push({
-          action: 'save-result',
-          error: 'Could not parse numeric result to save.',
-        });
-        return { goal, steps, final: toolResult };
-      }
-
-      const saveArgs = { operation: decision.operation, result: numericResult };
-      const saveRes = await this.callTool('save_result', saveArgs);
-      steps.push({ action: 'call-tool', tool: 'save_result', args: saveArgs, result: saveRes });
-      return { goal, steps, final: saveRes };
-    }
-
-    return { goal, steps, final: toolResult };
-  }
-
   async runAgentLoop(goal: string): Promise<{ goal: string; steps: OrchestratorStep[]; final: unknown }> {
     await this.ensureConnected();
 
@@ -362,7 +324,9 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
       return null;
     }
 
-    if (this.hasToolSequence(steps, ['add', 'multiply', 'percent'])) {
+    const wantsDivide = /\b(divide|divided|devided|over)\b/i.test(normalized);
+    const requiredSequence = wantsDivide ? ['add', 'multiply', 'divide', 'percent'] : ['add', 'multiply', 'percent'];
+    if (this.hasToolSequence(steps, requiredSequence)) {
       return null;
     }
 
@@ -375,6 +339,7 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
     const a = numbers[1];
     const b = numbers[2];
     const multiplier = numbers[3];
+    const divisor = wantsDivide ? numbers[4] : undefined;
 
     const addResult = await this.callTool('add', { a, b });
     steps.push({ action: 'call-tool', tool: 'add', args: { a, b }, result: addResult });
@@ -397,11 +362,30 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
       return null;
     }
 
-    const percentResult = await this.callTool('percent', { percent, value: product });
+    let baseValue = product;
+    if (wantsDivide) {
+      if (divisor === undefined) {
+        return null;
+      }
+      const divideResult = await this.callTool('divide', { a: product, b: divisor });
+      steps.push({
+        action: 'call-tool',
+        tool: 'divide',
+        args: { a: product, b: divisor },
+        result: divideResult,
+      });
+      const divided = this.extractNumberFromToolResult(divideResult);
+      if (divided === undefined) {
+        return null;
+      }
+      baseValue = divided;
+    }
+
+    const percentResult = await this.callTool('percent', { percent, value: baseValue });
     steps.push({
       action: 'call-tool',
       tool: 'percent',
-      args: { percent, value: product },
+      args: { percent, value: baseValue },
       result: percentResult,
     });
 
@@ -430,36 +414,6 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
       }
     }
     return false;
-  }
-
-  private decidePlan(goal: string): { tool: string; args: Record<string, unknown>; saveResult: boolean; operation?: string } | null {
-    const normalized = goal.toLowerCase();
-    const nums = this.extractNumbers(goal);
-    if (nums.length < 2) {
-      return null;
-    }
-
-    const operation =
-      normalized.includes('add') || normalized.includes('sum') || normalized.includes('plus')
-        ? 'add'
-        : normalized.includes('subtract') || normalized.includes('minus')
-          ? 'subtract'
-          : normalized.includes('multiply') || normalized.includes('times')
-            ? 'multiply'
-            : normalized.includes('divide') || normalized.includes('over')
-              ? 'divide'
-              : null;
-
-    if (!operation) {
-      return null;
-    }
-
-    return {
-      tool: operation,
-      args: { a: nums[0], b: nums[1] },
-      saveResult: normalized.includes('save'),
-      operation,
-    };
   }
 
   private extractNumbers(text: string): number[] {
