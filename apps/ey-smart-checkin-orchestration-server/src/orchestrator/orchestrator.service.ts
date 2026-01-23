@@ -97,14 +97,16 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
         input: previousResponseId
           ? [
               {
-                type: 'input_text',
-                text: 'Continue. Use tools if needed.',
+                type: 'message',
+                role: 'user',
+                content: [{ type: 'input_text', text: 'Continue. Use tools if needed.' }],
               },
             ]
           : [
               {
-                type: 'input_text',
-                text: goal,
+                type: 'message',
+                role: 'user',
+                content: [{ type: 'input_text', text: goal }],
               },
             ],
         tools,
@@ -218,19 +220,25 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
 
   private ensureObjectSchema(schema: unknown): Record<string, unknown> {
     if (!schema || typeof schema !== 'object') {
-      return { type: 'object', properties: {} };
+      return { type: 'object', properties: {}, additionalProperties: false };
     }
     const typed = schema as Record<string, unknown>;
-    if (!typed.type) {
-      return { ...typed, type: 'object' };
+    const withType = typed.type ? typed : { ...typed, type: 'object' };
+    if (!withType.properties) {
+      (withType as Record<string, unknown>).properties = {};
     }
-    return typed;
+    if (withType.additionalProperties === undefined) {
+      (withType as Record<string, unknown>).additionalProperties = false;
+    }
+    return withType;
   }
 
   private async createOpenAiResponse(payload: Record<string, unknown>): Promise<OpenAiResponse> {
     const apiKey = process.env.OPENAI_API_KEY;
     const model = process.env.OPENAI_MODEL;
     const baseUrl = process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1';
+
+    this.logger.debug(`OPENAI_API_KEY loaded: ${Boolean(apiKey)}`);
 
     if (!apiKey) {
       throw new Error('OPENAI_API_KEY is not set');
