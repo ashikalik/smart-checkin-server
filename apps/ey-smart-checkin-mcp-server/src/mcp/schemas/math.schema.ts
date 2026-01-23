@@ -6,7 +6,17 @@ export const TwoNumberSchema = {
   b: z.number(),
 };
 
+export const PercentSchema = {
+  percent: z.number(),
+  value: z.number(),
+};
+
 export type TwoNumberInput = {
   a: number;
   b: number;
+};
+
+export type PercentInput = {
+  percent: number;
+  value: number;
 };

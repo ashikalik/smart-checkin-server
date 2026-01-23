@@ -18,4 +18,8 @@ export class MathService {
     if (b === 0) throw new Error('Division by zero');
     return a / b;
   }
+
+  percentOf(percent: number, value: number): number {
+    return (percent / 100) * value;
+  }
 }

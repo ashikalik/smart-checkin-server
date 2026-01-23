@@ -4,7 +4,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import type { Request, Response } from 'express';
 
-import { TwoNumberSchema } from './schemas/math.schema';
+import { PercentSchema, TwoNumberSchema } from './schemas/math.schema';
 import { SaveResultSchema } from './schemas/save-result.schema';
 import { MathService } from './services/math.service';
 import { SaveResultService } from './services/save-result.service';
@@ -139,6 +139,16 @@ export class McpService implements OnModuleInit, OnModuleDestroy {
           return this.respondError(e?.message ?? 'Divide failed');
         }
       },
+    );
+
+    server.registerTool(
+      'percent',
+      {
+        description: 'Calculate percent of a value (percent/100 * value)',
+        inputSchema: PercentSchema,
+        annotations: { readOnlyHint: true, idempotentHint: true },
+      },
+      async ({ percent, value }) => this.respond(this.math.percentOf(percent, value)),
     );
 
     // ---- Save Result tool (POST) ----

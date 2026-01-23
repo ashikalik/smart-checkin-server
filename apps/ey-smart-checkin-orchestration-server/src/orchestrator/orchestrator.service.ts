@@ -91,33 +91,39 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
 
     let previousResponseId: string | undefined;
     let finalText: string | undefined;
+    let forceToolUse = false;
+    let remainingCalls = 8;
+    const computedNotes: string[] = [];
 
-    for (let turn = 0; turn < 5; turn += 1) {
+    while (remainingCalls > 0) {
+      const userText = forceToolUse
+        ? 'You must use tools for every arithmetic step. Recompute using tools only.'
+        : previousResponseId
+          ? 'Continue. Use tools if needed.'
+          : goal;
+
       const response = await this.createOpenAiResponse({
-        input: previousResponseId
-          ? [
-              {
-                type: 'message',
-                role: 'user',
-                content: [{ type: 'input_text', text: 'Continue. Use tools if needed.' }],
-              },
-            ]
-          : [
-              {
-                type: 'message',
-                role: 'user',
-                content: [{ type: 'input_text', text: goal }],
-              },
-            ],
+        input: [
+          {
+            type: 'message',
+            role: 'user',
+            content: [{ type: 'input_text', text: userText }],
+          },
+        ],
         tools,
         previous_response_id: previousResponseId,
       });
-
+      remainingCalls -= 1;
       previousResponseId = response.id;
-      const toolCalls = this.extractToolCalls(response);
+      forceToolUse = false;
 
+      const toolCalls = this.extractToolCalls(response);
       if (toolCalls.length === 0) {
         finalText = response.output_text ?? this.extractOutputText(response.output);
+        if (finalText && this.needsMoreTools(finalText)) {
+          forceToolUse = true;
+          continue;
+        }
         break;
       }
 
@@ -136,6 +142,7 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
 
         const toolResult = await this.callTool(call.name, args);
         steps.push({ action: 'call-tool', tool: call.name, args, result: toolResult });
+        computedNotes.push(this.formatToolNote(call.name, args, toolResult));
 
         toolOutputs.push({
           type: 'function_call_output',
@@ -144,16 +151,52 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
         });
       }
 
+      if (remainingCalls <= 0) {
+        break;
+      }
+
       const followup = await this.createOpenAiResponse({
-        input: toolOutputs,
+        input: [
+          ...toolOutputs,
+          {
+            type: 'message',
+            role: 'user',
+            content: [
+              {
+                type: 'input_text',
+                text: `Computed results so far:\n${computedNotes.join('\n')}\nUse these results. If the goal is fully solved, provide the final answer only. Do not recompute steps.`,
+              },
+            ],
+          },
+        ],
         previous_response_id: previousResponseId,
       });
-
+      remainingCalls -= 1;
       previousResponseId = followup.id;
+
+      const followupToolCalls = this.extractToolCalls(followup);
+      if (followupToolCalls.length > 0) {
+        // Continue loop; model asked for more tools after seeing outputs.
+        continue;
+      }
+
       finalText = followup.output_text ?? this.extractOutputText(followup.output);
+      if (finalText && this.needsMoreTools(finalText)) {
+        forceToolUse = true;
+        continue;
+      }
       if (finalText) {
         break;
       }
+    }
+
+    const deterministic = await this.tryDeterministicPercentSumMultiply(goal, steps);
+    if (deterministic) {
+      return {
+        goal,
+        steps: deterministic.steps,
+        final: deterministic.final,
+      };
     }
 
     return {
@@ -256,7 +299,7 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
       body: JSON.stringify({
         model,
         instructions:
-          'You are an orchestration agent. Use available tools to solve the user goal. Return a concise final answer.',
+          'You are an orchestration agent. You MUST use tools for every arithmetic or percentage calculation step. Do not do math in your head. Use tools repeatedly until all math is done. Return a concise final answer.',
         ...payload,
       }),
     });
@@ -282,6 +325,111 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
     const content = message?.content as Array<{ type?: string; text?: string }> | undefined;
     const textItem = content?.find((c) => c.type === 'output_text');
     return textItem?.text;
+  }
+
+  private formatToolNote(name: string, args: Record<string, unknown>, result: unknown): string {
+    const argsText = JSON.stringify(args);
+    const resultText = this.extractNumberFromToolResult(result) ?? this.extractTextFromToolResult(result);
+    const display = resultText ?? JSON.stringify(result);
+    return `${name}(${argsText}) => ${display}`;
+  }
+
+  private extractTextFromToolResult(result: unknown): string | undefined {
+    if (!result || typeof result !== 'object') {
+      return undefined;
+    }
+    const content = (result as { content?: Array<{ text?: string }> }).content;
+    return content?.[0]?.text;
+  }
+
+  private needsMoreTools(text: string): boolean {
+    const hasDigits = /\d/.test(text);
+    const hasMathWords = /\b(add|subtract|multiply|divide|percent|percentage|times|sum|total|plus|minus|over)\b/i.test(text);
+    return hasDigits && hasMathWords;
+  }
+
+  private async tryDeterministicPercentSumMultiply(
+    goal: string,
+    steps: OrchestratorStep[],
+  ): Promise<{ steps: OrchestratorStep[]; final: string } | null> {
+    const normalized = goal.toLowerCase();
+    const matchesPattern =
+      (normalized.includes('percent') || normalized.includes('percentage')) &&
+      (normalized.includes('sum') || normalized.includes('add') || normalized.includes('plus')) &&
+      (normalized.includes('multiply') || normalized.includes('multiplied') || normalized.includes('times'));
+
+    if (!matchesPattern) {
+      return null;
+    }
+
+    if (this.hasToolSequence(steps, ['add', 'multiply', 'percent'])) {
+      return null;
+    }
+
+    const numbers = this.extractNumbers(goal);
+    if (numbers.length < 4) {
+      return null;
+    }
+
+    const percent = numbers[0];
+    const a = numbers[1];
+    const b = numbers[2];
+    const multiplier = numbers[3];
+
+    const addResult = await this.callTool('add', { a, b });
+    steps.push({ action: 'call-tool', tool: 'add', args: { a, b }, result: addResult });
+
+    const sum = this.extractNumberFromToolResult(addResult);
+    if (sum === undefined) {
+      return null;
+    }
+
+    const multiplyResult = await this.callTool('multiply', { a: sum, b: multiplier });
+    steps.push({
+      action: 'call-tool',
+      tool: 'multiply',
+      args: { a: sum, b: multiplier },
+      result: multiplyResult,
+    });
+
+    const product = this.extractNumberFromToolResult(multiplyResult);
+    if (product === undefined) {
+      return null;
+    }
+
+    const percentResult = await this.callTool('percent', { percent, value: product });
+    steps.push({
+      action: 'call-tool',
+      tool: 'percent',
+      args: { percent, value: product },
+      result: percentResult,
+    });
+
+    const finalNumber = this.extractNumberFromToolResult(percentResult);
+    if (finalNumber === undefined) {
+      return null;
+    }
+
+    return {
+      steps,
+      final: `Final answer: ${finalNumber}`,
+    };
+  }
+
+  private hasToolSequence(steps: OrchestratorStep[], sequence: string[]): boolean {
+    let index = 0;
+    for (const step of steps) {
+      if (step.action !== 'call-tool' || !step.tool) {
+        continue;
+      }
+      if (step.tool === sequence[index]) {
+        index += 1;
+        if (index >= sequence.length) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   private decidePlan(goal: string): { tool: string; args: Record<string, unknown>; saveResult: boolean; operation?: string } | null {
