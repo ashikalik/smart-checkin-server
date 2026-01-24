@@ -1,14 +1,13 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import type { Request, Response } from 'express';
 
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { SsciJourneyIdentificationService, ssciIdentificationJourneyMcpTool } from './tools/retrieve-journey.tool';
+import { SsciRetrieveOrderGqlService, ssciRetrieveOrderGqlMcpTool } from './tools/retrieve-order.tool';
 
-type ToolResponse = {
-  content: Array<{ type: 'text'; text: string }>;
-  isError?: boolean;
-};
+
 
 type McpSession = {
   server: McpServer;
@@ -21,6 +20,8 @@ export class McpCheckInService implements OnModuleInit, OnModuleDestroy {
   private readonly sessions = new Map<string, McpSession>();
 
   constructor(
+    private readonly journey: SsciJourneyIdentificationService,
+    private readonly order: SsciRetrieveOrderGqlService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -60,7 +61,7 @@ export class McpCheckInService implements OnModuleInit, OnModuleDestroy {
 
   private createSession(): McpSession {
     const server = new McpServer({
-      name: 'nest-mcp-math',
+      name: 'nest-mcp-ssci',
       version: '1.0.0',
     });
     this.registerTools(server);
@@ -88,80 +89,18 @@ export class McpCheckInService implements OnModuleInit, OnModuleDestroy {
   }
 
   private registerTools(server: McpServer): void {
-    // // ---- Math tools ----
-    // server.registerTool(
-    //   'add',
-    //   {
-    //     description: 'Add two numbers',
-    //     inputSchema: TwoNumberSchema,
-    //     annotations: { readOnlyHint: true, idempotentHint: true },
-    //   },
-    //   async ({ a, b }) => this.respond(this.math.add(a, b)),
-    // );
+    // ---- SSCI tools ----
+    server.registerTool(
+      ssciIdentificationJourneyMcpTool.name,
+      ssciIdentificationJourneyMcpTool.definition,
+      ssciIdentificationJourneyMcpTool.handler(this.journey),
+    );
 
-    // server.registerTool(
-    //   'subtract',
-    //   {
-    //     description: 'Subtract two numbers',
-    //     inputSchema: TwoNumberSchema,
-    //     annotations: { readOnlyHint: true, idempotentHint: true },
-    //   },
-    //   async ({ a, b }) => this.respond(this.math.subtract(a, b)),
-    // );
-
-    // server.registerTool(
-    //   'multiply',
-    //   {
-    //     description: 'Multiply two numbers',
-    //     inputSchema: TwoNumberSchema,
-    //     annotations: { readOnlyHint: true, idempotentHint: true },
-    //   },
-    //   async ({ a, b }) => this.respond(this.math.multiply(a, b)),
-    // );
-
-    // server.registerTool(
-    //   'divide',
-    //   {
-    //     description: 'Divide two numbers',
-    //     inputSchema: TwoNumberSchema,
-    //     annotations: { readOnlyHint: true, idempotentHint: true },
-    //   },
-    //   async ({ a, b }) => {
-    //     try {
-    //       return this.respond(this.math.divide(a, b));
-    //     } catch (e: any) {
-    //       return this.respondError(e?.message ?? 'Divide failed');
-    //     }
-    //   },
-    // );
-
-    // server.registerTool(
-    //   'percent',
-    //   {
-    //     description: 'Calculate percent of a value (percent/100 * value)',
-    //     inputSchema: PercentSchema,
-    //     annotations: { readOnlyHint: true, idempotentHint: true },
-    //   },
-    //   async ({ percent, value }) => this.respond(this.math.percentOf(percent, value)),
-    // );
-
-    // // ---- Save Result tool (POST) ----
-    // server.registerTool(
-    //   'save_result',
-    //   {
-    //     description: 'Save a calculation result via POST API',
-    //     inputSchema: SaveResultSchema,
-    //     annotations: { readOnlyHint: false, idempotentHint: false },
-    //   },
-    //   async ({ operation, result }) => {
-    //     try {
-    //       const apiRes = await this.saver.save(operation, result);
-    //       return this.respond(apiRes);
-    //     } catch (e: any) {
-    //       return this.respondError(e?.message ?? 'save_result failed');
-    //     }
-    //   },
-    // );
+    server.registerTool(
+      ssciRetrieveOrderGqlMcpTool.name,
+      ssciRetrieveOrderGqlMcpTool.definition,
+      ssciRetrieveOrderGqlMcpTool.handler(this.order),
+    );
   }
 
   private getSessionId(req: Request): string | undefined {
@@ -180,26 +119,5 @@ export class McpCheckInService implements OnModuleInit, OnModuleDestroy {
     return method === 'initialize';
   }
 
-  private respond(data: unknown): ToolResponse {
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify(data, null, 2),
-        },
-      ],
-    };
-  }
-
-  private respondError(message: string): ToolResponse {
-    return {
-      isError: true,
-      content: [
-        {
-          type: 'text',
-          text: message,
-        },
-      ],
-    };
-  }
+  // Tool response formatting is handled inside each exported MCP tool.
 }

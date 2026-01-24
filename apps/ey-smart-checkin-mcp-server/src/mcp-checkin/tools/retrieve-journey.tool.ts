@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { z } from 'zod';
+import { SsciJourneyIdentificationSchema } from '../schemas/journey.schema';
 
 /**
  * SSCI - Journey Identification
@@ -23,6 +25,27 @@ export interface JourneyIdentificationRequestPayload {
   program: string | null;
   encryptedParameters: unknown | null;
 }
+
+/**
+ * MCP tool input schema for `ssci_identification_journey`.
+ * Exported here so MCP can import it directly from the service.
+ */
+// export const SsciJourneyIdentificationSchema = z.object({
+//   identifier: z.string().min(1).describe('Record locator / identifier'),
+//   lastName: z.string().min(1),
+//   encrypted: z.boolean(),
+//   firstName: z.string().nullable(),
+//   program: z.string().nullable(),
+//   encryptedParameters: z.unknown().nullable(),
+//   headers: z
+//     .record(z.string(), z.string())
+//     .optional()
+//     .describe(
+//       'Optional header overrides (e.g. x-correlation-id, x-transaction-id). Values here override defaults.',
+//     ),
+// });
+
+export type SsciJourneyIdentificationToolInput = z.infer<typeof SsciJourneyIdentificationSchema>;
 
 export interface JourneyIdentificationResponse {
   journeys: Journey[];
@@ -225,3 +248,41 @@ export class SsciJourneyIdentificationService {
     };
   }
 }
+
+type McpToolResponse = {
+  content: Array<{ type: 'text'; text: string }>;
+  isError?: boolean;
+};
+
+function toToolResponse(data: unknown): McpToolResponse {
+  return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+}
+
+function toToolError(message: string): McpToolResponse {
+  return { isError: true, content: [{ type: 'text', text: message }] };
+}
+
+/**
+ * Ready-to-register MCP tool for SSCI Journey Identification.
+ * Import this object in `McpService` and register directly.
+ */
+export const ssciIdentificationJourneyMcpTool = {
+  name: 'ssci_identification_journey',
+  definition: {
+    description:
+      'Call SSCI Journey Identification API (POST journey) and return journeys/dictionary.',
+    inputSchema: SsciJourneyIdentificationSchema,
+    annotations: { readOnlyHint: true, idempotentHint: true },
+  },
+  handler:
+    (journeyService: SsciJourneyIdentificationService) =>
+    async (input: SsciJourneyIdentificationToolInput): Promise<McpToolResponse> => {
+      try {
+        const { headers, ...payload } = input;
+        const apiRes = await journeyService.fetchJourneyIdentification(payload, headers);
+        return toToolResponse(apiRes);
+      } catch (e: any) {
+        return toToolError(e?.message ?? 'ssci_identification_journey failed');
+      }
+    },
+} as const;

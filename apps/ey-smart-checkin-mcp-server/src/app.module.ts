@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { McpCheckinModule } from './mcp-checkin/mcp-checkin.module';
 import { McpModule } from './mcp/mcp.module';
+import { McpCheckInModule } from './mcp-checkin/checkin-mcp.module';
 
 @Module({
-  imports: [McpModule, McpCheckinModule],
+  imports: [McpModule,McpCheckInModule],
 })
 export class AppModule {}

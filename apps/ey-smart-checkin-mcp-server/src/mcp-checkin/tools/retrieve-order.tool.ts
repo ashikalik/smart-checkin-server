@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-
+import { z } from 'zod';
 /**
  * SSCI - Retrieve Order (GraphQL)
  *
@@ -19,6 +19,23 @@ export interface RetrieveOrderInputDto {
   lastName: string;
   recordLocator: string;
 }
+
+/**
+ * MCP tool input schema for `ssci_retrieve_order_gql`.
+ * Exported here so MCP can import it directly from the service.
+ */
+export const SsciRetrieveOrderGqlSchema = z.object({
+  lastName: z.string().min(1),
+  recordLocator: z.string().min(1),
+  headers: z
+    .record(z.string(), z.string())
+    .optional()
+    .describe(
+      'Optional header overrides (e.g. x-correlation-id, x-transaction-id). Values here override defaults.',
+    ),
+});
+
+export type SsciRetrieveOrderGqlToolInput = z.infer<typeof SsciRetrieveOrderGqlSchema>;
 
 export interface RetrieveOrderVariables {
   input: RetrieveOrderInputDto;
@@ -219,3 +236,41 @@ export class SsciRetrieveOrderGqlService {
     };
   }
 }
+
+type McpToolResponse = {
+  content: Array<{ type: 'text'; text: string }>;
+  isError?: boolean;
+};
+
+function toToolResponse(data: unknown): McpToolResponse {
+  return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+}
+
+function toToolError(message: string): McpToolResponse {
+  return { isError: true, content: [{ type: 'text', text: message }] };
+}
+
+/**
+ * Ready-to-register MCP tool for SSCI Retrieve Order (GraphQL).
+ * Import this object in `McpService` and register directly.
+ */
+export const ssciRetrieveOrderGqlMcpTool = {
+  name: 'ssci_retrieve_order_gql',
+  definition: {
+    description:
+      'Call SSCI Retrieve Order GraphQL API (GetOrderData) and return getOrderData payload.',
+    inputSchema: SsciRetrieveOrderGqlSchema,
+    annotations: { readOnlyHint: true, idempotentHint: true },
+  },
+  handler:
+    (orderService: SsciRetrieveOrderGqlService) =>
+    async (input: SsciRetrieveOrderGqlToolInput): Promise<McpToolResponse> => {
+      try {
+        const { headers, lastName, recordLocator } = input;
+        const apiRes = await orderService.fetchOrderData({ lastName, recordLocator }, headers);
+        return toToolResponse(apiRes);
+      } catch (e: any) {
+        return toToolError(e?.message ?? 'ssci_retrieve_order_gql failed');
+      }
+    },
+} as const;
