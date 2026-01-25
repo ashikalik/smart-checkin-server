@@ -44,37 +44,23 @@ export class ArithmeticOrchestratorService {
   }
 
   private buildSystemPrompt(): string {
-    const base =
-      this.configService.get<string>('ORCHESTRATOR_SYSTEM_PROMPT') ??
-      'You are an arithmetic orchestration agent. You MUST use tools for every arithmetic or percentage calculation step. Use only the numbers from the goal. Do not do math in your head. Use tools repeatedly until all math is done. Return a concise final answer.';
-    return base;
+    return this.getRequiredEnv('ORCHESTRATOR_SYSTEM_PROMPT');
   }
 
   private buildToolUsePrompt(): string {
-    const base =
-      this.configService.get<string>('ORCHESTRATOR_TOOL_USE_PROMPT') ??
-      'You must use tools for every arithmetic step. Use only the numbers from the goal. Recompute using tools only.';
-    return base;
+    return this.getRequiredEnv('ORCHESTRATOR_TOOL_USE_PROMPT');
   }
 
   private buildComputedNotesTemplate(): string {
-    const base =
-      this.configService.get<string>('ORCHESTRATOR_COMPUTED_NOTES_TEMPLATE') ??
-      'Goal: {goal}\nAllowed numbers: {allowed}\nComputed results so far:\n{notes}\nUse these results. If the goal is fully solved, provide the final answer only. Do not recompute steps.';
-    const needsGoal = !base.includes('{goal}');
-    const needsAllowed = !base.includes('{allowed}');
-    const needsNotes = !base.includes('{notes}');
-    const prefix = [
-      needsGoal ? 'Goal: {goal}' : null,
-      needsAllowed ? 'Allowed numbers: {allowed}' : null,
-      needsNotes ? 'Computed results so far:\n{notes}' : null,
-    ]
-      .filter(Boolean)
-      .join('\n');
-    if (!prefix) {
-      return base;
+    return this.getRequiredEnv('ORCHESTRATOR_COMPUTED_NOTES_TEMPLATE');
+  }
+
+  private getRequiredEnv(key: string): string {
+    const value = this.configService.get<string>(key);
+    if (!value) {
+      throw new Error(`${key} is not set`);
     }
-    return `${prefix}\n${base}`;
+    return value;
   }
 
 }

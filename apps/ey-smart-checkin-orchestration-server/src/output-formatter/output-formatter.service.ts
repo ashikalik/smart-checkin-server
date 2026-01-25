@@ -27,7 +27,15 @@ export class OutputFormatterService {
     }
 
     if (isJsonFormat(format)) {
-      return data;
+      const value = format.field ? this.getByPath(data, format.field) : data;
+      if (typeof value !== 'string') {
+        return value;
+      }
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value;
+      }
     }
 
     return Object.entries(format).reduce<Record<string, unknown>>((acc, [key, path]) => {
@@ -78,7 +86,7 @@ const isPickFormat = (format: OutputFormat): format is { type: 'pick'; fields: s
 const isMapFormat = (format: OutputFormat): format is { type: 'map'; mapping: Record<string, string> } =>
   (format as { type?: string }).type === 'map' && typeof (format as { mapping?: Record<string, string> }).mapping === 'object';
 
-const isJsonFormat = (format: OutputFormat): format is { type: 'json' } =>
+const isJsonFormat = (format: OutputFormat): format is { type: 'json'; field?: string } =>
   (format as { type?: string }).type === 'json';
 
 const isArrayIndex = (value: string): boolean => /^\d+$/.test(value);

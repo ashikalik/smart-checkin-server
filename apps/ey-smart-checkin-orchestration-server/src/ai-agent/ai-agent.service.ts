@@ -477,6 +477,7 @@ export class AiAgentService implements OnModuleInit, OnModuleDestroy {
     }) as Array<Record<string, unknown>>;
   }
 
+
   private extractNumbers(text: string): number[] {
     const matches = text.match(/-?\d+(?:\.\d+)?/g) ?? [];
     return matches.map((value) => Number(value)).filter((value) => Number.isFinite(value));

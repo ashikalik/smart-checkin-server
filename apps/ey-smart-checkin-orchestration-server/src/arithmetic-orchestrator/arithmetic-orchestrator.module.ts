@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AiAgentModule } from '../ai-agent/ai-agent.module';
 import { resolveMcpServers } from '../ai-agent/ai-agent.service';
 import { OpenAiChatModelModule } from '../open-ai-chat-model/open-ai-chat-model.module';
+import { OutputFormatterModule } from '../output-formatter/output-formatter.module';
 import { ArithmeticOrchestratorController } from './arithmetic-orchestrator.controller';
 import { ArithmeticOrchestratorService } from './arithmetic-orchestrator.service';
 
@@ -13,6 +14,7 @@ import { ArithmeticOrchestratorService } from './arithmetic-orchestrator.service
       envFilePath: 'apps/ey-smart-checkin-orchestration-server/.env',
     }),
     OpenAiChatModelModule.registerAsync(),
+    OutputFormatterModule,
     AiAgentModule.forFeatureAsync({
       imports: [ConfigModule, OpenAiChatModelModule.registerAsync()],
       inject: [ConfigService],

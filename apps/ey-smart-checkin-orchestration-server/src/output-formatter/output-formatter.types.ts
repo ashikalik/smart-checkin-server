@@ -13,5 +13,6 @@ export type OutputFormat =
     }
   | {
       type: 'json';
+      field?: string;
     }
   | Record<string, string>;
