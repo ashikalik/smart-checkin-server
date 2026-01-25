@@ -129,25 +129,39 @@ export class AiAgentService implements OnModuleInit, OnModuleDestroy {
 
     let previousResponseId: string | undefined;
     let finalText: string | undefined;
-    let remainingCalls = options?.maxModelCalls ?? this.config.maxModelCalls ?? 8;
-    let forceToolUse = options?.enforceToolUse ?? false;
+    const systemPrompt = options?.systemPrompt ?? this.config.systemPrompt;
+    const continuePrompt = options?.continuePrompt ?? this.config.continuePrompt;
+    const computedNotesTemplate = options?.computedNotesTemplate ?? this.config.computedNotesTemplate;
+    const maxModelCalls = options?.maxModelCalls ?? this.config.maxModelCalls;
+    const enforceToolUse = options?.enforceToolUse ?? false;
+    const toolUsePrompt = options?.toolUsePrompt;
+
+    if (!systemPrompt) {
+      throw new Error('AI_AGENT_SYSTEM_PROMPT is not set');
+    }
+    if (!continuePrompt) {
+      throw new Error('AI_AGENT_CONTINUE_PROMPT is not set');
+    }
+    if (!computedNotesTemplate) {
+      throw new Error('AI_AGENT_COMPUTED_NOTES_TEMPLATE is not set');
+    }
+    if (!maxModelCalls) {
+      throw new Error('AI_AGENT_MAX_CALLS is not set');
+    }
+    if (enforceToolUse && !toolUsePrompt) {
+      throw new Error('AI_AGENT_TOOL_USE_PROMPT is not set');
+    }
+
+    let remainingCalls = maxModelCalls;
+    let forceToolUse = enforceToolUse;
     let enforcementRetries = 0;
     const maxEnforcementRetries = options?.maxToolEnforcementRetries ?? 3;
     const computedNotes: string[] = [];
-    const systemPrompt = options?.systemPrompt ?? this.config.systemPrompt ?? 'You are an orchestration agent.';
-    const continuePrompt = options?.continuePrompt ?? this.config.continuePrompt ?? 'Continue. Use tools if needed.';
-    const computedNotesTemplate =
-      options?.computedNotesTemplate ??
-      this.config.computedNotesTemplate ??
-      'Goal: {goal}\nAllowed numbers: {allowed}\nComputed results so far:\n{notes}\nUse these results. If the goal is fully solved, provide the final answer only. Do not recompute steps.';
     const toolNames = tools
       .map((tool) => (tool && typeof tool === 'object' ? (tool as { name?: string }).name : undefined))
       .filter((name): name is string => typeof name === 'string');
     const toolListText = toolNames.length > 0 ? toolNames.join(', ') : 'no tools available';
-    const toolUsePrompt =
-      options?.toolUsePrompt ??
-      'You must call one or more tools for every step. Do not respond with plain text. Use only the numbers from the goal. Goal: {goal}\nAllowed numbers: {allowed}\nAvailable tools: {tools}';
-    const defaultToolChoice = options?.toolChoice ?? 'auto';
+    const defaultToolChoice = options?.toolChoice;
     const toolChoiceFor = (required: boolean): 'required' | 'auto' | undefined => {
       if (!toolsPayload) {
         return undefined;
@@ -161,7 +175,10 @@ export class AiAgentService implements OnModuleInit, OnModuleDestroy {
     while (remainingCalls > 0) {
       const allowedListText = allowedNumbers ? [...allowedNumbers].join(', ') : 'not enforced';
       const userText = forceToolUse
-        ? toolUsePrompt.replace('{goal}', goal).replace('{tools}', toolListText).replace('{allowed}', allowedListText)
+        ? toolUsePrompt
+            .replace('{goal}', goal)
+            .replace('{tools}', toolListText)
+            .replace('{allowed}', allowedListText)
         : previousResponseId
           ? continuePrompt
           : goal;

@@ -15,9 +15,11 @@ export class OpenAiChatModelService {
   async createResponse(payload: Record<string, unknown>): Promise<OpenAiResponse> {
     const apiKey = this.config.apiKey;
     const model = this.config.model;
-    const baseUrl = this.config.baseUrl ?? 'https://api.openai.com/v1';
+    const baseUrl = this.config.baseUrl;
 
-    this.logger.debug(`OPENAI_API_KEY loaded: ${Boolean(apiKey)}`);
+    if (this.config.logRequests) {
+      this.logger.debug(`OPENAI_API_KEY loaded: ${Boolean(apiKey)}`);
+    }
 
     if (!apiKey) {
       throw new Error('OPENAI_API_KEY is not set');
@@ -25,22 +27,31 @@ export class OpenAiChatModelService {
     if (!model) {
       throw new Error('OPENAI_MODEL is not set');
     }
+    if (!baseUrl) {
+      throw new Error('OPENAI_BASE_URL is not set');
+    }
+
+    const instructions =
+      (payload as { instructions?: string }).instructions ?? this.config.instructions;
+    if (!instructions) {
+      throw new Error('OPENAI_DEFAULT_INSTRUCTIONS is not set');
+    }
 
     const requestBody = {
       model,
-      instructions:
-        this.config.instructions ??
-        'You are an orchestration agent. You MUST use tools for every arithmetic or percentage calculation step. Do not do math in your head. Use tools repeatedly until all math is done. Return a concise final answer.',
+      instructions,
       ...payload,
     };
 
-    this.logger.debug(
-      `OpenAI request payload: ${JSON.stringify({
-        ...requestBody,
-        // Avoid logging large/binary or sensitive blobs.
-        input: (payload as { input?: unknown }).input,
-      })}`,
-    );
+    if (this.config.logRequests) {
+      this.logger.debug(
+        `OpenAI request payload: ${JSON.stringify({
+          ...requestBody,
+          // Avoid logging large/binary or sensitive blobs.
+          input: (payload as { input?: unknown }).input,
+        })}`,
+      );
+    }
 
     const res = await fetch(`${baseUrl}/responses`, {
       method: 'POST',
@@ -74,9 +85,4 @@ export class OpenAiChatModelService {
     return textItem?.text;
   }
 
-  needsMoreTools(text: string): boolean {
-    const hasDigits = /\d/.test(text);
-    const hasMathWords = /\b(add|subtract|multiply|divide|percent|percentage|times|sum|total|plus|minus|over)\b/i.test(text);
-    return hasDigits && hasMathWords;
-  }
 }

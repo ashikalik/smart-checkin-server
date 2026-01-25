@@ -32,6 +32,11 @@ export class OpenAiChatModelModule {
             model: overrides?.model ?? configService.get<string>('OPENAI_MODEL'),
             baseUrl: overrides?.baseUrl ?? configService.get<string>('OPENAI_BASE_URL'),
             instructions: overrides?.instructions ?? configService.get<string>('OPENAI_DEFAULT_INSTRUCTIONS'),
+            logRequests:
+              overrides?.logRequests ??
+              (configService.get<string>('OPENAI_LOG_REQUESTS')
+                ? configService.get<string>('OPENAI_LOG_REQUESTS') === 'true'
+                : undefined),
           }),
         },
         OpenAiChatModelService,

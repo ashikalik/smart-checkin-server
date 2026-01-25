@@ -3,6 +3,7 @@ export type OpenAiChatModelConfig = {
   model?: string;
   baseUrl?: string;
   instructions?: string;
+  logRequests?: boolean;
 };
 
 export const OPEN_AI_CHAT_MODEL_CONFIG = Symbol('OPEN_AI_CHAT_MODEL_CONFIG');
