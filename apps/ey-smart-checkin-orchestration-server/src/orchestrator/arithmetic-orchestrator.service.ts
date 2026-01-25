@@ -5,7 +5,7 @@ import { AiAgentStep } from '../ai-agent/ai-agent.types';
 import { OpenAiChatModelService } from '../open-ai-chat-model/open-ai-chat-model.service';
 
 @Injectable()
-export class OrchestratorService {
+export class ArithmeticOrchestratorService {
   constructor(
     private readonly agent: AiAgentService,
     private readonly chatModel: OpenAiChatModelService,

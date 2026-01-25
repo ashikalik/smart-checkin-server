@@ -3,8 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AiAgentModule } from '../ai-agent/ai-agent.module';
 import { resolveMcpServers } from '../ai-agent/ai-agent.service';
 import { OpenAiChatModelModule } from '../open-ai-chat-model/open-ai-chat-model.module';
-import { OrchestratorController } from './orchestrator.controller';
-import { OrchestratorService } from './orchestrator.service';
+import { ArithmeticOrchestratorController } from './arithmetic-orchestrator.controller';
+import { ArithmeticOrchestratorService } from './arithmetic-orchestrator.service';
 
 @Module({
   imports: [
@@ -34,10 +34,10 @@ import { OrchestratorService } from './orchestrator.service';
       }),
     }),
   ],
-  controllers: [OrchestratorController],
-  providers: [OrchestratorService],
+  controllers: [ArithmeticOrchestratorController],
+  providers: [ArithmeticOrchestratorService],
 })
-export class OrchestratorModule {}
+export class ArithmeticOrchestratorModule {}
 
 const parseNumber = (value?: string): number | undefined => {
   if (!value) {

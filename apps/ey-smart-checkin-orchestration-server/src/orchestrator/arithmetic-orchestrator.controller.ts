@@ -1,13 +1,13 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
-import { OrchestratorService } from './orchestrator.service';
+import { ArithmeticOrchestratorService } from './arithmetic-orchestrator.service';
 
 type RunRequest = {
   goal: string;
 };
 
 @Controller('orchestrator')
-export class OrchestratorController {
-  constructor(private readonly orchestrator: OrchestratorService) {}
+export class ArithmeticOrchestratorController {
+  constructor(private readonly orchestrator: ArithmeticOrchestratorService) {}
 
   @Get('tools')
   listTools() {
