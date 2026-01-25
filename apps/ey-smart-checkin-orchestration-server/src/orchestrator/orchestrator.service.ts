@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import { OpenAiAgentService } from '../open-ai-agent/open-ai-agent.service';
 
 type OrchestratorStep = {
   action: string;
@@ -10,19 +11,6 @@ type OrchestratorStep = {
   error?: string;
 };
 
-type OpenAiResponse = {
-  id: string;
-  output?: Array<Record<string, unknown>>;
-  output_text?: string;
-};
-
-type OpenAiToolCall = {
-  type: 'function_call';
-  name: string;
-  arguments: string;
-  call_id: string;
-};
-
 @Injectable()
 export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(OrchestratorService.name);
@@ -30,6 +18,8 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
   private transport?: StreamableHTTPClientTransport;
   private initialized = false;
   private initializing?: Promise<void>;
+
+  constructor(private readonly openAiAgent: OpenAiAgentService) {}
 
   async onModuleInit(): Promise<void> {
     await this.ensureConnected();
@@ -64,7 +54,7 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
           ? 'Continue. Use tools if needed.'
           : goal;
 
-      const response = await this.createOpenAiResponse({
+      const response = await this.openAiAgent.createResponse({
         input: [
           {
             type: 'message',
@@ -79,10 +69,10 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
       previousResponseId = response.id;
       forceToolUse = false;
 
-      const toolCalls = this.extractToolCalls(response);
+      const toolCalls = this.openAiAgent.extractToolCalls(response);
       if (toolCalls.length === 0) {
-        finalText = response.output_text ?? this.extractOutputText(response.output);
-        if (finalText && this.needsMoreTools(finalText)) {
+        finalText = response.output_text ?? this.openAiAgent.extractOutputText(response.output);
+        if (finalText && this.openAiAgent.needsMoreTools(finalText)) {
           forceToolUse = true;
           continue;
         }
@@ -104,7 +94,14 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
 
         const toolResult = await this.callTool(call.name, args);
         steps.push({ action: 'call-tool', tool: call.name, args, result: toolResult });
-        computedNotes.push(this.formatToolNote(call.name, args, toolResult));
+        computedNotes.push(
+          this.openAiAgent.formatToolNote(
+            call.name,
+            args,
+            toolResult,
+            this.extractNumberFromToolResult(toolResult),
+          ),
+        );
 
         toolOutputs.push({
           type: 'function_call_output',
@@ -117,7 +114,7 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
         break;
       }
 
-      const followup = await this.createOpenAiResponse({
+      const followup = await this.openAiAgent.createResponse({
         input: [
           ...toolOutputs,
           {
@@ -136,14 +133,14 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
       remainingCalls -= 1;
       previousResponseId = followup.id;
 
-      const followupToolCalls = this.extractToolCalls(followup);
+      const followupToolCalls = this.openAiAgent.extractToolCalls(followup);
       if (followupToolCalls.length > 0) {
         // Continue loop; model asked for more tools after seeing outputs.
         continue;
       }
 
-      finalText = followup.output_text ?? this.extractOutputText(followup.output);
-      if (finalText && this.needsMoreTools(finalText)) {
+      finalText = followup.output_text ?? this.openAiAgent.extractOutputText(followup.output);
+      if (finalText && this.openAiAgent.needsMoreTools(finalText)) {
         forceToolUse = true;
         continue;
       }
@@ -207,107 +204,7 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
 
   private async buildOpenAiTools(): Promise<unknown[]> {
     const result = await this.listTools();
-    const tools = (result as { tools?: Array<Record<string, unknown>> }).tools ?? [];
-
-    return tools
-      .filter((tool) => typeof tool?.name === 'string')
-      .map((tool) => {
-        const parameters = this.ensureObjectSchema(tool.inputSchema);
-        return {
-          type: 'function',
-          name: tool.name as string,
-          description: tool.description as string | undefined,
-          parameters,
-          strict: true,
-        };
-      });
-  }
-
-  private ensureObjectSchema(schema: unknown): Record<string, unknown> {
-    if (!schema || typeof schema !== 'object') {
-      return { type: 'object', properties: {}, additionalProperties: false };
-    }
-    const typed = schema as Record<string, unknown>;
-    const withType = typed.type ? typed : { ...typed, type: 'object' };
-    if (!withType.properties) {
-      (withType as Record<string, unknown>).properties = {};
-    }
-    if (withType.additionalProperties === undefined) {
-      (withType as Record<string, unknown>).additionalProperties = false;
-    }
-    return withType;
-  }
-
-  private async createOpenAiResponse(payload: Record<string, unknown>): Promise<OpenAiResponse> {
-    const apiKey = process.env.OPENAI_API_KEY;
-    const model = process.env.OPENAI_MODEL;
-    const baseUrl = process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1';
-
-    this.logger.debug(`OPENAI_API_KEY loaded: ${Boolean(apiKey)}`);
-
-    if (!apiKey) {
-      throw new Error('OPENAI_API_KEY is not set');
-    }
-    if (!model) {
-      throw new Error('OPENAI_MODEL is not set');
-    }
-
-    const res = await fetch(`${baseUrl}/responses`, {
-      method: 'POST',
-      headers: {
-        authorization: `Bearer ${apiKey}`,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        instructions:
-          'You are an orchestration agent. You MUST use tools for every arithmetic or percentage calculation step. Do not do math in your head. Use tools repeatedly until all math is done. Return a concise final answer.',
-        ...payload,
-      }),
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`OpenAI API error ${res.status}: ${text}`);
-    }
-
-    return (await res.json()) as OpenAiResponse;
-  }
-
-  private extractToolCalls(response: OpenAiResponse): OpenAiToolCall[] {
-    const output = response.output ?? [];
-    return output.filter((item) => item?.type === 'function_call') as OpenAiToolCall[];
-  }
-
-  private extractOutputText(output?: Array<Record<string, unknown>>): string | undefined {
-    if (!output) {
-      return undefined;
-    }
-    const message = output.find((item) => item.type === 'message');
-    const content = message?.content as Array<{ type?: string; text?: string }> | undefined;
-    const textItem = content?.find((c) => c.type === 'output_text');
-    return textItem?.text;
-  }
-
-  private formatToolNote(name: string, args: Record<string, unknown>, result: unknown): string {
-    const argsText = JSON.stringify(args);
-    const resultText = this.extractNumberFromToolResult(result) ?? this.extractTextFromToolResult(result);
-    const display = resultText ?? JSON.stringify(result);
-    return `${name}(${argsText}) => ${display}`;
-  }
-
-  private extractTextFromToolResult(result: unknown): string | undefined {
-    if (!result || typeof result !== 'object') {
-      return undefined;
-    }
-    const content = (result as { content?: Array<{ text?: string }> }).content;
-    return content?.[0]?.text;
-  }
-
-  private needsMoreTools(text: string): boolean {
-    const hasDigits = /\d/.test(text);
-    const hasMathWords = /\b(add|subtract|multiply|divide|percent|percentage|times|sum|total|plus|minus|over)\b/i.test(text);
-    return hasDigits && hasMathWords;
+    return this.openAiAgent.buildTools(result);
   }
 
   private async tryDeterministicPercentSumMultiply(
