@@ -26,19 +26,29 @@ export class OpenAiChatModelService {
       throw new Error('OPENAI_MODEL is not set');
     }
 
+    const requestBody = {
+      model,
+      instructions:
+        this.config.instructions ??
+        'You are an orchestration agent. You MUST use tools for every arithmetic or percentage calculation step. Do not do math in your head. Use tools repeatedly until all math is done. Return a concise final answer.',
+      ...payload,
+    };
+
+    this.logger.debug(
+      `OpenAI request payload: ${JSON.stringify({
+        ...requestBody,
+        // Avoid logging large/binary or sensitive blobs.
+        input: (payload as { input?: unknown }).input,
+      })}`,
+    );
+
     const res = await fetch(`${baseUrl}/responses`, {
       method: 'POST',
       headers: {
         authorization: `Bearer ${apiKey}`,
         'content-type': 'application/json',
       },
-      body: JSON.stringify({
-        model,
-        instructions:
-          this.config.instructions ??
-          'You are an orchestration agent. You MUST use tools for every arithmetic or percentage calculation step. Do not do math in your head. Use tools repeatedly until all math is done. Return a concise final answer.',
-        ...payload,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!res.ok) {

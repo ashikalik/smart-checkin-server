@@ -28,3 +28,18 @@ export type AiAgentStep = {
   result?: unknown;
   error?: string;
 };
+
+export type AiAgentRunOptions = {
+  systemPrompt?: string;
+  continuePrompt?: string;
+  computedNotesTemplate?: string;
+  maxModelCalls?: number;
+  enforceToolUse?: boolean;
+  toolUsePrompt?: string;
+  toolChoice?: 'required' | 'auto';
+  maxToolEnforcementRetries?: number;
+  enforceNumbersFromGoal?: boolean;
+  maxInvalidToolArgs?: number;
+  allowedTools?: string[];
+  blockedTools?: string[];
+};

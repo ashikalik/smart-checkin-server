@@ -6,6 +6,7 @@ import { OpenAiChatModelService } from '../open-ai-chat-model/open-ai-chat-model
 import {
   AI_AGENT_CONFIG,
   AiAgentConfig,
+  AiAgentRunOptions,
   AiAgentStep,
   McpServerConfig,
 } from './ai-agent.types';
@@ -113,22 +114,59 @@ export class AiAgentService implements OnModuleInit, OnModuleDestroy {
     return { tools };
   }
 
-  async runAgentLoop(goal: string): Promise<{ goal: string; steps: AiAgentStep[]; final: unknown }> {
+  async runAgentLoop(
+    goal: string,
+    options?: AiAgentRunOptions,
+  ): Promise<{ goal: string; steps: AiAgentStep[]; final: unknown }> {
     await this.initializeMcpServers();
 
     const steps: AiAgentStep[] = [];
     const tools = await this.buildChatModelTools();
+    const filteredTools = this.filterTools(tools, options?.allowedTools, options?.blockedTools);
+    const hasTools = filteredTools.length > 0;
+    const toolsPayload = hasTools ? filteredTools : undefined;
     steps.push({ action: 'list-tools', result: tools });
 
     let previousResponseId: string | undefined;
     let finalText: string | undefined;
-    let remainingCalls = this.config.maxModelCalls ?? 8;
+    let remainingCalls = options?.maxModelCalls ?? this.config.maxModelCalls ?? 8;
+    let forceToolUse = options?.enforceToolUse ?? false;
+    let enforcementRetries = 0;
+    const maxEnforcementRetries = options?.maxToolEnforcementRetries ?? 3;
     const computedNotes: string[] = [];
+    const systemPrompt = options?.systemPrompt ?? this.config.systemPrompt ?? 'You are an orchestration agent.';
+    const continuePrompt = options?.continuePrompt ?? this.config.continuePrompt ?? 'Continue. Use tools if needed.';
+    const computedNotesTemplate =
+      options?.computedNotesTemplate ??
+      this.config.computedNotesTemplate ??
+      'Goal: {goal}\nAllowed numbers: {allowed}\nComputed results so far:\n{notes}\nUse these results. If the goal is fully solved, provide the final answer only. Do not recompute steps.';
+    const toolNames = tools
+      .map((tool) => (tool && typeof tool === 'object' ? (tool as { name?: string }).name : undefined))
+      .filter((name): name is string => typeof name === 'string');
+    const toolListText = toolNames.length > 0 ? toolNames.join(', ') : 'no tools available';
+    const toolUsePrompt =
+      options?.toolUsePrompt ??
+      'You must call one or more tools for every step. Do not respond with plain text. Use only the numbers from the goal. Goal: {goal}\nAllowed numbers: {allowed}\nAvailable tools: {tools}';
+    const defaultToolChoice = options?.toolChoice ?? 'auto';
+    const toolChoiceFor = (required: boolean): 'required' | 'auto' | undefined => {
+      if (!toolsPayload) {
+        return undefined;
+      }
+      return required ? 'required' : defaultToolChoice;
+    };
+    const allowedNumbers = options?.enforceNumbersFromGoal ? new Set(this.extractNumbers(goal)) : undefined;
+    const maxInvalidToolArgs = options?.maxInvalidToolArgs ?? 5;
+    let invalidToolArgs = 0;
 
     while (remainingCalls > 0) {
-      const userText = previousResponseId ? this.config.continuePrompt ?? 'Continue. Use tools if needed.' : goal;
+      const allowedListText = allowedNumbers ? [...allowedNumbers].join(', ') : 'not enforced';
+      const userText = forceToolUse
+        ? toolUsePrompt.replace('{goal}', goal).replace('{tools}', toolListText).replace('{allowed}', allowedListText)
+        : previousResponseId
+          ? continuePrompt
+          : goal;
 
-      const response = await this.chatModel.createResponse({
+      let response = await this.chatModel.createResponse({
         input: [
           {
             type: 'message',
@@ -136,77 +174,107 @@ export class AiAgentService implements OnModuleInit, OnModuleDestroy {
             content: [{ type: 'input_text', text: userText }],
           },
         ],
-        tools,
+        ...(toolsPayload ? { tools: toolsPayload } : {}),
+        ...(toolChoiceFor(forceToolUse) ? { tool_choice: toolChoiceFor(forceToolUse) } : {}),
         previous_response_id: previousResponseId,
-        instructions:
-          this.config.systemPrompt ?? 'You are an orchestration agent.',
+        instructions: systemPrompt,
       });
       remainingCalls -= 1;
       previousResponseId = response.id;
 
-      const toolCalls = this.chatModel.extractToolCalls(response);
+      let toolCalls = this.chatModel.extractToolCalls(response);
       if (toolCalls.length === 0) {
         finalText = response.output_text ?? this.chatModel.extractOutputText(response.output);
+        if (options?.enforceToolUse && hasTools) {
+          enforcementRetries += 1;
+          if (enforcementRetries > maxEnforcementRetries) {
+            finalText =
+              finalText ??
+              `Tool enforcement failed after ${maxEnforcementRetries} retries. Check tool configuration.`;
+            break;
+          }
+          forceToolUse = true;
+          continue;
+        }
         break;
       }
+      forceToolUse = false;
 
-      const toolOutputs = [];
-      for (const call of toolCalls) {
-        let args: Record<string, unknown> = {};
-        try {
-          args = JSON.parse(call.arguments ?? '{}');
-        } catch (error) {
-          steps.push({
-            action: 'tool-args-parse-failed',
-            tool: call.name,
-            error: error instanceof Error ? error.message : String(error),
+      while (toolCalls.length > 0 && remainingCalls > 0) {
+        const toolOutputs = [];
+        for (const call of toolCalls) {
+          let args: Record<string, unknown> = {};
+          try {
+            args = JSON.parse(call.arguments ?? '{}');
+          } catch (error) {
+            steps.push({
+              action: 'tool-args-parse-failed',
+              tool: call.name,
+              error: error instanceof Error ? error.message : String(error),
+            });
+          }
+
+          if (allowedNumbers && !this.areToolArgsAllowed(args, allowedNumbers)) {
+            const errorMessage = 'Tool args must use numbers from the goal or prior tool results.';
+            steps.push({ action: 'call-tool', tool: call.name, args, error: errorMessage });
+            toolOutputs.push({
+              type: 'function_call_output',
+              call_id: call.call_id,
+              output: JSON.stringify({ error: errorMessage }),
+            });
+            invalidToolArgs += 1;
+            if (invalidToolArgs >= maxInvalidToolArgs) {
+              finalText = `Too many invalid tool arguments (${maxInvalidToolArgs}). Check prompt/tool usage.`;
+              toolCalls = [];
+              break;
+            }
+            continue;
+          }
+
+          const toolResult = await this.callTool(call.name, args);
+          steps.push({ action: 'call-tool', tool: call.name, args, result: toolResult });
+          computedNotes.push(this.formatToolNote(call.name, args, toolResult));
+          this.trackToolResultNumber(toolResult, allowedNumbers);
+
+          toolOutputs.push({
+            type: 'function_call_output',
+            call_id: call.call_id,
+            output: JSON.stringify(toolResult),
           });
         }
 
-        const toolResult = await this.callTool(call.name, args);
-        steps.push({ action: 'call-tool', tool: call.name, args, result: toolResult });
-        computedNotes.push(this.formatToolNote(call.name, args, toolResult));
-
-        toolOutputs.push({
-          type: 'function_call_output',
-          call_id: call.call_id,
-          output: JSON.stringify(toolResult),
+        response = await this.chatModel.createResponse({
+          input: [
+            ...toolOutputs,
+            {
+              type: 'message',
+              role: 'user',
+              content: [
+                {
+                  type: 'input_text',
+                  text: computedNotesTemplate
+                    .replace('{notes}', computedNotes.join('\n'))
+                    .replace('{goal}', goal)
+                    .replace('{allowed}', allowedListText),
+                },
+              ],
+            },
+          ],
+          ...(toolsPayload ? { tools: toolsPayload } : {}),
+          previous_response_id: previousResponseId,
+          ...(toolChoiceFor(false) ? { tool_choice: toolChoiceFor(false) } : {}),
+          instructions: systemPrompt,
         });
+        remainingCalls -= 1;
+        previousResponseId = response.id;
+
+        toolCalls = this.chatModel.extractToolCalls(response);
+        if (toolCalls.length === 0) {
+          finalText = response.output_text ?? this.chatModel.extractOutputText(response.output);
+          break;
+        }
       }
 
-      if (remainingCalls <= 0) {
-        break;
-      }
-
-      const followup = await this.chatModel.createResponse({
-        input: [
-          ...toolOutputs,
-          {
-            type: 'message',
-            role: 'user',
-            content: [
-              {
-                type: 'input_text',
-                text:
-                  this.config.computedNotesTemplate?.replace('{notes}', computedNotes.join('\n')) ??
-                  `Computed results so far:\n${computedNotes.join('\n')}\nUse these results. If the goal is fully solved, provide the final answer only. Do not recompute steps.`,
-              },
-            ],
-          },
-        ],
-        previous_response_id: previousResponseId,
-        instructions:
-          this.config.systemPrompt ?? 'You are an orchestration agent.',
-      });
-      remainingCalls -= 1;
-      previousResponseId = followup.id;
-
-      const followupToolCalls = this.chatModel.extractToolCalls(followup);
-      if (followupToolCalls.length > 0) {
-        continue;
-      }
-
-      finalText = followup.output_text ?? this.chatModel.extractOutputText(followup.output);
       if (finalText) {
         break;
       }
@@ -365,6 +433,76 @@ export class AiAgentService implements OnModuleInit, OnModuleDestroy {
     }
     const content = (result as { content?: Array<{ text?: string }> }).content;
     return content?.[0]?.text;
+  }
+
+  private filterTools(
+    tools: unknown[],
+    allowedTools?: string[],
+    blockedTools?: string[],
+  ): Array<Record<string, unknown>> {
+    const allowedSet = allowedTools ? new Set(allowedTools) : undefined;
+    const blockedSet = blockedTools ? new Set(blockedTools) : undefined;
+    return tools.filter((tool) => {
+      if (!tool || typeof tool !== 'object') {
+        return false;
+      }
+      const name = (tool as { name?: string }).name;
+      if (typeof name !== 'string') {
+        return false;
+      }
+      if (blockedSet?.has(name)) {
+        return false;
+      }
+      if (allowedSet) {
+        return allowedSet.has(name);
+      }
+      return true;
+    }) as Array<Record<string, unknown>>;
+  }
+
+  private extractNumbers(text: string): number[] {
+    const matches = text.match(/-?\d+(?:\.\d+)?/g) ?? [];
+    return matches.map((value) => Number(value)).filter((value) => Number.isFinite(value));
+  }
+
+  private extractNumbersFromArgs(args: Record<string, unknown>): number[] {
+    const values: number[] = [];
+    for (const value of Object.values(args)) {
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        values.push(value);
+      } else if (typeof value === 'string') {
+        const parsed = Number(value);
+        if (Number.isFinite(parsed)) {
+          values.push(parsed);
+        }
+      }
+    }
+    return values;
+  }
+
+  private areToolArgsAllowed(args: Record<string, unknown>, allowed?: Set<number>): boolean {
+    if (!allowed) {
+      return true;
+    }
+    const numbers = this.extractNumbersFromArgs(args);
+    if (numbers.length === 0) {
+      return true;
+    }
+    return numbers.every((value) => allowed.has(value));
+  }
+
+  private trackToolResultNumber(result: unknown, allowed?: Set<number>): void {
+    if (!allowed) {
+      return;
+    }
+    const text = this.extractTextFromToolResult(result);
+    if (!text) {
+      return;
+    }
+    const parsed = Number(text);
+    if (Number.isFinite(parsed)) {
+      allowed.add(parsed);
+    }
   }
 
 }
