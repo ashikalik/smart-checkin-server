@@ -1,11 +1,11 @@
-export type OpenAiAgentConfig = {
+export type OpenAiChatModelConfig = {
   apiKey?: string;
   model?: string;
   baseUrl?: string;
   instructions?: string;
 };
 
-export const OPEN_AI_AGENT_CONFIG = Symbol('OPEN_AI_AGENT_CONFIG');
+export const OPEN_AI_CHAT_MODEL_CONFIG = Symbol('OPEN_AI_CHAT_MODEL_CONFIG');
 
 export type OpenAiResponse = {
   id: string;

@@ -1,0 +1,695 @@
+{
+    "journeys": [
+        {
+            "acceptance": {
+                "isAccepted": false,
+                "isPartial": false,
+                "isVoluntaryDeniedBoarding": false,
+                "notCheckedInJourneyElements": [
+                    {
+                        "id": "600345CF000A8602"
+                    },
+                    {
+                        "id": "600345CF000A8604"
+                    },
+                    {
+                        "id": "600345CF000A8603"
+                    },
+                    {
+                        "id": "600345CF000A8605"
+                    }
+                ]
+            },
+            "acceptanceEligibility": {
+                "eligibilityWindow": {
+                    "closingDateAndTime": "2026-01-23T07:00:00+04:00",
+                    "openingDateAndTime": "2026-01-22T02:00:00+04:00"
+                },
+                "reasons": [
+                    "regulatoryDetailsInhibition"
+                ],
+                "status": "partial"
+            },
+            "contacts": [
+                {
+                    "address": "HUSKE.KARUNESH@YOPMAIL.COM",
+                    "category": "personal",
+                    "contactType": "Email",
+                    "id": "610425D00004A41A_4bd5c288",
+                    "lang": "en",
+                    "purpose": "notification",
+                    "travelerIds": [
+                        "610425D00004A41A"
+                    ]
+                },
+                {
+                    "category": "personal",
+                    "contactType": "Phone",
+                    "countryPhoneExtension": "91",
+                    "id": "610425D00004A41A_c4a25720",
+                    "number": "9087654321",
+                    "purpose": "notification",
+                    "travelerIds": [
+                        "610425D00004A41A"
+                    ]
+                },
+                {
+                    "address": "HUSKE.KARUNESH@YOPMAIL.COM",
+                    "category": "personal",
+                    "contactType": "Email",
+                    "id": "610425D00004A41B_4bd5c288",
+                    "lang": "en",
+                    "purpose": "notification",
+                    "travelerIds": [
+                        "610425D00004A41B"
+                    ]
+                },
+                {
+                    "category": "personal",
+                    "contactType": "Phone",
+                    "countryPhoneExtension": "91",
+                    "id": "610425D00004A41B_c4a25720",
+                    "number": "9087654321",
+                    "purpose": "notification",
+                    "travelerIds": [
+                        "610425D00004A41B"
+                    ]
+                }
+            ],
+            "flights": [
+                {
+                    "id": "EY-202-20260123",
+                    "acceptanceStatus": "opened",
+                    "aircraftCode": "32A",
+                    "arrival": {
+                        "dateTime": "2026-01-23T12:35:00+05:30",
+                        "locationCode": "BOM",
+                        "terminal": "2"
+                    },
+                    "departure": {
+                        "dateTime": "2026-01-23T08:00:00+04:00",
+                        "locationCode": "AUH",
+                        "terminal": "A"
+                    },
+                    "duration": 11100,
+                    "isIATCI": false,
+                    "isPilgrimConfirmationRequired": false,
+                    "marketingAirlineCode": "EY",
+                    "marketingFlightNumber": "202",
+                    "operatingAirlineCode": "EY",
+                    "operatingAirlineFlightNumber": "202",
+                    "operatingAirlineName": "ETIHAD AIRWAYS",
+                    "operatingFlightNumber": "202",
+                    "status": "scheduled"
+                },
+                {
+                    "id": "AI-637-20260123",
+                    "acceptanceStatus": "notOpened",
+                    "aircraftCode": "32N",
+                    "arrival": {
+                        "dateTime": "2026-01-23T19:55:00+05:30",
+                        "locationCode": "AMD"
+                    },
+                    "departure": {
+                        "dateTime": "2026-01-23T18:35:00+05:30",
+                        "locationCode": "BOM"
+                    },
+                    "duration": 4800,
+                    "isIATCI": true,
+                    "isPilgrimConfirmationRequired": false,
+                    "marketingAirlineCode": "AI",
+                    "marketingFlightNumber": "637",
+                    "operatingAirlineCode": "AI",
+                    "operatingAirlineFlightNumber": "637",
+                    "operatingAirlineName": "AIR INDIA",
+                    "operatingFlightNumber": "637",
+                    "status": "notOperated"
+                }
+            ],
+            "id": "83957A3F8D8455ED287880723A99E6D5B4C9C6A31769255987",
+            "isGroupBooking": false,
+            "journeyElements": [
+                {
+                    "id": "600345CF000A8602",
+                    "acceptanceEligibility": {
+                        "eligibilityWindow": {
+                            "closingDateAndTime": "2026-01-23T07:00:00+04:00",
+                            "openingDateAndTime": "2026-01-22T02:00:00+04:00"
+                        },
+                        "status": "eligible"
+                    },
+                    "boardingPassEligibility": {
+                        "reasons": [
+                            "passengerNotAccepted"
+                        ],
+                        "status": "ineligible"
+                    },
+                    "boardingPassPrintStatus": "notPrinted",
+                    "boardingStatus": "notBoarded",
+                    "cabin": "Y",
+                    "checkInStatus": "notAccepted",
+                    "fareFamily": {
+                        "code": "EY-YDELUXE"
+                    },
+                    "flightId": "EY-202-20260123",
+                    "orderId": "9CA7MF",
+                    "regulatoryProgramsCheckStatuses": [
+                        {
+                            "regulatoryProgram": {
+                                "name": "ADC"
+                            },
+                            "statuses": [
+                                {
+                                    "statusCode": "N"
+                                }
+                            ]
+                        }
+                    ],
+                    "seatmapEligibility": {
+                        "status": "eligible"
+                    },
+                    "travelerId": "610425D00004A41A"
+                },
+                {
+                    "id": "600345CF000A8604",
+                    "acceptanceEligibility": {
+                        "eligibilityWindow": {
+                            "closingDateAndTime": "2026-01-23T18:35:00+05:30",
+                            "openingDateAndTime": "2026-01-23T18:35:00+05:30"
+                        },
+                        "status": "eligible"
+                    },
+                    "boardingPassEligibility": {
+                        "reasons": [
+                            "passengerNotAccepted"
+                        ],
+                        "status": "ineligible"
+                    },
+                    "boardingPassPrintStatus": "notPrinted",
+                    "boardingStatus": "notBoarded",
+                    "cabin": "Y",
+                    "checkInStatus": "notAccepted",
+                    "flightId": "AI-637-20260123",
+                    "orderId": "9CA7MF",
+                    "regulatoryProgramsCheckStatuses": [
+                        {
+                            "regulatoryProgram": {
+                                "name": "ADC"
+                            },
+                            "statuses": [
+                                {
+                                    "statusCode": "N"
+                                }
+                            ]
+                        }
+                    ],
+                    "seatmapEligibility": {
+                        "status": "eligible"
+                    },
+                    "travelerId": "610425D00004A41A"
+                },
+                {
+                    "id": "600345CF000A8603",
+                    "acceptanceEligibility": {
+                        "eligibilityWindow": {
+                            "closingDateAndTime": "2026-01-23T07:00:00+04:00",
+                            "openingDateAndTime": "2026-01-22T02:00:00+04:00"
+                        },
+                        "reasons": [
+                            "regulatoryDetailsInhibition"
+                        ],
+                        "status": "ineligible"
+                    },
+                    "boardingPassEligibility": {
+                        "reasons": [
+                            "passengerNotAccepted"
+                        ],
+                        "status": "ineligible"
+                    },
+                    "boardingPassPrintStatus": "notPrinted",
+                    "boardingStatus": "notBoarded",
+                    "cabin": "Y",
+                    "checkInStatus": "notAccepted",
+                    "fareFamily": {
+                        "code": "EY-YDELUXE"
+                    },
+                    "flightId": "EY-202-20260123",
+                    "orderId": "9CA7MF",
+                    "regulatoryProgramsCheckStatuses": [
+                        {
+                            "regulatoryProgram": {
+                                "name": "ADC"
+                            },
+                            "statuses": [
+                                {
+                                    "statusCode": "N"
+                                }
+                            ]
+                        }
+                    ],
+                    "seatmapEligibility": {
+                        "status": "eligible"
+                    },
+                    "travelerId": "610425D00004A41B"
+                },
+                {
+                    "id": "600345CF000A8605",
+                    "acceptanceEligibility": {
+                        "eligibilityWindow": {
+                            "closingDateAndTime": "2026-01-23T18:35:00+05:30",
+                            "openingDateAndTime": "2026-01-23T18:35:00+05:30"
+                        },
+                        "status": "eligible"
+                    },
+                    "boardingPassEligibility": {
+                        "reasons": [
+                            "passengerNotAccepted"
+                        ],
+                        "status": "ineligible"
+                    },
+                    "boardingPassPrintStatus": "notPrinted",
+                    "boardingStatus": "notBoarded",
+                    "cabin": "Y",
+                    "checkInStatus": "notAccepted",
+                    "flightId": "AI-637-20260123",
+                    "orderId": "9CA7MF",
+                    "regulatoryProgramsCheckStatuses": [
+                        {
+                            "regulatoryProgram": {
+                                "name": "ADC"
+                            },
+                            "statuses": [
+                                {
+                                    "statusCode": "N"
+                                }
+                            ]
+                        }
+                    ],
+                    "seatmapEligibility": {
+                        "status": "eligible"
+                    },
+                    "travelerId": "610425D00004A41B"
+                }
+            ],
+            "services": [
+                {
+                    "descriptions": [
+                        {
+                            "content": "PRCO",
+                            "type": "shortText"
+                        }
+                    ],
+                    "flightIds": [
+                        "EY-202-20260123"
+                    ],
+                    "statusCode": "MCF",
+                    "travelerId": "610425D00004A41A"
+                },
+                {
+                    "descriptions": [
+                        {
+                            "content": "PRCO",
+                            "type": "shortText"
+                        }
+                    ],
+                    "flightIds": [
+                        "EY-202-20260123"
+                    ],
+                    "statusCode": "MCF",
+                    "travelerId": "610425D00004A41B"
+                }
+            ],
+            "travelers": [
+                {
+                    "dateOfBirth": "2014-01-22",
+                    "gender": "male",
+                    "id": "610425D00004A41A",
+                    "isPilgrimConfirmationProvided": false,
+                    "names": [
+                        {
+                            "firstName": "ASJD",
+                            "lastName": "TESTK",
+                            "nameType": "universal",
+                            "title": "MR"
+                        }
+                    ],
+                    "passengerTypeCode": "ADT"
+                },
+                {
+                    "gender": "female",
+                    "id": "610425D00004A41B",
+                    "isPilgrimConfirmationProvided": false,
+                    "names": [
+                        {
+                            "firstName": "KNJDSA",
+                            "lastName": "TESTK",
+                            "nameType": "universal",
+                            "title": "MRS"
+                        }
+                    ],
+                    "passengerTypeCode": "ADT"
+                }
+            ],
+            "type": "standalone"
+        }
+    ],
+    "journeyDictionary": {
+        "aircraft": {
+            "32A": "AIRBUS A320 (SHARKLETS)",
+            "32N": "AIRBUS A320NEO"
+        },
+        "airline": {
+            "AI": "AIR INDIA",
+            "EY": "ETIHAD AIRWAYS"
+        },
+        "country": {
+            "AE": "UNITED ARAB EMIRATES",
+            "IN": "INDIA"
+        },
+        "flight": {
+            "AI-637-20260123": {
+                "acceptanceStatus": "notOpened",
+                "aircraftCode": "32N",
+                "arrival": {
+                    "dateTime": "2026-01-23T19:55:00+05:30",
+                    "locationCode": "AMD"
+                },
+                "departure": {
+                    "dateTime": "2026-01-23T18:35:00+05:30",
+                    "locationCode": "BOM"
+                },
+                "duration": 4800,
+                "id": "AI-637-20260123",
+                "isIATCI": true,
+                "isPilgrimConfirmationRequired": false,
+                "marketingAirlineCode": "AI",
+                "marketingFlightNumber": "637",
+                "operatingAirlineCode": "AI",
+                "operatingAirlineFlightNumber": "637",
+                "operatingAirlineName": "AIR INDIA",
+                "operatingFlightNumber": "637",
+                "status": "notOperated"
+            },
+            "EY-202-20260123": {
+                "acceptanceStatus": "opened",
+                "aircraftCode": "32A",
+                "arrival": {
+                    "dateTime": "2026-01-23T12:35:00+05:30",
+                    "locationCode": "BOM",
+                    "terminal": "2"
+                },
+                "departure": {
+                    "dateTime": "2026-01-23T08:00:00+04:00",
+                    "locationCode": "AUH",
+                    "terminal": "A"
+                },
+                "duration": 11100,
+                "id": "EY-202-20260123",
+                "isIATCI": false,
+                "isPilgrimConfirmationRequired": false,
+                "marketingAirlineCode": "EY",
+                "marketingFlightNumber": "202",
+                "operatingAirlineCode": "EY",
+                "operatingAirlineFlightNumber": "202",
+                "operatingAirlineName": "ETIHAD AIRWAYS",
+                "operatingFlightNumber": "202",
+                "status": "scheduled"
+            }
+        },
+        "journeyElement": {
+            "600345CF000A8602": {
+                "acceptanceEligibility": {
+                    "eligibilityWindow": {
+                        "closingDateAndTime": "2026-01-23T07:00:00+04:00",
+                        "openingDateAndTime": "2026-01-22T02:00:00+04:00"
+                    },
+                    "status": "eligible"
+                },
+                "boardingPassEligibility": {
+                    "reasons": [
+                        "passengerNotAccepted"
+                    ],
+                    "status": "ineligible"
+                },
+                "boardingPassPrintStatus": "notPrinted",
+                "boardingStatus": "notBoarded",
+                "cabin": "Y",
+                "checkInStatus": "notAccepted",
+                "fareFamily": {
+                    "code": "EY-YDELUXE"
+                },
+                "flightId": "EY-202-20260123",
+                "id": "600345CF000A8602",
+                "orderId": "9CA7MF",
+                "regulatoryProgramsCheckStatuses": [
+                    {
+                        "regulatoryProgram": {
+                            "name": "ADC"
+                        },
+                        "statuses": [
+                            {
+                                "statusCode": "N"
+                            }
+                        ]
+                    }
+                ],
+                "seatmapEligibility": {
+                    "status": "eligible"
+                },
+                "travelerId": "610425D00004A41A"
+            },
+            "600345CF000A8603": {
+                "acceptanceEligibility": {
+                    "eligibilityWindow": {
+                        "closingDateAndTime": "2026-01-23T07:00:00+04:00",
+                        "openingDateAndTime": "2026-01-22T02:00:00+04:00"
+                    },
+                    "reasons": [
+                        "regulatoryDetailsInhibition"
+                    ],
+                    "status": "ineligible"
+                },
+                "boardingPassEligibility": {
+                    "reasons": [
+                        "passengerNotAccepted"
+                    ],
+                    "status": "ineligible"
+                },
+                "boardingPassPrintStatus": "notPrinted",
+                "boardingStatus": "notBoarded",
+                "cabin": "Y",
+                "checkInStatus": "notAccepted",
+                "fareFamily": {
+                    "code": "EY-YDELUXE"
+                },
+                "flightId": "EY-202-20260123",
+                "id": "600345CF000A8603",
+                "orderId": "9CA7MF",
+                "regulatoryProgramsCheckStatuses": [
+                    {
+                        "regulatoryProgram": {
+                            "name": "ADC"
+                        },
+                        "statuses": [
+                            {
+                                "statusCode": "N"
+                            }
+                        ]
+                    }
+                ],
+                "seatmapEligibility": {
+                    "status": "eligible"
+                },
+                "travelerId": "610425D00004A41B"
+            },
+            "600345CF000A8604": {
+                "acceptanceEligibility": {
+                    "eligibilityWindow": {
+                        "closingDateAndTime": "2026-01-23T18:35:00+05:30",
+                        "openingDateAndTime": "2026-01-23T18:35:00+05:30"
+                    },
+                    "status": "eligible"
+                },
+                "boardingPassEligibility": {
+                    "reasons": [
+                        "passengerNotAccepted"
+                    ],
+                    "status": "ineligible"
+                },
+                "boardingPassPrintStatus": "notPrinted",
+                "boardingStatus": "notBoarded",
+                "cabin": "Y",
+                "checkInStatus": "notAccepted",
+                "flightId": "AI-637-20260123",
+                "id": "600345CF000A8604",
+                "orderId": "9CA7MF",
+                "regulatoryProgramsCheckStatuses": [
+                    {
+                        "regulatoryProgram": {
+                            "name": "ADC"
+                        },
+                        "statuses": [
+                            {
+                                "statusCode": "N"
+                            }
+                        ]
+                    }
+                ],
+                "seatmapEligibility": {
+                    "status": "eligible"
+                },
+                "travelerId": "610425D00004A41A"
+            },
+            "600345CF000A8605": {
+                "acceptanceEligibility": {
+                    "eligibilityWindow": {
+                        "closingDateAndTime": "2026-01-23T18:35:00+05:30",
+                        "openingDateAndTime": "2026-01-23T18:35:00+05:30"
+                    },
+                    "status": "eligible"
+                },
+                "boardingPassEligibility": {
+                    "reasons": [
+                        "passengerNotAccepted"
+                    ],
+                    "status": "ineligible"
+                },
+                "boardingPassPrintStatus": "notPrinted",
+                "boardingStatus": "notBoarded",
+                "cabin": "Y",
+                "checkInStatus": "notAccepted",
+                "flightId": "AI-637-20260123",
+                "id": "600345CF000A8605",
+                "orderId": "9CA7MF",
+                "regulatoryProgramsCheckStatuses": [
+                    {
+                        "regulatoryProgram": {
+                            "name": "ADC"
+                        },
+                        "statuses": [
+                            {
+                                "statusCode": "N"
+                            }
+                        ]
+                    }
+                ],
+                "seatmapEligibility": {
+                    "status": "eligible"
+                },
+                "travelerId": "610425D00004A41B"
+            }
+        },
+        "location": {
+            "AMD": {
+                "airportName": "AHMEDABAD S.VALLABHBHAI",
+                "cityCode": "AMD",
+                "cityName": "AHMEDABAD",
+                "countryCode": "IN",
+                "stateCode": "GJ",
+                "type": "airport"
+            },
+            "AUH": {
+                "airportName": "ABU DHABI ZAYED INTERNATION",
+                "cityCode": "AUH",
+                "cityName": "ABU DHABI",
+                "countryCode": "AE",
+                "stateCode": "",
+                "type": "airport"
+            },
+            "BOM": {
+                "airportName": "MUMBAI CHHATRAPATI S MAH",
+                "cityCode": "BOM",
+                "cityName": "MUMBAI",
+                "countryCode": "IN",
+                "stateCode": "MH",
+                "type": "airport"
+            }
+        },
+        "traveler": {
+            "610425D00004A41A": {
+                "dateOfBirth": "2014-01-22",
+                "gender": "male",
+                "id": "610425D00004A41A",
+                "isPilgrimConfirmationProvided": false,
+                "names": [
+                    {
+                        "firstName": "ASJD",
+                        "lastName": "TESTK",
+                        "nameType": "universal",
+                        "title": "MR"
+                    }
+                ],
+                "passengerTypeCode": "ADT"
+            },
+            "610425D00004A41B": {
+                "gender": "female",
+                "id": "610425D00004A41B",
+                "isPilgrimConfirmationProvided": false,
+                "names": [
+                    {
+                        "firstName": "KNJDSA",
+                        "lastName": "TESTK",
+                        "nameType": "universal",
+                        "title": "MRS"
+                    }
+                ],
+                "passengerTypeCode": "ADT"
+            }
+        }
+    },
+    "genericEligibilities": [
+        {
+            "eligiblityName": "seatmapEligible",
+            "isEligible": true,
+            "journeyIds": [
+                "83957A3F8D8455ED287880723A99E6D5B4C9C6A31769255987"
+            ],
+            "journeyElementIds": [
+                "600345CF000A8603",
+                "600345CF000A8602"
+            ]
+        },
+        {
+            "eligiblityName": "canOneJourneyElementBeEligible",
+            "isEligible": true,
+            "journeyIds": [
+                "83957A3F8D8455ED287880723A99E6D5B4C9C6A31769255987"
+            ],
+            "journeyElementIds": null
+        },
+        {
+            "eligiblityName": "isWithinAcceptanceWindow",
+            "isEligible": true,
+            "journeyIds": [
+                "83957A3F8D8455ED287880723A99E6D5B4C9C6A31769255987"
+            ],
+            "journeyElementIds": null
+        },
+        {
+            "eligiblityName": "isCheckInEligibleOrPartial",
+            "isEligible": true,
+            "journeyIds": [
+                "83957A3F8D8455ED287880723A99E6D5B4C9C6A31769255987"
+            ],
+            "journeyElementIds": null
+        },
+        {
+            "eligiblityName": "isCheckInOpened",
+            "isEligible": true,
+            "journeyIds": [
+                "83957A3F8D8455ED287880723A99E6D5B4C9C6A31769255987"
+            ],
+            "journeyElementIds": null
+        },
+        {
+            "eligiblityName": "isCheckInEligibilityPartial",
+            "isEligible": true,
+            "journeyIds": [
+                "83957A3F8D8455ED287880723A99E6D5B4C9C6A31769255987"
+            ],
+            "journeyElementIds": null
+        }
+    ],
+    "warnings": [],
+    "errors": []
+}

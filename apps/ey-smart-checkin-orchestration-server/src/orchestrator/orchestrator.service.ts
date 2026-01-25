@@ -1,60 +1,49 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { OpenAiAgentService } from '../open-ai-agent/open-ai-agent.service';
-
-type OrchestratorStep = {
-  action: string;
-  tool?: string;
-  args?: Record<string, unknown>;
-  result?: unknown;
-  error?: string;
-};
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { AiAgentService } from '../ai-agent/ai-agent.service';
+import { AiAgentStep } from '../ai-agent/ai-agent.types';
+import { OpenAiChatModelService } from '../open-ai-chat-model/open-ai-chat-model.service';
 
 @Injectable()
-export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = new Logger(OrchestratorService.name);
-  private client?: Client;
-  private transport?: StreamableHTTPClientTransport;
-  private initialized = false;
-  private initializing?: Promise<void>;
+export class OrchestratorService {
+  constructor(
+    private readonly agent: AiAgentService,
+    private readonly chatModel: OpenAiChatModelService,
+    private readonly configService: ConfigService,
+  ) {}
 
-  constructor(private readonly openAiAgent: OpenAiAgentService) {}
-
-  async onModuleInit(): Promise<void> {
-    await this.ensureConnected();
+  listTools(): Promise<{ tools: Array<Record<string, unknown>> }> {
+    return this.agent.listTools();
   }
 
-  async onModuleDestroy(): Promise<void> {
-    await this.transport?.close();
-  }
-
-  async listTools(): Promise<unknown> {
-    await this.ensureConnected();
-    return this.client.listTools();
-  }
-
-  async runAgentLoop(goal: string): Promise<{ goal: string; steps: OrchestratorStep[]; final: unknown }> {
-    await this.ensureConnected();
-
-    const steps: OrchestratorStep[] = [];
-    const tools = await this.buildOpenAiTools();
+  async runAgentLoop(goal: string): Promise<{ goal: string; steps: AiAgentStep[]; final: unknown }> {
+    const steps: AiAgentStep[] = [];
+    const tools = await this.agent.buildChatModelTools();
+    const hasTools = tools.length > 0;
     steps.push({ action: 'list-tools', result: tools });
 
     let previousResponseId: string | undefined;
     let finalText: string | undefined;
     let forceToolUse = false;
-    let remainingCalls = 8;
+    let remainingCalls = this.parseNumber(this.configService.get<string>('ORCHESTRATOR_MAX_CALLS')) ?? 8;
     const computedNotes: string[] = [];
 
-    while (remainingCalls > 0) {
-      const userText = forceToolUse
-        ? 'You must use tools for every arithmetic step. Recompute using tools only.'
-        : previousResponseId
-          ? 'Continue. Use tools if needed.'
-          : goal;
+    const systemPrompt =
+      this.configService.get<string>('ORCHESTRATOR_SYSTEM_PROMPT') ??
+      'You are an orchestration agent. You MUST use tools for every arithmetic or percentage calculation step. Do not do math in your head. Use tools repeatedly until all math is done. Return a concise final answer.';
+    const toolUsePrompt =
+      this.configService.get<string>('ORCHESTRATOR_TOOL_USE_PROMPT') ??
+      'You must use tools for every arithmetic step. Recompute using tools only.';
+    const continuePrompt =
+      this.configService.get<string>('ORCHESTRATOR_CONTINUE_PROMPT') ?? 'Continue. Use tools if needed.';
+    const computedNotesTemplate =
+      this.configService.get<string>('ORCHESTRATOR_COMPUTED_NOTES_TEMPLATE') ??
+      'Computed results so far:\n{notes}\nUse these results. If the goal is fully solved, provide the final answer only. Do not recompute steps.';
 
-      const response = await this.openAiAgent.createResponse({
+    while (remainingCalls > 0) {
+      const userText = forceToolUse ? toolUsePrompt : previousResponseId ? continuePrompt : goal;
+
+      const response = await this.chatModel.createResponse({
         input: [
           {
             type: 'message',
@@ -64,15 +53,16 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
         ],
         tools,
         previous_response_id: previousResponseId,
+        instructions: systemPrompt,
       });
       remainingCalls -= 1;
       previousResponseId = response.id;
       forceToolUse = false;
 
-      const toolCalls = this.openAiAgent.extractToolCalls(response);
+      const toolCalls = this.chatModel.extractToolCalls(response);
       if (toolCalls.length === 0) {
-        finalText = response.output_text ?? this.openAiAgent.extractOutputText(response.output);
-        if (finalText && this.openAiAgent.needsMoreTools(finalText)) {
+        finalText = response.output_text ?? this.chatModel.extractOutputText(response.output);
+        if (hasTools && finalText && this.chatModel.needsMoreTools(finalText)) {
           forceToolUse = true;
           continue;
         }
@@ -92,16 +82,9 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
           });
         }
 
-        const toolResult = await this.callTool(call.name, args);
+        const toolResult = await this.agent.callTool(call.name, args);
         steps.push({ action: 'call-tool', tool: call.name, args, result: toolResult });
-        computedNotes.push(
-          this.openAiAgent.formatToolNote(
-            call.name,
-            args,
-            toolResult,
-            this.extractNumberFromToolResult(toolResult),
-          ),
-        );
+        computedNotes.push(this.formatToolNote(call.name, args, toolResult));
 
         toolOutputs.push({
           type: 'function_call_output',
@@ -114,7 +97,7 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
         break;
       }
 
-      const followup = await this.openAiAgent.createResponse({
+      const followup = await this.chatModel.createResponse({
         input: [
           ...toolOutputs,
           {
@@ -123,24 +106,24 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
             content: [
               {
                 type: 'input_text',
-                text: `Computed results so far:\n${computedNotes.join('\n')}\nUse these results. If the goal is fully solved, provide the final answer only. Do not recompute steps.`,
+                text: computedNotesTemplate.replace('{notes}', computedNotes.join('\n')),
               },
             ],
           },
         ],
         previous_response_id: previousResponseId,
+        instructions: systemPrompt,
       });
       remainingCalls -= 1;
       previousResponseId = followup.id;
 
-      const followupToolCalls = this.openAiAgent.extractToolCalls(followup);
+      const followupToolCalls = this.chatModel.extractToolCalls(followup);
       if (followupToolCalls.length > 0) {
-        // Continue loop; model asked for more tools after seeing outputs.
         continue;
       }
 
-      finalText = followup.output_text ?? this.openAiAgent.extractOutputText(followup.output);
-      if (finalText && this.openAiAgent.needsMoreTools(finalText)) {
+      finalText = followup.output_text ?? this.chatModel.extractOutputText(followup.output);
+      if (hasTools && finalText && this.chatModel.needsMoreTools(finalText)) {
         forceToolUse = true;
         continue;
       }
@@ -165,52 +148,25 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
     };
   }
 
-  private async callTool(name: string, args: Record<string, unknown>): Promise<unknown> {
-    await this.ensureConnected();
-    return this.client.callTool({ name, arguments: args });
+  private formatToolNote(name: string, args: Record<string, unknown>, result: unknown): string {
+    const argsText = JSON.stringify(args);
+    const resultText = this.extractNumberFromToolResult(result) ?? this.extractTextFromToolResult(result);
+    const display = resultText ?? JSON.stringify(result);
+    return `${name}(${argsText}) => ${display}`;
   }
 
-  private async ensureConnected(): Promise<void> {
-    if (this.initialized) {
-      return;
+  private extractTextFromToolResult(result: unknown): string | undefined {
+    if (!result || typeof result !== 'object') {
+      return undefined;
     }
-
-    if (this.initializing) {
-      await this.initializing;
-      return;
-    }
-
-    this.initializing = this.initializeClient();
-    await this.initializing;
-    this.initializing = undefined;
-  }
-
-  private async initializeClient(): Promise<void> {
-    if (this.initialized) {
-      return;
-    }
-
-    const serverUrl = process.env.MCP_SERVER_URL ?? 'http://localhost:3000/mcp';
-    this.transport = new StreamableHTTPClientTransport(new URL(serverUrl));
-    this.client = new Client({
-      name: 'smart-checkin-orchestrator',
-      version: '1.0.0',
-    });
-
-    await this.client.connect(this.transport);
-    this.initialized = true;
-    this.logger.log(`Connected to MCP server at ${serverUrl}`);
-  }
-
-  private async buildOpenAiTools(): Promise<unknown[]> {
-    const result = await this.listTools();
-    return this.openAiAgent.buildTools(result);
+    const content = (result as { content?: Array<{ text?: string }> }).content;
+    return content?.[0]?.text;
   }
 
   private async tryDeterministicPercentSumMultiply(
     goal: string,
-    steps: OrchestratorStep[],
-  ): Promise<{ steps: OrchestratorStep[]; final: string } | null> {
+    steps: AiAgentStep[],
+  ): Promise<{ steps: AiAgentStep[]; final: string } | null> {
     const normalized = goal.toLowerCase();
     const matchesPattern =
       (normalized.includes('percent') || normalized.includes('percentage')) &&
@@ -222,6 +178,10 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
     }
 
     const wantsDivide = /\b(divide|divided|devided|over)\b/i.test(normalized);
+    const requiredTools = wantsDivide ? ['add', 'multiply', 'divide', 'percent'] : ['add', 'multiply', 'percent'];
+    if (!requiredTools.every((tool) => this.agent.hasTool(tool))) {
+      return null;
+    }
     const requiredSequence = wantsDivide ? ['add', 'multiply', 'divide', 'percent'] : ['add', 'multiply', 'percent'];
     if (this.hasToolSequence(steps, requiredSequence)) {
       return null;
@@ -238,7 +198,7 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
     const multiplier = numbers[3];
     const divisor = wantsDivide ? numbers[4] : undefined;
 
-    const addResult = await this.callTool('add', { a, b });
+    const addResult = await this.agent.callTool('add', { a, b });
     steps.push({ action: 'call-tool', tool: 'add', args: { a, b }, result: addResult });
 
     const sum = this.extractNumberFromToolResult(addResult);
@@ -246,7 +206,7 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
       return null;
     }
 
-    const multiplyResult = await this.callTool('multiply', { a: sum, b: multiplier });
+    const multiplyResult = await this.agent.callTool('multiply', { a: sum, b: multiplier });
     steps.push({
       action: 'call-tool',
       tool: 'multiply',
@@ -264,7 +224,7 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
       if (divisor === undefined) {
         return null;
       }
-      const divideResult = await this.callTool('divide', { a: product, b: divisor });
+      const divideResult = await this.agent.callTool('divide', { a: product, b: divisor });
       steps.push({
         action: 'call-tool',
         tool: 'divide',
@@ -278,7 +238,7 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
       baseValue = divided;
     }
 
-    const percentResult = await this.callTool('percent', { percent, value: baseValue });
+    const percentResult = await this.agent.callTool('percent', { percent, value: baseValue });
     steps.push({
       action: 'call-tool',
       tool: 'percent',
@@ -297,7 +257,7 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
     };
   }
 
-  private hasToolSequence(steps: OrchestratorStep[], sequence: string[]): boolean {
+  private hasToolSequence(steps: AiAgentStep[], sequence: string[]): boolean {
     let index = 0;
     for (const step of steps) {
       if (step.action !== 'call-tool' || !step.tool) {
@@ -351,5 +311,13 @@ export class OrchestratorService implements OnModuleInit, OnModuleDestroy {
     }
 
     return undefined;
+  }
+
+  private parseNumber(value?: string): number | undefined {
+    if (!value) {
+      return undefined;
+    }
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
   }
 }

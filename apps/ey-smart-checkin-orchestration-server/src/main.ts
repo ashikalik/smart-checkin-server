@@ -5,9 +5,12 @@
 
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { setMaxListeners } from 'events';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
+  // Avoid MaxListenersExceededWarning from high-volume AbortSignal usage.
+  setMaxListeners(0);
   const app = await NestFactory.create(AppModule, {
     logger: ['log', 'error', 'warn', 'debug'],
   });
