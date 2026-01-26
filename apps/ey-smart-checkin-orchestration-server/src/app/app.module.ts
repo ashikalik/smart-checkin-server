@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ArithmeticOrchestratorModule } from '../arithmetic-orchestrator/arithmetic-orchestrator.module';
+import { IdentificationOrchestratorModule } from '../identification-orchestrator/identification-orchestrator.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { ArithmeticOrchestratorModule } from '../arithmetic-orchestrator/arithme
       envFilePath: 'apps/ey-smart-checkin-orchestration-server/.env',
     }),
     ArithmeticOrchestratorModule,
+    IdentificationOrchestratorModule,
   ],
   controllers: [AppController],
   providers: [AppService],
