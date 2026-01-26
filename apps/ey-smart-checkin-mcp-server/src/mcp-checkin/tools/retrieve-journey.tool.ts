@@ -212,8 +212,6 @@ export class SsciJourneyIdentificationService {
     'x-client-channel': 'WEB',
     'x-correlation-id': 'e5cdd169-e405-4386-b00c-a69832646ee9',
     'x-transaction-id': '6724360d-b130-4bf7-97f4-d8bda4bd2c82',
-    'X-BM-AUTHID':'b%dQTRZ7$&RSU&31',
-    'X-BM-AUTHSecret':'8wHpQ3vLd4FF%ZGlour$E48@jqtnTekmW$P0',
 
   } as const;
 
