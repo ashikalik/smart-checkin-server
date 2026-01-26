@@ -1,0 +1,103 @@
+Worked for 20s
+Here’s the mock JSON in a clean format (no escaping). This is the JSON that was inside content[0].text:
+
+{
+  "journeys": [
+    {
+      "acceptance": {
+        "checkedInJourneyElements": [
+          { "id": "600135AC000677C9" },
+          { "id": "600135AC000677CC" }
+        ],
+        "isAccepted": false,
+        "isPartial": true,
+        "isVoluntaryDeniedBoarding": false,
+        "notCheckedInJourneyElements": [
+          { "id": "600135AC000677CA" },
+          { "id": "600135AC000677CD" },
+          { "id": "600135AC000677CB" },
+          { "id": "600135AC000677CE" }
+        ]
+      },
+      "acceptanceEligibility": {
+        "eligibilityWindow": {
+          "closingDateAndTime": "2026-01-23T21:00:00+05:30",
+          "openingDateAndTime": "2026-01-22T16:00:00+05:30"
+        },
+        "reasons": [
+          "flightAcceptanceEligibilityWindow",
+          "regulatoryDetailsInhibition"
+        ],
+        "status": "ineligible"
+      },
+      "contacts": [
+        {
+          "address": "EYHKARUNESH@ETIHAD.AE",
+          "category": "personal",
+          "contactType": "Email",
+          "id": "610195AD000009CD_76f7e8f0",
+          "lang": "en",
+          "purpose": "notification",
+          "travelerIds": ["610195AD000009CD"]
+        },
+        {
+          "category": "personal",
+          "contactType": "Phone",
+          "countryPhoneExtension": "91",
+          "id": "610195AD000009CD_ab12f5e1",
+          "number": "8506997990",
+          "purpose": "notification",
+          "travelerIds": ["610195AD000009CD"]
+        }
+      ],
+      "flights": [
+        {
+          "id": "EY-239-20260123",
+          "acceptanceStatus": "opened",
+          "aircraftCode": "32Q",
+          "arrival": {
+            "dateTime": "2026-01-24T00:35:00+04:00",
+            "locationCode": "AUH",
+            "terminal": "A"
+          },
+          "departure": {
+            "dateTime": "2026-01-23T22:00:00+05:30",
+            "locationCode": "BLR",
+            "terminal": "2"
+          },
+          "duration": 14700,
+          "isIATCI": false,
+          "isPilgrimConfirmationRequired": false,
+          "marketingAirlineCode": "EY",
+          "marketingFlightNumber": "239",
+          "operatingAirlineCode": "EY",
+          "operatingAirlineFlightNumber": "239",
+          "operatingAirlineName": "ETIHAD AIRWAYS",
+          "operatingFlightNumber": "239",
+          "status": "scheduled"
+        }
+      ],
+      "id": "A978A95566980DBFCED3E50A6B1A9F6266FFAB421769540334",
+      "isGroupBooking": false,
+      "type": "standalone"
+    }
+  ],
+  "journeyDictionary": {
+    "aircraft": {
+      "388": "AIRBUS A380-800",
+      "789": "BOEING 787-9",
+      "32Q": "AIRBUS A321NEO"
+    },
+    "airline": {
+      "EY": "ETIHAD AIRWAYS"
+    },
+    "country": {
+      "AE": "UNITED ARAB EMIRATES",
+      "GB": "UNITED KINGDOM",
+      "IN": "INDIA"
+    }
+  },
+  "genericEligibilities": [],
+  "warnings": [],
+  "errors": []
+}
