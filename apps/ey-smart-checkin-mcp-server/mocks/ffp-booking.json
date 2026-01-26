@@ -1,0 +1,76 @@
+{
+  "data": [
+    {
+      "id": "92HMF8",
+      "frequentFlyerCardNumber": "520000275001",
+      "isGroupBooking": false,
+      "creationDateTime": "2025-11-03T06:38:00.000Z",
+      "flights": [
+        {
+          "marketingAirlineCode": "EY",
+          "operatingAirlineCode": "EY",
+          "marketingFlightNumber": "31",
+          "id": "ST2",
+          "isOpenSegment": false,
+          "isFlown": false,
+          "departure": {
+            "locationCode": "AUH",
+            "dateTime": "2026-03-12T02:30:00.000+04:00"
+          },
+          "arrival": {
+            "locationCode": "CDG",
+            "dateTime": "2026-03-12T07:10:00.000+01:00"
+          },
+          "bookingClass": "H",
+          "statusCode": "HK"
+        }
+      ],
+      "travelers": [
+        {
+          "passengerTypeCode": "ADT",
+          "id": "PT2",
+          "names": [
+            {
+              "firstName": "SILVER",
+              "lastName": "TEST",
+              "nameType": "universal"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "dictionaries": {
+    "location": {
+      "PAR": {
+        "type": "city",
+        "cityCode": "PAR",
+        "cityName": "PARIS",
+        "countryCode": "FR",
+        "timeZone": "UTC+0100"
+      },
+      "AUH": {
+        "type": "airport",
+        "airportName": "ZAYED INTERNATIONAL AIRPORT",
+        "cityCode": "AUH",
+        "cityName": "ABU DHABI",
+        "countryCode": "AE",
+        "timeZone": "UTC+0400"
+      },
+      "CDG": {
+        "type": "airport",
+        "airportName": "CHARLES DE GAULLE",
+        "cityCode": "PAR",
+        "countryCode": "FR",
+        "timeZone": "UTC+0100"
+      }
+    },
+    "country": {
+      "AE": "UNITED ARAB EMIRATES",
+      "FR": "FRANCE"
+    },
+    "airline": {
+      "EY": "ETIHAD AIRWAYS"
+    }
+  }
+}
