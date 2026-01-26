@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { z } from 'zod';
-import { SsciJourneyIdentificationSchema } from '../schemas/journey.schema';
 
 /**
  * SSCI - Journey Identification
@@ -30,20 +29,29 @@ export interface JourneyIdentificationRequestPayload {
  * MCP tool input schema for `ssci_identification_journey`.
  * Exported here so MCP can import it directly from the service.
  */
-// export const SsciJourneyIdentificationSchema = z.object({
-//   identifier: z.string().min(1).describe('Record locator / identifier'),
-//   lastName: z.string().min(1),
-//   encrypted: z.boolean(),
-//   firstName: z.string().nullable(),
-//   program: z.string().nullable(),
-//   encryptedParameters: z.unknown().nullable(),
-//   headers: z
-//     .record(z.string(), z.string())
-//     .optional()
-//     .describe(
-//       'Optional header overrides (e.g. x-correlation-id, x-transaction-id). Values here override defaults.',
-//     ),
-// });
+export const SsciJourneyIdentificationSchema = z.object({
+  identifier: z.string().min(1).describe('Record locator / identifier'),
+  lastName: z.string().min(1),
+  // Only `identifier` and `lastName` are required for the tool caller.
+  // Everything else defaults to the upstream-friendly values below.
+  encrypted: z.boolean().optional().default(false),
+  firstName: z.string().nullable().optional().default(null),
+  program: z.string().nullable().optional().default(null),
+  // Keep JSON Schema simple/valid for OpenAI tools.
+  // If you need actual encrypted params later, widen this safely.
+  encryptedParameters: z.null().optional().default(null),
+  // NOTE: We avoid z.record(...) because it generates JSON Schema with `propertyNames`,
+  // which OpenAI rejects for function parameters.
+  headers: z
+    .object({
+      'x-correlation-id': z.string().optional(),
+      'x-transaction-id': z.string().optional(),
+      'x-client-application': z.string().optional(),
+      'x-client-channel': z.string().optional(),
+    })
+    .optional()
+    .describe('Optional header overrides. Values here override defaults.'),
+});
 
 export type SsciJourneyIdentificationToolInput = z.infer<typeof SsciJourneyIdentificationSchema>;
 
@@ -204,6 +212,9 @@ export class SsciJourneyIdentificationService {
     'x-client-channel': 'WEB',
     'x-correlation-id': 'e5cdd169-e405-4386-b00c-a69832646ee9',
     'x-transaction-id': '6724360d-b130-4bf7-97f4-d8bda4bd2c82',
+    'X-BM-AUTHID':'b%dQTRZ7$&RSU&31',
+    'X-BM-AUTHSecret':'8wHpQ3vLd4FF%ZGlour$E48@jqtnTekmW$P0',
+
   } as const;
 
   constructor(private readonly httpService: HttpService) {}
@@ -227,6 +238,7 @@ export class SsciJourneyIdentificationService {
       payload,
       {
         headers: mergedHeaders,
+        timeout: 55_000,
       },
     );
 
@@ -262,6 +274,59 @@ function toToolError(message: string): McpToolResponse {
   return { isError: true, content: [{ type: 'text', text: message }] };
 }
 
+function isMockEnabled(): boolean {
+  return String(process.env.MOCK_SSCI ?? '').toLowerCase() === 'true';
+}
+
+async function maybeMockDelay(): Promise<void> {
+  const ms = Number(process.env.MOCK_SSCI_DELAY_MS ?? 0);
+  if (Number.isFinite(ms) && ms > 0) {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  }
+}
+
+function buildMockJourneyResponse(
+  identifier: string,
+  lastName: string,
+): JourneyIdentificationResponse {
+  return {
+    journeys: [
+      {
+        id: `MOCK-${identifier}`,
+        type: 'standalone',
+        isGroupBooking: false,
+        acceptance: { isAccepted: false, isPartial: false, isVoluntaryDeniedBoarding: false },
+        flights: [
+          {
+            id: 'MOCK-FLT-1',
+            marketingAirlineCode: 'EY',
+            marketingFlightNumber: '239',
+            operatingAirlineCode: 'EY',
+            operatingAirlineName: 'ETIHAD AIRWAYS',
+            status: 'scheduled',
+            departure: { locationCode: 'BLR', dateTime: '2026-01-23T22:00:00+05:30' },
+            arrival: { locationCode: 'AUH', dateTime: '2026-01-24T00:35:00+04:00' },
+          },
+        ],
+        travelers: [
+          {
+            id: 'MOCK-TRV-1',
+            passengerTypeCode: 'ADT',
+            names: [{ firstName: 'MOCK', lastName: lastName, title: 'MR', nameType: 'universal' }],
+          },
+        ],
+      },
+    ],
+    journeyDictionary: {
+      airline: { EY: 'ETIHAD AIRWAYS' },
+      aircraft: { MOCK: 'MOCK AIRCRAFT' },
+    },
+    genericEligibilities: [],
+    warnings: [],
+    errors: [],
+  };
+}
+
 /**
  * Ready-to-register MCP tool for SSCI Journey Identification.
  * Import this object in `McpService` and register directly.
@@ -279,7 +344,30 @@ export const ssciIdentificationJourneyMcpTool = {
     async (input: SsciJourneyIdentificationToolInput): Promise<McpToolResponse> => {
       try {
         const { headers, ...payload } = input;
-        const apiRes = await journeyService.fetchJourneyIdentification(payload, headers);
+
+        // Normalize tool input -> API payload (ensure required keys exist).
+        const apiPayload: JourneyIdentificationRequestPayload = {
+          identifier: payload.identifier,
+          lastName: payload.lastName,
+          encrypted: payload.encrypted ?? false,
+          firstName: payload.firstName ?? null,
+          program: payload.program ?? null,
+          encryptedParameters: payload.encryptedParameters ?? null,
+        };
+
+        if (isMockEnabled()) {
+          await maybeMockDelay();
+          return toToolResponse(buildMockJourneyResponse(apiPayload.identifier, apiPayload.lastName));
+        }
+
+        const headerOverrides =
+          headers && typeof headers === 'object'
+            ? (Object.fromEntries(
+                Object.entries(headers).filter(([, v]) => typeof v === 'string' && v.length > 0),
+              ) as Partial<Record<string, string>>)
+            : undefined;
+
+        const apiRes = await journeyService.fetchJourneyIdentification(apiPayload, headerOverrides);
         return toToolResponse(apiRes);
       } catch (e: any) {
         return toToolError(e?.message ?? 'ssci_identification_journey failed');

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { z } from 'zod';
+
 /**
  * SSCI - Retrieve Order (GraphQL)
  *
@@ -27,12 +28,17 @@ export interface RetrieveOrderInputDto {
 export const SsciRetrieveOrderGqlSchema = z.object({
   lastName: z.string().min(1),
   recordLocator: z.string().min(1),
+  // Avoid z.record(...) because it generates JSON Schema with `propertyNames`,
+  // which OpenAI rejects for function parameters.
   headers: z
-    .record(z.string(), z.string())
+    .object({
+      'x-correlation-id': z.string().optional(),
+      'x-transaction-id': z.string().optional(),
+      'x-client-application': z.string().optional(),
+      'x-client-channel': z.string().optional(),
+    })
     .optional()
-    .describe(
-      'Optional header overrides (e.g. x-correlation-id, x-transaction-id). Values here override defaults.',
-    ),
+    .describe('Optional header overrides. Values here override defaults.'),
 });
 
 export type SsciRetrieveOrderGqlToolInput = z.infer<typeof SsciRetrieveOrderGqlSchema>;
@@ -192,6 +198,8 @@ export class SsciRetrieveOrderGqlService {
     'x-client-channel': 'WEB',
     'x-correlation-id': 'e5cdd169-e405-4386-b00c-a69832646ee9',
     'x-transaction-id': '60be58cc-f0f9-424b-8c62-7cd10ca350d1',
+    'X-BM-AUTHID':'b%dQTRZ7$&RSU&31',
+    'X-BM-AUTHSecret':'8wHpQ3vLd4FF%ZGlour$E48@jqtnTekmW$P0',
   } as const;
 
   constructor(private readonly httpService: HttpService) {}
@@ -219,7 +227,7 @@ export class SsciRetrieveOrderGqlService {
     const response$ = this.httpService.post<RetrieveOrderGraphqlResponse>(
       this.endpointUrl,
       payload,
-      { headers: mergedHeaders },
+      { headers: mergedHeaders, timeout: 55_000 },
     );
 
     const { data } = await firstValueFrom(response$);
@@ -250,6 +258,40 @@ function toToolError(message: string): McpToolResponse {
   return { isError: true, content: [{ type: 'text', text: message }] };
 }
 
+function isMockEnabled(): boolean {
+  return String(process.env.MOCK_SSCI ?? '').toLowerCase() === 'true';
+}
+
+async function maybeMockDelay(): Promise<void> {
+  const ms = Number(process.env.MOCK_SSCI_DELAY_MS ?? 0);
+  if (Number.isFinite(ms) && ms > 0) {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  }
+}
+
+function buildMockRetrieveOrderResponse(recordLocator: string, lastName: string): RetrieveOrderGraphqlResponse {
+  return {
+    data: {
+      getOrderData: {
+        recordLocator,
+        warnings: null,
+        associateOrderIds: null,
+        travelers: [
+          {
+            id: 'MOCK-PT1',
+            passengerTypeCode: 'ADT',
+            names: [{ firstName: 'MOCK', lastName, title: 'MR', nameType: 'universal', isPreferred: true }],
+          },
+        ],
+        contacts: [],
+        journeys: null,
+        journeyDictionary: null,
+        __typename: 'RetrieveOrderResponseGql',
+      },
+    },
+  };
+}
+
 /**
  * Ready-to-register MCP tool for SSCI Retrieve Order (GraphQL).
  * Import this object in `McpService` and register directly.
@@ -267,7 +309,21 @@ export const ssciRetrieveOrderGqlMcpTool = {
     async (input: SsciRetrieveOrderGqlToolInput): Promise<McpToolResponse> => {
       try {
         const { headers, lastName, recordLocator } = input;
-        const apiRes = await orderService.fetchOrderData({ lastName, recordLocator }, headers);
+        if (isMockEnabled()) {
+          await maybeMockDelay();
+          return toToolResponse(buildMockRetrieveOrderResponse(recordLocator, lastName));
+        }
+        const headerOverrides =
+          headers && typeof headers === 'object'
+            ? (Object.fromEntries(
+                Object.entries(headers).filter(([, v]) => typeof v === 'string' && v.length > 0),
+              ) as Partial<Record<string, string>>)
+            : undefined;
+
+        const apiRes = await orderService.fetchOrderData(
+          { lastName, recordLocator },
+          headerOverrides,
+        );
         return toToolResponse(apiRes);
       } catch (e: any) {
         return toToolError(e?.message ?? 'ssci_retrieve_order_gql failed');

@@ -4,10 +4,12 @@ import type { Request, Response } from 'express';
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { SsciJourneyIdentificationService, ssciIdentificationJourneyMcpTool } from './tools/retrieve-journey.tool';
+
+import {
+  SsciJourneyIdentificationService,
+  ssciIdentificationJourneyMcpTool,
+} from './tools/retrieve-journey.tool';
 import { SsciRetrieveOrderGqlService, ssciRetrieveOrderGqlMcpTool } from './tools/retrieve-order.tool';
-
-
 
 type McpSession = {
   server: McpServer;
@@ -25,7 +27,7 @@ export class McpCheckInService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   async onModuleInit(): Promise<void> {
-    this.logger.log('MCP server started (streamable HTTP). Endpoint: /mcp');
+    this.logger.log('MCP server started (streamable HTTP). Endpoint: /mcp-checkin');
   }
 
   async onModuleDestroy(): Promise<void> {
