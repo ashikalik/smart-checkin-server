@@ -18,7 +18,7 @@ export class IdentificationOrchestratorService {
     return this.agent.runAgentLoop(goal, {
       enforceToolUse: true,
       toolChoice: 'auto',
-      allowedTools: ['get_journey'],
+      allowedTools: ['ssci_identification_journey',  'ssci_identification_journey_eligibility', 'ssci_retrieve_order_gql'],
       maxToolEnforcementRetries: this.parseNumber(
         this.configService.get<string>('IDENTIFICATION_ORCHESTRATOR_TOOL_ENFORCE_RETRIES'),
       ) ?? 3,

@@ -10,6 +10,7 @@ import {
   ssciIdentificationJourneyMcpTool,
 } from './tools/retrieve-journey.tool';
 import { SsciRetrieveOrderGqlService, ssciRetrieveOrderGqlMcpTool } from './tools/retrieve-order.tool';
+import { ssciIdentificationJourneyEligibilityMcpTool } from './tools/journey-eligibility.tool';
 
 type McpSession = {
   server: McpServer;
@@ -98,6 +99,12 @@ export class McpCheckInService implements OnModuleInit, OnModuleDestroy {
       ssciIdentificationJourneyMcpTool.handler(this.journey),
     );
 
+    server.registerTool(
+        ssciIdentificationJourneyEligibilityMcpTool.name,
+        ssciIdentificationJourneyEligibilityMcpTool.definition,
+        ssciIdentificationJourneyEligibilityMcpTool.handler(this.journey),
+      );
+      
     server.registerTool(
       ssciRetrieveOrderGqlMcpTool.name,
       ssciRetrieveOrderGqlMcpTool.definition,

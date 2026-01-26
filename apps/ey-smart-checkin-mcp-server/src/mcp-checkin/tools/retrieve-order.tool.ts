@@ -198,6 +198,8 @@ export class SsciRetrieveOrderGqlService {
     'x-client-channel': 'WEB',
     'x-correlation-id': 'e5cdd169-e405-4386-b00c-a69832646ee9',
     'x-transaction-id': '60be58cc-f0f9-424b-8c62-7cd10ca350d1',
+    'X-BM-AUTHID':'b%dQTRZ7$&RSU&31',
+    'X-BM-AUTHSecret':'8wHpQ3vLd4FF%ZGlour$E48@jqtnTekmW$P0',
   } as const;
 
   constructor(private readonly httpService: HttpService) {}
@@ -328,3 +330,4 @@ export const ssciRetrieveOrderGqlMcpTool = {
       }
     },
 } as const;
+

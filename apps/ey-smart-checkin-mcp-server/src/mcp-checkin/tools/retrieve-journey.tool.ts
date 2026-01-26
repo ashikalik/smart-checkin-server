@@ -212,6 +212,8 @@ export class SsciJourneyIdentificationService {
     'x-client-channel': 'WEB',
     'x-correlation-id': 'e5cdd169-e405-4386-b00c-a69832646ee9',
     'x-transaction-id': '6724360d-b130-4bf7-97f4-d8bda4bd2c82',
+    'X-BM-AUTHID':'b%dQTRZ7$&RSU&31',
+    'X-BM-AUTHSecret':'8wHpQ3vLd4FF%ZGlour$E48@jqtnTekmW$P0',
 
   } as const;
 
@@ -272,18 +274,18 @@ function toToolError(message: string): McpToolResponse {
   return { isError: true, content: [{ type: 'text', text: message }] };
 }
 
-function isMockEnabled(): boolean {
+export function isMockEnabled(): boolean {
   return String(process.env.MOCK_SSCI ?? '').toLowerCase() === 'true';
 }
 
-async function maybeMockDelay(): Promise<void> {
+export async function maybeMockDelay(): Promise<void> {
   const ms = Number(process.env.MOCK_SSCI_DELAY_MS ?? 0);
   if (Number.isFinite(ms) && ms > 0) {
     await new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 
-function buildMockJourneyResponse(
+export function buildMockJourneyResponse(
   identifier: string,
   lastName: string,
 ): JourneyIdentificationResponse {
