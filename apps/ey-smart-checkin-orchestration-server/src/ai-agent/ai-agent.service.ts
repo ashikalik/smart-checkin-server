@@ -314,32 +314,32 @@ export class AiAgentService implements OnModuleInit, OnModuleDestroy {
         //const parameters = this.ensureObjectSchema(tool.inputSchema);
         const name = tool.name as string;
  
-let parametersForModel = this.ensureObjectSchema(tool.inputSchema);
+const parametersForModel = this.ensureObjectSchema(tool.inputSchema);
  
 // Keep schemas tiny + enforce required args for the two SSCI tools
-if (name === 'ssci_identification_journey') {
-  parametersForModel = {
-    type: 'object',
-    additionalProperties: true,
-    properties: {
-      identifier: { type: 'string', description: 'PNR / record locator' },
-      lastName: { type: 'string', description: 'Last name' },
-    },
-    required: ['identifier', 'lastName'],
-  };
-}
+// if (name === 'ssci_identification_journey') {
+//   parametersForModel = {
+//     type: 'object',
+//     additionalProperties: true,
+//     properties: {
+//       identifier: { type: 'string', description: 'PNR / record locator' },
+//       lastName: { type: 'string', description: 'Last name' },
+//     },
+//     required: ['identifier', 'lastName'],
+//   };
+// }
  
-if (name === 'ssci_retrieve_order_gql') {
-  parametersForModel = {
-    type: 'object',
-    additionalProperties: true,
-    properties: {
-      recordLocator: { type: 'string', description: 'PNR / record locator' },
-      lastName: { type: 'string', description: 'Last name' },
-    },
-    required: ['recordLocator', 'lastName'],
-  };
-}
+// if (name === 'ssci_retrieve_order_gql') {
+//   parametersForModel = {
+//     type: 'object',
+//     additionalProperties: true,
+//     properties: {
+//       recordLocator: { type: 'string', description: 'PNR / record locator' },
+//       lastName: { type: 'string', description: 'Last name' },
+//     },
+//     required: ['recordLocator', 'lastName'],
+//   };
+// }
  
 return {
   type: 'function',
