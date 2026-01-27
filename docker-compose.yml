@@ -1,0 +1,60 @@
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    container_name: ey-smart-checkin-nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - mcp-server
+      - orchestration-server
+    networks:
+      - smart-checkin-network
+    restart: unless-stopped
+
+  mcp-server:
+    build:
+      context: .
+      dockerfile: apps/ey-smart-checkin-mcp-server/Dockerfile
+    container_name: ey-smart-checkin-mcp-server
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - smart-checkin-network
+
+  media-server:
+    build:
+      context: .
+      dockerfile: apps/ey-smart-checkin-media-server/Dockerfile
+    container_name: ey-smart-checkin-media-server
+    expose:
+      - "3002"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - smart-checkin-network
+
+  orchestration-server:
+    build:
+      context: .
+      dockerfile: apps/ey-smart-checkin-orchestration-server/Dockerfile
+    container_name: ey-smart-checkin-orchestration-server
+    expose:
+      - "3001"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_URL=http://mcp-server:3000/mcp
+    restart: unless-stopped
+    networks:
+      - smart-checkin-network
+    depends_on:
+      - mcp-server
+
+networks:
+  smart-checkin-network:
+    driver: bridge

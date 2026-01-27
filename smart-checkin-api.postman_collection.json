@@ -1,0 +1,466 @@
+{
+  "info": {
+    "name": "Smart Check-in Server API",
+    "description": "Complete API collection for Smart Check-in Server including MCP and Orchestration APIs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost",
+      "type": "string"
+    },
+    {
+      "key": "mcpSessionId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Nginx Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Check nginx health status"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Orchestration API",
+      "item": [
+        {
+          "name": "Get API Root",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api",
+              "host": ["{{baseUrl}}"],
+              "path": ["api"]
+            },
+            "description": "Get root API message"
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Hello API\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "List MCP Tools",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/orchestrator/tools",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orchestrator", "tools"]
+            },
+            "description": "List all available MCP tools"
+          },
+          "response": []
+        },
+        {
+          "name": "Run Orchestrator",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"goal\": \"Calculate 15% of 200 and save the result\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orchestrator/run",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orchestrator", "run"]
+            },
+            "description": "Run the orchestrator with a specific goal"
+          },
+          "response": []
+        },
+        {
+          "name": "Run Agent Loop",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"goal\": \"What is 100 * 25?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orchestrator/agent-run",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orchestrator", "agent-run"]
+            },
+            "description": "Run the agent loop with a specific goal"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "MCP Server API",
+      "item": [
+        {
+          "name": "1. Initialize MCP Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Extract session ID from response header",
+                  "var sessionId = pm.response.headers.get('mcp-session-id');",
+                  "if (sessionId) {",
+                  "    pm.collectionVariables.set('mcpSessionId', sessionId);",
+                  "    console.log('MCP Session ID saved: ' + sessionId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"initialize\",\n  \"params\": {\n    \"protocolVersion\": \"2024-11-05\",\n    \"clientInfo\": {\n      \"name\": \"postman-client\",\n      \"version\": \"1.0.0\"\n    },\n    \"capabilities\": {}\n  },\n  \"id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mcp",
+              "host": ["{{baseUrl}}"],
+              "path": ["mcp"]
+            },
+            "description": "Initialize MCP session. Session ID will be automatically saved from response header."
+          },
+          "response": []
+        },
+        {
+          "name": "2. List Tools",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "mcp-session-id",
+                "value": "{{mcpSessionId}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"tools/list\",\n  \"params\": {},\n  \"id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mcp",
+              "host": ["{{baseUrl}}"],
+              "path": ["mcp"]
+            },
+            "description": "List all available MCP tools"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Call Tool - Add",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "mcp-session-id",
+                "value": "{{mcpSessionId}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"add\",\n    \"arguments\": {\n      \"a\": 10,\n      \"b\": 20\n    }\n  },\n  \"id\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mcp",
+              "host": ["{{baseUrl}}"],
+              "path": ["mcp"]
+            },
+            "description": "Add two numbers"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Call Tool - Subtract",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "mcp-session-id",
+                "value": "{{mcpSessionId}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"subtract\",\n    \"arguments\": {\n      \"a\": 50,\n      \"b\": 15\n    }\n  },\n  \"id\": 4\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mcp",
+              "host": ["{{baseUrl}}"],
+              "path": ["mcp"]
+            },
+            "description": "Subtract two numbers"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Call Tool - Multiply",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "mcp-session-id",
+                "value": "{{mcpSessionId}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"multiply\",\n    \"arguments\": {\n      \"a\": 7,\n      \"b\": 8\n    }\n  },\n  \"id\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mcp",
+              "host": ["{{baseUrl}}"],
+              "path": ["mcp"]
+            },
+            "description": "Multiply two numbers"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Call Tool - Divide",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "mcp-session-id",
+                "value": "{{mcpSessionId}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"divide\",\n    \"arguments\": {\n      \"a\": 100,\n      \"b\": 4\n    }\n  },\n  \"id\": 6\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mcp",
+              "host": ["{{baseUrl}}"],
+              "path": ["mcp"]
+            },
+            "description": "Divide two numbers"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Call Tool - Percent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "mcp-session-id",
+                "value": "{{mcpSessionId}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"percent\",\n    \"arguments\": {\n      \"percent\": 15,\n      \"value\": 200\n    }\n  },\n  \"id\": 7\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mcp",
+              "host": ["{{baseUrl}}"],
+              "path": ["mcp"]
+            },
+            "description": "Calculate percent of a value (percent/100 * value)"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Call Tool - Save Result",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "mcp-session-id",
+                "value": "{{mcpSessionId}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"save_result\",\n    \"arguments\": {\n      \"operation\": \"add(10, 20)\",\n      \"result\": 30\n    }\n  },\n  \"id\": 8\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mcp",
+              "host": ["{{baseUrl}}"],
+              "path": ["mcp"]
+            },
+            "description": "Save a calculation result via POST API"
+          },
+          "response": []
+        }
+      ],
+      "description": "Model Context Protocol (MCP) API endpoints. \n\n**Usage Flow:**\n1. First, call 'Initialize MCP Session' to get a session ID\n2. The session ID is automatically saved and used in subsequent requests\n3. Use 'List Tools' to see available tools\n4. Call any tool using 'Call Tool' requests"
+    },
+    {
+      "name": "Direct MCP Server (Port 3000)",
+      "item": [
+        {
+          "name": "Initialize Session (Direct)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var sessionId = pm.response.headers.get('mcp-session-id');",
+                  "if (sessionId) {",
+                  "    pm.collectionVariables.set('mcpSessionId', sessionId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"initialize\",\n  \"params\": {\n    \"protocolVersion\": \"2024-11-05\",\n    \"clientInfo\": {\n      \"name\": \"postman-client\",\n      \"version\": \"1.0.0\"\n    },\n    \"capabilities\": {}\n  },\n  \"id\": 1\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/mcp",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["mcp"]
+            },
+            "description": "Direct access to MCP server bypassing nginx (for development)"
+          },
+          "response": []
+        }
+      ],
+      "description": "Direct access to MCP server on port 3000 (bypassing nginx). Use this folder for development/testing when you need to access the MCP server directly."
+    },
+    {
+      "name": "Direct Orchestration (Port 3001)",
+      "item": [
+        {
+          "name": "Get API Root (Direct)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3001",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001"
+            },
+            "description": "Direct access to orchestration server bypassing nginx"
+          },
+          "response": []
+        },
+        {
+          "name": "List Tools (Direct)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3001/orchestrator/tools",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["orchestrator", "tools"]
+            },
+            "description": "Direct access to list tools bypassing nginx"
+          },
+          "response": []
+        }
+      ],
+      "description": "Direct access to Orchestration server on port 3001 (bypassing nginx). Use this folder for development/testing when you need to access the orchestration server directly."
+    }
+  ]
+}
