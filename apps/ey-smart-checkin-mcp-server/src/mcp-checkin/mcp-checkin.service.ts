@@ -4,7 +4,9 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import type { Request, Response } from 'express';
 
+import { FfpBookingSchema } from './schemas/ffp-booking.schema';
 import { IdentificationSchema } from './schemas/identification.schema';
+import { FfpBookingService } from './services/ffp-booking.service';
 import { JourneyService } from './services/journey.service';
 
 type ToolResponse = {
@@ -22,7 +24,10 @@ export class McpCheckinService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(McpCheckinService.name);
   private readonly sessions = new Map<string, McpSession>();
 
-  constructor(private readonly journey: JourneyService) {}
+  constructor(
+    private readonly journey: JourneyService,
+    private readonly ffpBooking: FfpBookingService,
+  ) {}
 
   async onModuleInit(): Promise<void> {
     this.logger.log('MCP check-in server started (streamable HTTP). Endpoint: /mcp-checkin');
@@ -122,6 +127,24 @@ export class McpCheckinService implements OnModuleInit, OnModuleDestroy {
           return this.respondError('Last name not found');
         }
         return this.respond(this.journey.getJourney());
+      },
+    );
+
+    server.registerTool(
+      'get_ffp_booking',
+      {
+        description: 'Return FFP booking data',
+        inputSchema: FfpBookingSchema,
+        annotations: { readOnlyHint: true, idempotentHint: true },
+      },
+      async ({ frequentFlyerCardNumber, lastName }) => {
+        if (!this.ffpBooking.isValidFrequentFlyerCardNumber(frequentFlyerCardNumber)) {
+          return this.respondError('Frequent flyer card number not found');
+        }
+        if (!this.ffpBooking.isValidLastName(lastName)) {
+          return this.respondError('Last name not found');
+        }
+        return this.respond(this.ffpBooking.getBooking());
       },
     );
   }
