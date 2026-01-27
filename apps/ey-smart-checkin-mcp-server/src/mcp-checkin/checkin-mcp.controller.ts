@@ -1,11 +1,11 @@
 import { Body, Controller, Req, Res, All } from '@nestjs/common';
 import type { Request, Response } from 'express';
 
-import { McpService } from './mcp.service';
+import { McpCheckInService } from './checkin-mcp.service'
 
-@Controller('mcp-test')
-export class McpController {
-  constructor(private readonly mcp: McpService) {}
+@Controller('mcp-checkin')
+export class McpCheckInController {
+  constructor(private readonly mcp: McpCheckInService) {}
 
   @All()
   async handleMcpRequest(

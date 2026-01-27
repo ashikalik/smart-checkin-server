@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { OrchestratorModule } from '../orchestrator/orchestrator.module';
+import { ArithmeticOrchestratorModule } from '../arithmetic-orchestrator/arithmetic-orchestrator.module';
+import { IdentificationOrchestratorModule } from '../identification-orchestrator/identification-orchestrator.module';
 
 @Module({
   imports: [
@@ -10,7 +11,8 @@ import { OrchestratorModule } from '../orchestrator/orchestrator.module';
       isGlobal: true,
       envFilePath: 'apps/ey-smart-checkin-orchestration-server/.env',
     }),
-    OrchestratorModule,
+    ArithmeticOrchestratorModule,
+    IdentificationOrchestratorModule,
   ],
   controllers: [AppController],
   providers: [AppService],
