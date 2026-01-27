@@ -6,6 +6,7 @@ import type { Request, Response } from 'express';
 
 import { FfpBookingSchema } from './schemas/ffp-booking.schema';
 import { IdentificationSchema } from './schemas/identification.schema';
+import { SelectBookingSchema } from './schemas/select-booking.schema';
 import { FfpBookingService } from './services/ffp-booking.service';
 import { JourneyService } from './services/journey.service';
 
@@ -94,6 +95,19 @@ export class McpCheckinService implements OnModuleInit, OnModuleDestroy {
   }
 
   private registerTools(server: McpServer): void {
+    server.registerTool(
+      'select_booking',
+      {
+        description: 'Resolve a booking choice from a user utterance and a list of choices.',
+        inputSchema: SelectBookingSchema,
+        annotations: { readOnlyHint: true, idempotentHint: true },
+      },
+      async ({ utterance, choices }) => {
+        const bookingId = this.resolveBookingChoice(utterance, choices);
+        return this.respond({ bookingId });
+      },
+    );
+
     server.registerTool(
       'identification',
       {
@@ -186,5 +200,82 @@ export class McpCheckinService implements OnModuleInit, OnModuleDestroy {
         },
       ],
     };
+  }
+
+  private resolveBookingChoice(
+    utterance: string,
+    choices: Array<{ id: string; summary?: string }>,
+  ): string | null {
+    const normalized = utterance.trim().toLowerCase();
+    if (!normalized) {
+      return null;
+    }
+
+    const idMatch = choices.find((choice) => normalized.includes(choice.id.toLowerCase()));
+    if (idMatch) {
+      return idMatch.id;
+    }
+
+    if (this.matchesOrdinal(normalized, 1)) {
+      return choices[0]?.id ?? null;
+    }
+    if (this.matchesOrdinal(normalized, 2)) {
+      return choices[1]?.id ?? null;
+    }
+
+    const codeMatch = this.matchByLocationCode(normalized, choices);
+    if (codeMatch) {
+      return codeMatch;
+    }
+
+    return null;
+  }
+
+  private matchesOrdinal(utterance: string, ordinal: number): boolean {
+    const patterns =
+      ordinal === 1
+        ? ['first', '1st', 'one', '1']
+        : ordinal === 2
+          ? ['second', '2nd', 'two', '2']
+          : [];
+    return patterns.some((token) => utterance.includes(token));
+  }
+
+  private matchByLocationCode(utterance: string, choices: Array<{ id: string; summary?: string }>): string | null {
+    const aliases: Record<string, string> = {
+      bombay: 'BOM',
+      mumbai: 'BOM',
+      ahmedabad: 'AMD',
+      'abu dhabi': 'AUH',
+      abudhabi: 'AUH',
+      paris: 'CDG',
+    };
+
+    const tokens = Object.keys(aliases).filter((key) => utterance.includes(key));
+    const codes = new Set<string>();
+    for (const token of tokens) {
+      codes.add(aliases[token]);
+    }
+    const codeTokens = utterance.match(/[A-Z]{3}/g) ?? [];
+    codeTokens.forEach((code) => codes.add(code.toUpperCase()));
+
+    if (codes.size === 0) {
+      return null;
+    }
+
+    const matches = choices.filter((choice) => {
+      const summary = choice.summary?.toUpperCase() ?? '';
+      for (const code of codes) {
+        if (summary.includes(code)) {
+          return true;
+        }
+      }
+      return false;
+    });
+
+    if (matches.length === 1) {
+      return matches[0].id;
+    }
+    return null;
   }
 }

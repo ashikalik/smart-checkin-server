@@ -1,5 +1,11 @@
 export type McpServerConfig = {
-  url: string;
+  url?: string;
+  transport?: 'http' | 'stdio';
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+  cwd?: string;
+  stderr?: 'inherit' | 'pipe' | 'overlapped';
   name?: string;
   toolNamePrefix?: string;
   clientName?: string;

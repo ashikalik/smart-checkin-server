@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { ArithmeticOrchestratorModule } from '../arithmetic-orchestrator/arithmetic-orchestrator.module';
+import { OpenAiChatModelModule } from '../open-ai-chat-model/open-ai-chat-model.module';
 import { IdentificationOrchestratorModule } from '../identification-orchestrator/identification-orchestrator.module';
 import { FfpBookingOrchestratorModule } from '../ffp-booking-orchestrator/ffp-booking-orchestrator.module';
-import { MainOrchestratorModule } from '../main-orchestrator/main-orchestrator.module';
+import { ArithmeticOrchestratorModule } from '../arithmetic-orchestrator/arithmetic-orchestrator.module';
+import { MainMcpService } from './main-mcp.service';
 
 @Module({
   imports: [
@@ -13,12 +12,12 @@ import { MainOrchestratorModule } from '../main-orchestrator/main-orchestrator.m
       isGlobal: true,
       envFilePath: 'apps/ey-smart-checkin-orchestration-server/.env',
     }),
-    ArithmeticOrchestratorModule,
+    OpenAiChatModelModule.registerAsync(),
     IdentificationOrchestratorModule,
     FfpBookingOrchestratorModule,
-    MainOrchestratorModule,
+    ArithmeticOrchestratorModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  providers: [MainMcpService],
+  exports: [MainMcpService],
 })
-export class AppModule {}
+export class MainMcpModule {}

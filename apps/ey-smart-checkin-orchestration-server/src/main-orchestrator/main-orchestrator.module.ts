@@ -2,9 +2,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AiAgentModule } from '../ai-agent/ai-agent.module';
 import { OpenAiChatModelModule } from '../open-ai-chat-model/open-ai-chat-model.module';
-import { OutputFormatterModule } from '../output-formatter/output-formatter.module';
-import { FfpBookingOrchestratorController } from './ffp-booking-orchestrator.controller';
-import { FfpBookingOrchestratorService } from './ffp-booking-orchestrator.service';
+import { MainOrchestratorController } from './main-orchestrator.controller';
+import { MainOrchestratorHelperService } from './main-orchestrator-helper.service';
+import { MainOrchestratorService } from './main-orchestrator.service';
+import { StateModule } from '../state/state.module';
 
 @Module({
   imports: [
@@ -13,12 +14,11 @@ import { FfpBookingOrchestratorService } from './ffp-booking-orchestrator.servic
       envFilePath: 'apps/ey-smart-checkin-orchestration-server/.env',
     }),
     OpenAiChatModelModule.registerAsync(),
-    OutputFormatterModule,
     AiAgentModule.forFeatureAsync({
       imports: [ConfigModule, OpenAiChatModelModule.registerAsync()],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        mcpServers: resolveFfpBookingMcpServers(configService),
+        mcpServers: resolveMainMcpServers(configService),
         systemPrompt: configService.get<string>('AI_AGENT_SYSTEM_PROMPT'),
         maxModelCalls: parseNumber(configService.get<string>('AI_AGENT_MAX_CALLS')),
         continuePrompt: configService.get<string>('AI_AGENT_CONTINUE_PROMPT'),
@@ -34,12 +34,13 @@ import { FfpBookingOrchestratorService } from './ffp-booking-orchestrator.servic
         toolNamespaceKey: (configService.get<string>('AI_AGENT_TOOL_NAMESPACE_KEY') as 'name' | 'url' | undefined),
       }),
     }),
+    StateModule,
   ],
-  controllers: [FfpBookingOrchestratorController],
-  providers: [FfpBookingOrchestratorService],
-  exports: [FfpBookingOrchestratorService],
+  controllers: [MainOrchestratorController],
+  providers: [MainOrchestratorService, MainOrchestratorHelperService],
+  exports: [MainOrchestratorService],
 })
-export class FfpBookingOrchestratorModule {}
+export class MainOrchestratorModule {}
 
 const parseNumber = (value?: string): number | undefined => {
   if (!value) {
@@ -49,17 +50,33 @@ const parseNumber = (value?: string): number | undefined => {
   return Number.isFinite(parsed) ? parsed : undefined;
 };
 
-const resolveFfpBookingMcpServers = (configService: ConfigService) => {
-  const list = configService.get<string>('FFP_BOOKING_MCP_SERVER_URLS');
+const resolveMainMcpServers = (configService: ConfigService) => {
+  const list = configService.get<string>('MAIN_ORCHESTRATOR_MCP_SERVER_URLS');
   if (list) {
     try {
-      const parsed = JSON.parse(list) as Array<{ url?: string; name?: string; toolNamePrefix?: string }>;
+      const parsed = JSON.parse(list) as Array<{
+        url?: string;
+        name?: string;
+        toolNamePrefix?: string;
+        transport?: 'http' | 'stdio';
+        command?: string;
+        args?: string[];
+        env?: Record<string, string>;
+        cwd?: string;
+        stderr?: 'inherit' | 'pipe' | 'overlapped';
+      }>;
       const servers = parsed
-        .filter((item) => typeof item?.url === 'string')
+        .filter((item) => typeof item?.url === 'string' || item?.transport === 'stdio')
         .map((item, index) => ({
-          url: item.url as string,
-          name: item.name ?? `ffp-booking-mcp-${index + 1}`,
+          url: item.url,
+          name: item.name ?? `main-orchestrator-mcp-${index + 1}`,
           toolNamePrefix: item.toolNamePrefix,
+          transport: item.transport,
+          command: item.command,
+          args: item.args,
+          env: item.env,
+          cwd: item.cwd,
+          stderr: item.stderr,
         }));
       if (servers.length > 0) {
         return servers;
@@ -71,7 +88,7 @@ const resolveFfpBookingMcpServers = (configService: ConfigService) => {
         .filter(Boolean)
         .map((url, index) => ({
           url,
-          name: `ffp-booking-mcp-${index + 1}`,
+          name: `main-orchestrator-mcp-${index + 1}`,
         }));
       if (servers.length > 0) {
         return servers;
@@ -79,7 +96,7 @@ const resolveFfpBookingMcpServers = (configService: ConfigService) => {
     }
   }
 
-  const single = configService.get<string>('FFP_BOOKING_MCP_SERVER_URL');
+  const single = configService.get<string>('MAIN_ORCHESTRATOR_MCP_SERVER_URL');
   if (single) {
     return [{ url: single, name: 'mcp-checkin' }];
   }

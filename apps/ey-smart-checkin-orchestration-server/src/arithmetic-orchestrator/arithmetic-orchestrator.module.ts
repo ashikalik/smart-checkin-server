@@ -38,6 +38,7 @@ import { ArithmeticOrchestratorService } from './arithmetic-orchestrator.service
   ],
   controllers: [ArithmeticOrchestratorController],
   providers: [ArithmeticOrchestratorService],
+  exports: [ArithmeticOrchestratorService],
 })
 export class ArithmeticOrchestratorModule {}
 
