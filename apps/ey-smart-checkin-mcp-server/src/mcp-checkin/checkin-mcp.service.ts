@@ -10,6 +10,11 @@ import {
   ssciIdentificationJourneyMcpTool,
 } from './tools/retrieve-journey.tool';
 import { SsciRetrieveOrderGqlService, ssciRetrieveOrderGqlMcpTool } from './tools/retrieve-order.tool';
+import { ssciIdentificationJourneyEligibilityMcpTool } from './tools/journey-eligibility.tool';
+import { ssciProcessCheckinMcpTool, SsciProcessCheckinService } from './auto-checkin-tools/process-acceptance.tool';
+import { SsciRegulatoryContactService, ssciRegulatoryContactUpdateMcpTool } from './auto-checkin-tools/regulatory-contact.service';
+import { ssciRegulatoryDetailsMcpTool, SsciRegulatoryDetailsService } from './auto-checkin-tools/regulatory-get.tool';
+import { ssciRegulatoryDetailsUpdateMcpTool, SsciRegulatoryDetailsUpdateService } from './auto-checkin-tools/regulatory-update.tool';
 
 type McpSession = {
   server: McpServer;
@@ -24,6 +29,10 @@ export class McpCheckInService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly journey: SsciJourneyIdentificationService,
     private readonly order: SsciRetrieveOrderGqlService,
+    private readonly processCheckin: SsciProcessCheckinService,
+    private readonly regulatoryDetails: SsciRegulatoryDetailsService,
+    private readonly regulatoryDetailsUpdate: SsciRegulatoryDetailsUpdateService,
+    private readonly regulatoryContact: SsciRegulatoryContactService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -91,17 +100,46 @@ export class McpCheckInService implements OnModuleInit, OnModuleDestroy {
   }
 
   private registerTools(server: McpServer): void {
-    // ---- SSCI tools ----
     server.registerTool(
       ssciIdentificationJourneyMcpTool.name,
       ssciIdentificationJourneyMcpTool.definition,
       ssciIdentificationJourneyMcpTool.handler(this.journey),
     );
-
+   
+    server.registerTool(
+      ssciIdentificationJourneyEligibilityMcpTool.name,
+      ssciIdentificationJourneyEligibilityMcpTool.definition,
+      ssciIdentificationJourneyEligibilityMcpTool.handler(this.journey),
+    );
+   
     server.registerTool(
       ssciRetrieveOrderGqlMcpTool.name,
       ssciRetrieveOrderGqlMcpTool.definition,
       ssciRetrieveOrderGqlMcpTool.handler(this.order),
+    );
+   
+    server.registerTool(
+      ssciProcessCheckinMcpTool.name,
+      ssciProcessCheckinMcpTool.definition,
+      ssciProcessCheckinMcpTool.handler(this.processCheckin),
+    );
+   
+    server.registerTool(
+      ssciRegulatoryDetailsMcpTool.name,
+      ssciRegulatoryDetailsMcpTool.definition,
+      ssciRegulatoryDetailsMcpTool.handler(this.regulatoryDetails),
+    );
+   
+    server.registerTool(
+      ssciRegulatoryDetailsUpdateMcpTool.name,
+      ssciRegulatoryDetailsUpdateMcpTool.definition,
+      ssciRegulatoryDetailsUpdateMcpTool.handler(this.regulatoryDetailsUpdate),
+    );
+   
+    server.registerTool(
+      ssciRegulatoryContactUpdateMcpTool.name,
+      ssciRegulatoryContactUpdateMcpTool.definition,
+      ssciRegulatoryContactUpdateMcpTool.handler(this.regulatoryContact),
     );
   }
 

@@ -311,14 +311,19 @@ export class AiAgentService implements OnModuleInit, OnModuleDestroy {
     return tools
       .filter((tool) => typeof tool?.name === 'string')
       .map((tool) => {
-        const parameters = this.ensureObjectSchema(tool.inputSchema);
-        return {
-          type: 'function',
-          name: tool.name as string,
-          description: tool.description as string | undefined,
-          parameters,
-          strict: true,
-        };
+        //const parameters = this.ensureObjectSchema(tool.inputSchema);
+        const name = tool.name as string;
+ 
+const parametersForModel = this.ensureObjectSchema(tool.inputSchema);
+ 
+ 
+return {
+  type: 'function',
+  name,
+  description: tool.description as string | undefined,
+  parameters: parametersForModel,
+  strict: false, // ✅ IMPORTANT (fixes “required must include all keys” OpenAI errors)
+};
       });
   }
 

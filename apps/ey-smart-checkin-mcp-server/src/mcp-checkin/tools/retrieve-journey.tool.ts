@@ -274,18 +274,18 @@ function toToolError(message: string): McpToolResponse {
   return { isError: true, content: [{ type: 'text', text: message }] };
 }
 
-function isMockEnabled(): boolean {
+export function isMockEnabled(): boolean {
   return String(process.env.MOCK_SSCI ?? '').toLowerCase() === 'true';
 }
 
-async function maybeMockDelay(): Promise<void> {
+export async function maybeMockDelay(): Promise<void> {
   const ms = Number(process.env.MOCK_SSCI_DELAY_MS ?? 0);
   if (Number.isFinite(ms) && ms > 0) {
     await new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 
-function buildMockJourneyResponse(
+export function buildMockJourneyResponse(
   identifier: string,
   lastName: string,
 ): JourneyIdentificationResponse {
