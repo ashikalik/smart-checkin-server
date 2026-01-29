@@ -9,7 +9,8 @@ import { SsciProcessCheckinService } from './auto-checkin-tools/process-acceptan
 import { SsciRegulatoryDetailsService } from './auto-checkin-tools/regulatory-get.tool';
 import { SsciRegulatoryDetailsUpdateService } from './auto-checkin-tools/regulatory-update.tool';
 import { SsciRegulatoryContactService } from './auto-checkin-tools/regulatory-contact.service';
- 
+import { SsciFlightStatusService } from './tools/flight-status.tool';
+
 @Module({
   imports: [HttpModule], 
   controllers: [McpCheckInController],
@@ -20,7 +21,8 @@ import { SsciRegulatoryContactService } from './auto-checkin-tools/regulatory-co
     SsciProcessCheckinService,
     SsciRegulatoryDetailsService,
     SsciRegulatoryDetailsUpdateService,
-    SsciRegulatoryContactService
+    SsciRegulatoryContactService,
+    SsciFlightStatusService
   ],
 })
 export class McpCheckInModule {}

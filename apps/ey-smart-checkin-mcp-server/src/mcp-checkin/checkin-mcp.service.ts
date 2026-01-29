@@ -15,6 +15,7 @@ import { ssciProcessCheckinMcpTool, SsciProcessCheckinService } from './auto-che
 import { SsciRegulatoryContactService, ssciRegulatoryContactUpdateMcpTool } from './auto-checkin-tools/regulatory-contact.service';
 import { ssciRegulatoryDetailsMcpTool, SsciRegulatoryDetailsService } from './auto-checkin-tools/regulatory-get.tool';
 import { ssciRegulatoryDetailsUpdateMcpTool, SsciRegulatoryDetailsUpdateService } from './auto-checkin-tools/regulatory-update.tool';
+import { SsciFlightStatusService, ssciFlightStatusMcpTool } from './tools/flight-status.tool';
 
 type McpSession = {
   server: McpServer;
@@ -33,6 +34,8 @@ export class McpCheckInService implements OnModuleInit, OnModuleDestroy {
     private readonly regulatoryDetails: SsciRegulatoryDetailsService,
     private readonly regulatoryDetailsUpdate: SsciRegulatoryDetailsUpdateService,
     private readonly regulatoryContact: SsciRegulatoryContactService,
+    private readonly flightStatus: SsciFlightStatusService,
+
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -141,6 +144,13 @@ export class McpCheckInService implements OnModuleInit, OnModuleDestroy {
       ssciRegulatoryContactUpdateMcpTool.definition,
       ssciRegulatoryContactUpdateMcpTool.handler(this.regulatoryContact),
     );
+      server.registerTool(
+      ssciFlightStatusMcpTool.name,
+      ssciFlightStatusMcpTool.definition,
+      ssciFlightStatusMcpTool.handler(this.flightStatus),
+);
+
+
   }
 
   private getSessionId(req: Request): string | undefined {
