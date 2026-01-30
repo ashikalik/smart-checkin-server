@@ -37,6 +37,7 @@ import { IdentificationOrchestratorService } from './identification-orchestrator
   ],
   controllers: [IdentificationOrchestratorController],
   providers: [IdentificationOrchestratorService],
+  exports: [IdentificationOrchestratorService],
 })
 export class IdentificationOrchestratorModule {}
 

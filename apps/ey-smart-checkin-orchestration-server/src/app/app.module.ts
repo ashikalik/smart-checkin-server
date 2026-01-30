@@ -4,6 +4,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ArithmeticOrchestratorModule } from '../arithmetic-orchestrator/arithmetic-orchestrator.module';
 import { IdentificationOrchestratorModule } from '../identification-orchestrator/identification-orchestrator.module';
+import { FfpBookingOrchestratorModule } from '../ffp-booking-orchestrator/ffp-booking-orchestrator.module';
+import { MainOrchestratorModule } from '../main-orchestrator/main-orchestrator.module';
 
 @Module({
   imports: [
@@ -13,6 +15,8 @@ import { IdentificationOrchestratorModule } from '../identification-orchestrator
     }),
     ArithmeticOrchestratorModule,
     IdentificationOrchestratorModule,
+    FfpBookingOrchestratorModule,
+    MainOrchestratorModule,
   ],
   controllers: [AppController],
   providers: [AppService],

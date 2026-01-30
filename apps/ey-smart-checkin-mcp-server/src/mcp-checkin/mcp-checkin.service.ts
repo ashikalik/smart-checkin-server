@@ -4,8 +4,12 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import type { Request, Response } from 'express';
 
+import { FfpBookingSchema } from './schemas/ffp-booking.schema';
 import { IdentificationSchema } from './schemas/identification.schema';
+import { SelectBookingSchema } from './schemas/select-booking.schema';
+import { FfpBookingService } from './services/ffp-booking.service';
 import { JourneyService } from './services/journey.service';
+import { UtilityService } from '../shared/utility.service';
 
 type ToolResponse = {
   content: Array<{ type: 'text'; text: string }>;
@@ -22,7 +26,11 @@ export class McpCheckinService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(McpCheckinService.name);
   private readonly sessions = new Map<string, McpSession>();
 
-  constructor(private readonly journey: JourneyService) {}
+  constructor(
+    private readonly journey: JourneyService,
+    private readonly ffpBooking: FfpBookingService,
+    private readonly utilityService: UtilityService,
+  ) {}
 
   async onModuleInit(): Promise<void> {
     this.logger.log('MCP check-in server started (streamable HTTP). Endpoint: /mcp-checkin');
@@ -90,6 +98,19 @@ export class McpCheckinService implements OnModuleInit, OnModuleDestroy {
 
   private registerTools(server: McpServer): void {
     server.registerTool(
+      'select_booking',
+      {
+        description: 'Resolve a booking choice from a user utterance and a list of choices.',
+        inputSchema: SelectBookingSchema,
+        annotations: { readOnlyHint: true, idempotentHint: true },
+      },
+      async ({ utterance, choices }) => {
+        const bookingId = this.resolveBookingChoice(utterance, choices);
+        return this.respond({ bookingId });
+      },
+    );
+
+    server.registerTool(
       'identification',
       {
         description: 'Return journey data for a valid PNR',
@@ -124,6 +145,52 @@ export class McpCheckinService implements OnModuleInit, OnModuleDestroy {
         return this.respond(this.journey.getJourney());
       },
     );
+
+    server.registerTool(
+      'get_ffp_booking',
+      {
+        description: 'Return FFP booking data',
+        inputSchema: FfpBookingSchema,
+        annotations: { readOnlyHint: true, idempotentHint: true },
+      },
+      async ({ frequentFlyerCardNumber, lastName }) => {
+        if (!this.ffpBooking.isValidFrequentFlyerCardNumber(frequentFlyerCardNumber)) {
+          return this.respondError('Frequent flyer card number not found');
+        }
+        if (!this.ffpBooking.isValidLastName(lastName)) {
+          return this.respondError('Last name not found');
+        }
+        return this.respond(this.ffpBooking.getBooking());
+      },
+    );
+
+    server.registerTool(
+      'get_trips_from_ffp_booking',
+      {
+        description: 'Return trips extracted from FFP booking data',
+        inputSchema: FfpBookingSchema,
+        annotations: { readOnlyHint: true, idempotentHint: true },
+      },
+      async ({ frequentFlyerCardNumber, lastName }) => {
+        if (!this.ffpBooking.isValidFrequentFlyerCardNumber(frequentFlyerCardNumber)) {
+          return this.respondError('Frequent flyer card number not found');
+        }
+        if (!this.ffpBooking.isValidLastName(lastName)) {
+          return this.respondError('Last name not found');
+        }
+
+        const booking = this.ffpBooking.getBooking() as { data?: Array<Record<string, unknown>> };
+        const trips = Array.isArray(booking.data)
+          ? booking.data.map((trip) => ({
+              id: trip.id,
+              creationDateTime: trip.creationDateTime,
+              flights: trip.flights,
+            }))
+          : [];
+
+        return this.respond({ trips });
+      },
+    );
   }
 
   private getSessionId(req: Request): string | undefined {
@@ -147,7 +214,7 @@ export class McpCheckinService implements OnModuleInit, OnModuleDestroy {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(data, null, 2),
+          text: this.utilityService.compactJson(data),
         },
       ],
     };
@@ -163,5 +230,82 @@ export class McpCheckinService implements OnModuleInit, OnModuleDestroy {
         },
       ],
     };
+  }
+
+  private resolveBookingChoice(
+    utterance: string,
+    choices: Array<{ id: string; summary?: string }>,
+  ): string | null {
+    const normalized = utterance.trim().toLowerCase();
+    if (!normalized) {
+      return null;
+    }
+
+    const idMatch = choices.find((choice) => normalized.includes(choice.id.toLowerCase()));
+    if (idMatch) {
+      return idMatch.id;
+    }
+
+    if (this.matchesOrdinal(normalized, 1)) {
+      return choices[0]?.id ?? null;
+    }
+    if (this.matchesOrdinal(normalized, 2)) {
+      return choices[1]?.id ?? null;
+    }
+
+    const codeMatch = this.matchByLocationCode(normalized, choices);
+    if (codeMatch) {
+      return codeMatch;
+    }
+
+    return null;
+  }
+
+  private matchesOrdinal(utterance: string, ordinal: number): boolean {
+    const patterns =
+      ordinal === 1
+        ? ['first', '1st', 'one', '1']
+        : ordinal === 2
+          ? ['second', '2nd', 'two', '2']
+          : [];
+    return patterns.some((token) => utterance.includes(token));
+  }
+
+  private matchByLocationCode(utterance: string, choices: Array<{ id: string; summary?: string }>): string | null {
+    const aliases: Record<string, string> = {
+      bombay: 'BOM',
+      mumbai: 'BOM',
+      ahmedabad: 'AMD',
+      'abu dhabi': 'AUH',
+      abudhabi: 'AUH',
+      paris: 'CDG',
+    };
+
+    const tokens = Object.keys(aliases).filter((key) => utterance.includes(key));
+    const codes = new Set<string>();
+    for (const token of tokens) {
+      codes.add(aliases[token]);
+    }
+    const codeTokens = utterance.match(/[A-Z]{3}/g) ?? [];
+    codeTokens.forEach((code) => codes.add(code.toUpperCase()));
+
+    if (codes.size === 0) {
+      return null;
+    }
+
+    const matches = choices.filter((choice) => {
+      const summary = choice.summary?.toUpperCase() ?? '';
+      for (const code of codes) {
+        if (summary.includes(code)) {
+          return true;
+        }
+      }
+      return false;
+    });
+
+    if (matches.length === 1) {
+      return matches[0].id;
+    }
+    return null;
   }
 }
