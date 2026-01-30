@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { z } from 'zod';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { OpenAiChatModelService } from '../open-ai-chat-model/open-ai-chat-model.service';
+import { AzureOpenAiChatModelService } from '../azure-open-ai-chat-model/azure-open-ai-chat-model.service';
 import { IdentificationOrchestratorService } from '../identification-orchestrator/identification-orchestrator.service';
 import { FfpBookingOrchestratorService } from '../ffp-booking-orchestrator/ffp-booking-orchestrator.service';
 import { ArithmeticOrchestratorService } from '../arithmetic-orchestrator/arithmetic-orchestrator.service';
@@ -45,7 +45,7 @@ export class MainMcpService implements OnModuleDestroy {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly chatModel: OpenAiChatModelService,
+    private readonly chatModel: AzureOpenAiChatModelService,
     private readonly identification: IdentificationOrchestratorService,
     private readonly ffpBooking: FfpBookingOrchestratorService,
     private readonly arithmetic: ArithmeticOrchestratorService,
