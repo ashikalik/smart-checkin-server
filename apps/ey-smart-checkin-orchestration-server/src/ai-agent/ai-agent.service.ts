@@ -2,7 +2,7 @@ import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nest
 import { ConfigService } from '@nestjs/config';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { AzureOpenAiChatModelService } from '../azure-open-ai-chat-model/azure-open-ai-chat-model.service';
+import { OpenAiChatModelService } from '../open-ai-chat-model/open-ai-chat-model.service';
 import {
   AI_AGENT_CONFIG,
   AiAgentConfig,
@@ -72,7 +72,7 @@ export class AiAgentService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     @Inject(AI_AGENT_CONFIG) private readonly config: AiAgentConfig,
-    private readonly chatModel: AzureOpenAiChatModelService,
+    private readonly chatModel: OpenAiChatModelService,
   ) {}
 
   async onModuleInit(): Promise<void> {
