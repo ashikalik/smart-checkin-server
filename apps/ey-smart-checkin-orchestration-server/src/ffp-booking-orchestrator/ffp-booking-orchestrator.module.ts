@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AiAgentModule } from '../ai-agent/ai-agent.module';
-import { OpenAiChatModelModule } from '../open-ai-chat-model/open-ai-chat-model.module';
+import { AzureOpenAiChatModelModule } from '../azure-open-ai-chat-model/azure-open-ai-chat-model.module';
 import { OutputFormatterModule } from '../output-formatter/output-formatter.module';
 import { FfpBookingOrchestratorController } from './ffp-booking-orchestrator.controller';
 import { FfpBookingOrchestratorService } from './ffp-booking-orchestrator.service';
@@ -12,10 +12,10 @@ import { FfpBookingOrchestratorService } from './ffp-booking-orchestrator.servic
       isGlobal: true,
       envFilePath: 'apps/ey-smart-checkin-orchestration-server/.env',
     }),
-    OpenAiChatModelModule.registerAsync(),
+    AzureOpenAiChatModelModule.registerAsync(),
     OutputFormatterModule,
     AiAgentModule.forFeatureAsync({
-      imports: [ConfigModule, OpenAiChatModelModule.registerAsync()],
+      imports: [ConfigModule, AzureOpenAiChatModelModule.registerAsync()],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         mcpServers: resolveFfpBookingMcpServers(configService),

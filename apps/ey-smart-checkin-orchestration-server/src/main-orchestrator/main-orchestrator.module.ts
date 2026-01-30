@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AiAgentModule } from '../ai-agent/ai-agent.module';
-import { OpenAiChatModelModule } from '../open-ai-chat-model/open-ai-chat-model.module';
+import { AzureOpenAiChatModelModule } from '../azure-open-ai-chat-model/azure-open-ai-chat-model.module';
 import { MainOrchestratorController } from './main-orchestrator.controller';
 import { MainOrchestratorHelperService } from './main-orchestrator-helper.service';
 import { MainOrchestratorService } from './main-orchestrator.service';
@@ -15,9 +15,9 @@ import { StateModule } from '../state/state.module';
       isGlobal: true,
       envFilePath: 'apps/ey-smart-checkin-orchestration-server/.env',
     }),
-    OpenAiChatModelModule.registerAsync(),
+    AzureOpenAiChatModelModule.registerAsync(),
     AiAgentModule.forFeatureAsync({
-      imports: [ConfigModule, OpenAiChatModelModule.registerAsync()],
+      imports: [ConfigModule, AzureOpenAiChatModelModule.registerAsync()],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         mcpServers: resolveMainMcpServers(configService),
