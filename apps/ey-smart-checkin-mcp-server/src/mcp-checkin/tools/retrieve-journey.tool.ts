@@ -139,7 +139,9 @@ function toToolError(message: string): McpToolResponse {
 }
 
 export function isMockEnabled(): boolean {
-  return String(process.env.MOCK_SSCI ?? '').toLowerCase() === 'true';
+  
+  //return String(process.env.MOCK_SSCI ?? '').toLowerCase() === 'true';
+  return true;
 }
 
 export async function maybeMockDelay(): Promise<void> {
@@ -242,6 +244,10 @@ export const ssciIdentificationJourneyMcpTool = {
 
         // MOCK MODE: return fixture JSON patched with identifier + lastName
         if (isMockEnabled()) {
+          console.log('[MOCK_SSCI]', {
+            MOCK_SSCI: process.env.MOCK_SSCI,
+            MOCK_SSCI_DELAY_MS: process.env.MOCK_SSCI_DELAY_MS,
+          });
           await maybeMockDelay();
           const mockRes = buildMockJourneyResponse(apiPayload.identifier, apiPayload.lastName);
 
@@ -276,3 +282,5 @@ export const ssciIdentificationJourneyMcpTool = {
       }
     },
 } as const;
+
+

@@ -3,7 +3,7 @@ import type { Request, Response } from 'express';
 
 import { McpService } from './mcp.service';
 
-@Controller('mcp-test')
+@Controller('mcp')
 export class McpController {
   constructor(private readonly mcp: McpService) {}
 
