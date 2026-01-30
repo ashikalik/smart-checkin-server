@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AiAgentModule } from '../ai-agent/ai-agent.module';
-import { AzureOpenAiChatModelModule } from '../azure-open-ai-chat-model/azure-open-ai-chat-model.module';
+import { OpenAiChatModelModule } from '../open-ai-chat-model/open-ai-chat-model.module';
 import { OutputFormatterModule } from '../output-formatter/output-formatter.module';
 import { IdentificationOrchestratorController } from './identification-orchestrator.controller';
 import { IdentificationOrchestratorService } from './identification-orchestrator.service';
@@ -12,10 +12,10 @@ import { IdentificationOrchestratorService } from './identification-orchestrator
       isGlobal: true,
       envFilePath: 'apps/ey-smart-checkin-orchestration-server/.env',
     }),
-    AzureOpenAiChatModelModule.registerAsync(),
+    OpenAiChatModelModule.registerAsync(),
     OutputFormatterModule,
     AiAgentModule.forFeatureAsync({
-      imports: [ConfigModule, AzureOpenAiChatModelModule.registerAsync()],
+      imports: [ConfigModule, OpenAiChatModelModule.registerAsync()],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         mcpServers: resolveIdentificationMcpServers(configService),

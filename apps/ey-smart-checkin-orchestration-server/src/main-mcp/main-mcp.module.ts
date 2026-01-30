@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AzureOpenAiChatModelModule } from '../azure-open-ai-chat-model/azure-open-ai-chat-model.module';
+import { OpenAiChatModelModule } from '../open-ai-chat-model/open-ai-chat-model.module';
 import { IdentificationOrchestratorModule } from '../identification-orchestrator/identification-orchestrator.module';
 import { FfpBookingOrchestratorModule } from '../ffp-booking-orchestrator/ffp-booking-orchestrator.module';
 import { ArithmeticOrchestratorModule } from '../arithmetic-orchestrator/arithmetic-orchestrator.module';
@@ -12,7 +12,7 @@ import { MainMcpService } from './main-mcp.service';
       isGlobal: true,
       envFilePath: 'apps/ey-smart-checkin-orchestration-server/.env',
     }),
-    AzureOpenAiChatModelModule.registerAsync(),
+    OpenAiChatModelModule.registerAsync(),
     IdentificationOrchestratorModule,
     FfpBookingOrchestratorModule,
     ArithmeticOrchestratorModule,
