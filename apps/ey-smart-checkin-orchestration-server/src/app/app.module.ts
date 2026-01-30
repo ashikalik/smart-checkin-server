@@ -6,6 +6,7 @@ import { ArithmeticOrchestratorModule } from '../arithmetic-orchestrator/arithme
 import { IdentificationOrchestratorModule } from '../identification-orchestrator/identification-orchestrator.module';
 import { FfpBookingOrchestratorModule } from '../ffp-booking-orchestrator/ffp-booking-orchestrator.module';
 import { MainOrchestratorModule } from '../main-orchestrator/main-orchestrator.module';
+import { TripIdentificationAgentModule } from '../agents/trip-identification/trip-identification-agent.module';
 import { AutoCheckInOrchestratorModule } from '../auto-checkin-orchestrator/auto-checkin-orchestrator.module';
 
 @Module({
@@ -17,6 +18,7 @@ import { AutoCheckInOrchestratorModule } from '../auto-checkin-orchestrator/auto
     ArithmeticOrchestratorModule,
     IdentificationOrchestratorModule,
     FfpBookingOrchestratorModule,
+    TripIdentificationAgentModule,
     MainOrchestratorModule,
     AutoCheckInOrchestratorModule,
   ],
