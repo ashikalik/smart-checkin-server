@@ -1,0 +1,307 @@
+{
+    "journeys": [
+        {
+            "acceptance": {
+                "isAccepted": false,
+                "isPartial": false,
+                "isVoluntaryDeniedBoarding": false,
+                "notCheckedInJourneyElements": [
+                    {
+                        "id": "600DD5D7000A4D1A"
+                    }
+                ]
+            },
+            "acceptanceEligibility": {
+                "eligibilityWindow": {
+                    "closingDateAndTime": "2026-01-31T01:45:00+04:00",
+                    "openingDateAndTime": "2026-01-29T20:45:00+04:00"
+                },
+                "reasons": [
+                    "regulatoryDetailsInhibition"
+                ],
+                "status": "ineligible"
+            },
+            "contacts": [
+                {
+                    "address": "JACOBJAMES@GMAIL.COM",
+                    "category": "personal",
+                    "contactType": "Email",
+                    "id": "610D05D700054BEE_dbf8ee93",
+                    "lang": "en",
+                    "purpose": "notification",
+                    "travelerIds": [
+                        "610D05D700054BEE"
+                    ]
+                },
+                {
+                    "category": "personal",
+                    "contactType": "Phone",
+                    "countryPhoneExtension": "971",
+                    "id": "610D05D700054BEE_4821ae8a",
+                    "number": "586730810",
+                    "purpose": "notification",
+                    "travelerIds": [
+                        "610D05D700054BEE"
+                    ]
+                }
+            ],
+            "flights": [
+                {
+                    "id": "EY-61-20260131",
+                    "acceptanceStatus": "opened",
+                    "aircraftCode": "388",
+                    "arrival": {
+                        "dateTime": "2026-01-31T06:40:00+00:00",
+                        "locationCode": "LHR",
+                        "terminal": "4"
+                    },
+                    "departure": {
+                        "dateTime": "2026-01-31T02:45:00+04:00",
+                        "locationCode": "AUH",
+                        "terminal": "A"
+                    },
+                    "duration": 28500,
+                    "isIATCI": false,
+                    "isPilgrimConfirmationRequired": false,
+                    "marketingAirlineCode": "EY",
+                    "marketingFlightNumber": "61",
+                    "operatingAirlineCode": "EY",
+                    "operatingAirlineFlightNumber": "61",
+                    "operatingAirlineName": "ETIHAD AIRWAYS",
+                    "operatingFlightNumber": "61",
+                    "status": "scheduled"
+                }
+            ],
+            "id": "58DCB34AD19EC003B9FFE84CADC115BAEBEE9C761769925780",
+            "isGroupBooking": false,
+            "journeyElements": [
+                {
+                    "id": "600DD5D7000A4D1A",
+                    "acceptanceEligibility": {
+                        "eligibilityWindow": {
+                            "closingDateAndTime": "2026-01-31T01:45:00+04:00",
+                            "openingDateAndTime": "2026-01-29T20:45:00+04:00"
+                        },
+                        "reasons": [
+                            "regulatoryDetailsInhibition"
+                        ],
+                        "status": "ineligible"
+                    },
+                    "boardingPassEligibility": {
+                        "reasons": [
+                            "passengerNotAccepted"
+                        ],
+                        "status": "ineligible"
+                    },
+                    "boardingPassPrintStatus": "notPrinted",
+                    "boardingStatus": "notBoarded",
+                    "cabin": "Y",
+                    "checkInStatus": "notAccepted",
+                    "fareFamily": {
+                        "code": "EY-YCOMFORT"
+                    },
+                    "flightId": "EY-61-20260131",
+                    "orderId": "7MHQTY",
+                    "regulatoryProgramsCheckStatuses": [
+                        {
+                            "regulatoryProgram": {
+                                "name": "ADC"
+                            },
+                            "statuses": [
+                                {
+                                    "statusCode": "N"
+                                }
+                            ]
+                        }
+                    ],
+                    "seatmapEligibility": {
+                        "status": "eligible"
+                    },
+                    "travelerId": "610D05D700054BEE"
+                }
+            ],
+            "travelers": [
+                {
+                    "gender": "male",
+                    "id": "610D05D700054BEE",
+                    "isPilgrimConfirmationProvided": false,
+                    "names": [
+                        {
+                            "firstName": "JACOB",
+                            "lastName": "JAMES",
+                            "nameType": "universal",
+                            "title": "MR"
+                        }
+                    ],
+                    "passengerTypeCode": "ADT"
+                }
+            ],
+            "type": "standalone"
+        }
+    ],
+    "journeyDictionary": {
+        "aircraft": {
+            "388": "AIRBUS A380-800"
+        },
+        "airline": {
+            "EY": "ETIHAD AIRWAYS"
+        },
+        "country": {
+            "AE": "UNITED ARAB EMIRATES",
+            "GB": "UNITED KINGDOM"
+        },
+        "flight": {
+            "EY-61-20260131": {
+                "acceptanceStatus": "opened",
+                "aircraftCode": "388",
+                "arrival": {
+                    "dateTime": "2026-01-31T06:40:00+00:00",
+                    "locationCode": "LHR",
+                    "terminal": "4"
+                },
+                "departure": {
+                    "dateTime": "2026-01-31T02:45:00+04:00",
+                    "locationCode": "AUH",
+                    "terminal": "A"
+                },
+                "duration": 28500,
+                "id": "EY-61-20260131",
+                "isIATCI": false,
+                "isPilgrimConfirmationRequired": false,
+                "marketingAirlineCode": "EY",
+                "marketingFlightNumber": "61",
+                "operatingAirlineCode": "EY",
+                "operatingAirlineFlightNumber": "61",
+                "operatingAirlineName": "ETIHAD AIRWAYS",
+                "operatingFlightNumber": "61",
+                "status": "scheduled"
+            }
+        },
+        "journeyElement": {
+            "600DD5D7000A4D1A": {
+                "acceptanceEligibility": {
+                    "eligibilityWindow": {
+                        "closingDateAndTime": "2026-01-31T01:45:00+04:00",
+                        "openingDateAndTime": "2026-01-29T20:45:00+04:00"
+                    },
+                    "reasons": [
+                        "regulatoryDetailsInhibition"
+                    ],
+                    "status": "ineligible"
+                },
+                "boardingPassEligibility": {
+                    "reasons": [
+                        "passengerNotAccepted"
+                    ],
+                    "status": "ineligible"
+                },
+                "boardingPassPrintStatus": "notPrinted",
+                "boardingStatus": "notBoarded",
+                "cabin": "Y",
+                "checkInStatus": "notAccepted",
+                "fareFamily": {
+                    "code": "EY-YCOMFORT"
+                },
+                "flightId": "EY-61-20260131",
+                "id": "600DD5D7000A4D1A",
+                "orderId": "7MHQTY",
+                "regulatoryProgramsCheckStatuses": [
+                    {
+                        "regulatoryProgram": {
+                            "name": "ADC"
+                        },
+                        "statuses": [
+                            {
+                                "statusCode": "N"
+                            }
+                        ]
+                    }
+                ],
+                "seatmapEligibility": {
+                    "status": "eligible"
+                },
+                "travelerId": "610D05D700054BEE"
+            }
+        },
+        "location": {
+            "AUH": {
+                "airportName": "ABU DHABI ZAYED INTERNATION",
+                "cityCode": "AUH",
+                "cityName": "ABU DHABI",
+                "countryCode": "AE",
+                "stateCode": "",
+                "type": "airport"
+            },
+            "LHR": {
+                "airportName": "LONDON HEATHROW",
+                "cityCode": "LON",
+                "cityName": "LONDON",
+                "countryCode": "GB",
+                "stateCode": "",
+                "type": "airport"
+            }
+        },
+        "traveler": {
+            "610D05D700054BEE": {
+                "gender": "male",
+                "id": "610D05D700054BEE",
+                "isPilgrimConfirmationProvided": false,
+                "names": [
+                    {
+                        "firstName": "JACOB",
+                        "lastName": "JAMES",
+                        "nameType": "universal",
+                        "title": "MR"
+                    }
+                ],
+                "passengerTypeCode": "ADT"
+            }
+        }
+    },
+    "genericEligibilities": [
+        {
+            "eligiblityName": "seatmapEligible",
+            "isEligible": true,
+            "journeyIds": [
+                "58DCB34AD19EC003B9FFE84CADC115BAEBEE9C761769925780"
+            ],
+            "journeyElementIds": [
+                "600DD5D7000A4D1A"
+            ]
+        },
+        {
+            "eligiblityName": "canOneJourneyElementBeEligible",
+            "isEligible": true,
+            "journeyIds": [
+                "58DCB34AD19EC003B9FFE84CADC115BAEBEE9C761769925780"
+            ],
+            "journeyElementIds": null
+        },
+        {
+            "eligiblityName": "isWithinAcceptanceWindow",
+            "isEligible": true,
+            "journeyIds": [
+                "58DCB34AD19EC003B9FFE84CADC115BAEBEE9C761769925780"
+            ],
+            "journeyElementIds": null
+        },
+        {
+            "eligiblityName": "canBeEligible",
+            "isEligible": true,
+            "journeyIds": [
+                "58DCB34AD19EC003B9FFE84CADC115BAEBEE9C761769925780"
+            ],
+            "journeyElementIds": null
+        },
+        {
+            "eligiblityName": "isCheckInOpened",
+            "isEligible": true,
+            "journeyIds": [
+                "58DCB34AD19EC003B9FFE84CADC115BAEBEE9C761769925780"
+            ],
+            "journeyElementIds": null
+        }
+    ],
+    "warnings": [],
+    "errors": []
+}

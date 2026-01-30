@@ -23,6 +23,17 @@ export interface JourneysListReply {
    * Array of warning messages
    */
   warnings?: WarningMessage[];
-  data: Journey[];
-  dictionaries?: JourneyDictionary;
+  journeys: Journey[];
+  journeyDictionary?: JourneyDictionary;
+  genericEligibilities?:GenericEligibility[] | null;
+  
 }
+
+export interface GenericEligibility {
+  eligiblityName: string;
+  isEligible: boolean;
+  journeyIds?: string[] | null;
+  journeyElementIds?: string[] | null;
+  [key: string]: unknown;
+}
+

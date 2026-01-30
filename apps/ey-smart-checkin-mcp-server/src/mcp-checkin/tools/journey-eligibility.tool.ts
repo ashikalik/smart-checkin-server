@@ -1,10 +1,7 @@
-import type {
-    GenericEligibility,
-    Journey,
-    JourneyIdentificationRequestPayload,
-    JourneyIdentificationResponse,
-  } from '../tools/retrieve-journey.tool';
-  import {
+
+  import { GenericEligibility, JourneysListReply } from '@etihad-core/models';
+import {
+  JourneyIdentificationRequestPayload,
     SsciJourneyIdentificationSchema,
     type SsciJourneyIdentificationService,
     type SsciJourneyIdentificationToolInput,
@@ -168,62 +165,86 @@ import type {
     return { key: 'CHECK_IN_CLOSES_ON', params: { date: formatDdMmmUtc(closing) } };
   }
   
-  function pickOperatingAirlineName(journey: Journey): string | null {
-    const flights = journey.flights ?? [];
-    for (const f of flights) {
-      if (typeof f?.operatingAirlineName === 'string' && f.operatingAirlineName.trim().length > 0) {
-        return f.operatingAirlineName;
-      }
-    }
-    return null;
-  }
   
-  function computeJourneyEligibility(data: JourneyIdentificationResponse): JourneyEligibilityResponse {
+  function computeJourneyEligibility(data: JourneysListReply): JourneyEligibilityResponse {
     try {
       const journeys = Array.isArray(data?.journeys) ? data.journeys : [];
       const genericEligibilities = Array.isArray(data?.genericEligibilities) ? data.genericEligibilities : [];
-  
-      const rules: Array<{ ruleName: string; status: string }> = [
-        { ruleName: 'IsBusJourney', status: 'busJourney' },
-        { ruleName: 'IsTrainJourney', status: 'trainJourney' },
-        { ruleName: 'IsFirstFlightOtherAirline', status: 'firstFlightOtherAirline' },
-        { ruleName: 'IsCheckInCompleted', status: 'completed' },
-        { ruleName: 'IsDeeplinkInhibition', status: 'deeplinkInhibition' },
-        { ruleName: 'IsCheckInNotAvailable', status: 'notAvailable' },
-        { ruleName: 'IsPartialClosedNotFlown', status: 'partialClosedNotFlown' },
-        { ruleName: 'IsPartial', status: 'partial' },
-        { ruleName: 'IsCheckedInAndClosedNotFlown', status: 'checkedInAndClosedNotFlown' },
-        { ruleName: 'IsCheckInClosedNotFlown', status: 'closedNotFlown' },
-        { ruleName: 'IsNotOpened', status: 'notOpened' },
-        { ruleName: 'ServiceNotSupported', status: 'serviceNotSupported' },
-        { ruleName: 'IsCheckInOpened', status: 'opened' },
-      ];
-  
+   
       const results: JourneyEligibilityResult[] = journeys.map((journey) => {
         const journeyId = String(journey?.id ?? '');
-  
+   
+        const accepted =
+          journey.acceptance?.isAccepted === true ||
+          (journey.acceptance?.checkedInJourneyElements?.length ?? 0) > 0;
+
+   
         let checkInStatus = 'ineligible';
         let matchedRule: string | null = null;
         let matchedEligibility: GenericEligibility | null = null;
-  
-        for (const rule of rules) {
-          const match = genericEligibilities.find((e) => {
-            if (!e || typeof e !== 'object') return false;
-            if (e.isEligible !== true) return false;
-            if (normalizeEligibilityName(e.eligiblityName) !== normalizeEligibilityName(rule.ruleName)) return false;
-            const ids = Array.isArray(e.journeyIds) ? e.journeyIds : [];
-            return ids.includes(journeyId);
-          });
-          if (match) {
-            checkInStatus = rule.status;
-            matchedRule = rule.ruleName;
-            matchedEligibility = match;
-            break;
+   
+        // ---- 1) If accepted -> completed (strongest signal)
+        if (accepted) {
+          checkInStatus = 'completed';
+          matchedRule = 'Acceptance.isAccepted';
+          matchedEligibility = null;
+        } else {
+          // helper to match any eligibility name for this journey
+          const findEligibility = (names: string[]) =>
+            genericEligibilities.find((e) => {
+              if (!e || typeof e !== 'object') return false;
+              if (e.isEligible !== true) return false;
+              const ids = Array.isArray(e.journeyIds) ? e.journeyIds : [];
+              if (!ids.includes(journeyId)) return false;
+   
+              const n = normalizeEligibilityName(e.eligiblityName);
+              return names.map((x) => x.toLowerCase()).includes(n);
+            });
+   
+          // ---- 2) Your requirement: if isCheckInOpen/opened=true -> opened
+          const openMatch = findEligibility(['ischeckinopen', 'ischeckinopened']);
+          if (openMatch) {
+            checkInStatus = 'opened';
+            matchedRule = 'IsCheckInOpened';
+            matchedEligibility = openMatch;
+          } else {
+            // ---- 3) Fallback ordered rules (excluding opened because handled above)
+            const rules: Array<{ ruleName: string; status: string }> = [
+              { ruleName: 'IsBusJourney', status: 'busJourney' },
+              { ruleName: 'IsTrainJourney', status: 'trainJourney' },
+              { ruleName: 'IsFirstFlightOtherAirline', status: 'firstFlightOtherAirline' },
+              { ruleName: 'IsCheckInCompleted', status: 'completed' },
+              { ruleName: 'IsDeeplinkInhibition', status: 'deeplinkInhibition' },
+              { ruleName: 'IsCheckInNotAvailable', status: 'notAvailable' },
+              { ruleName: 'IsPartialClosedNotFlown', status: 'partialClosedNotFlown' },
+              { ruleName: 'IsPartial', status: 'partial' },
+              { ruleName: 'IsCheckedInAndClosedNotFlown', status: 'checkedInAndClosedNotFlown' },
+              { ruleName: 'IsCheckInClosedNotFlown', status: 'closedNotFlown' },
+              { ruleName: 'IsNotOpened', status: 'notOpened' },
+              { ruleName: 'ServiceNotSupported', status: 'serviceNotSupported' },
+            ];
+   
+            for (const rule of rules) {
+              const match = genericEligibilities.find((e) => {
+                if (!e || typeof e !== 'object') return false;
+                if (e.isEligible !== true) return false;
+                if (normalizeEligibilityName(e.eligiblityName) !== normalizeEligibilityName(rule.ruleName)) return false;
+                const ids = Array.isArray(e.journeyIds) ? e.journeyIds : [];
+                return ids.includes(journeyId);
+              });
+   
+              if (match) {
+                checkInStatus = rule.status;
+                matchedRule = rule.ruleName;
+                matchedEligibility = match;
+                break;
+              }
+            }
           }
         }
-  
-        const operatingAirlineName = pickOperatingAirlineName(journey);
-  
+   
+        const operatingAirlineName = 'EY';
+   
         let messageKey: string | null = null;
         let message: string | null = null;
         if (
@@ -239,14 +260,17 @@ import type {
             ? `Please check-in at ${operatingAirlineName} website`
             : 'Please check-in at the operating airline website';
         }
-  
-        const window = journey.acceptanceEligibility?.eligibilityWindow;
+   
+        // ---- 4) Correct window source: journey window OR journeyElement window fallback
+        const window =
+          journey.acceptanceEligibility?.eligibilityWindow;
+   
         const checkInMessage = computeCheckInMessage({
           checkInStatus,
           openingDateAndTime: window?.openingDateAndTime,
           closingDateAndTime: window?.closingDateAndTime,
         });
-  
+   
         return {
           journeyId,
           checkInStatus,
@@ -258,7 +282,7 @@ import type {
           checkInMessage,
         };
       });
-  
+   
       return { eligibility: { journeys: results }, error: null };
     } catch (e: any) {
       return { eligibility: null, error: e?.message ?? 'Failed to compute eligibility' };
@@ -291,7 +315,7 @@ import type {
           encryptedParameters: payload.encryptedParameters ?? null,
         };
    
-        let apiRes: JourneyIdentificationResponse;
+        let apiRes: JourneysListReply;
    
         if (isMockEnabled()) {
           await maybeMockDelay();
