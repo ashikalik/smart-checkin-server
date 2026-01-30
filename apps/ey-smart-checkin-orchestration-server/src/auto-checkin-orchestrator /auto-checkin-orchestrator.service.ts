@@ -4,7 +4,7 @@ import { AiAgentService } from '../ai-agent/ai-agent.service';
 import { AiAgentStep } from '../ai-agent/ai-agent.types';
 
 @Injectable()
-export class IdentificationOrchestratorService {
+export class AutoCheckInOrchestratorService {
   constructor(
     private readonly agent: AiAgentService,
     private readonly configService: ConfigService,
