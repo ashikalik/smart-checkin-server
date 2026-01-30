@@ -2,6 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { z } from 'zod';
+import journeyMock from '../../mocks/oneway-onepax/journey.json';
+import { JourneysListReply } from '@etihad-core/models';
+
+/**
+ * IMPORTANT:
+ * This import assumes the mock JSON is inside the *same source code* tree, e.g.
+ *   apps/ey-smart-checkin-mcp-server/src/mocks/oneway-onepax/journey.json
+ *
+ * And your tsconfig has:
+ *   "resolveJsonModule": true
+ *   "esModuleInterop": true
+ */
+
 
 /**
  * SSCI - Journey Identification
@@ -55,152 +68,6 @@ export const SsciJourneyIdentificationSchema = z.object({
 
 export type SsciJourneyIdentificationToolInput = z.infer<typeof SsciJourneyIdentificationSchema>;
 
-export interface JourneyIdentificationResponse {
-  journeys: Journey[];
-  journeyDictionary?: JourneyDictionary;
-  genericEligibilities?: GenericEligibility[] | null;
-  warnings?: unknown[];
-  errors?: unknown[];
-  [key: string]: unknown;
-}
-
-export interface Journey {
-  id: string;
-  type?: string;
-  isGroupBooking?: boolean;
-  acceptance?: {
-    isAccepted?: boolean;
-    isPartial?: boolean;
-    isVoluntaryDeniedBoarding?: boolean;
-    checkedInJourneyElements?: Array<{ id: string }>;
-    notCheckedInJourneyElements?: Array<{ id: string }>;
-  };
-  acceptanceEligibility?: {
-    status?: string;
-    reasons?: string[];
-    eligibilityWindow?: {
-      openingDateAndTime?: string;
-      closingDateAndTime?: string;
-    };
-  };
-  flights?: Array<{
-    id: string;
-    status?: string;
-    acceptanceStatus?: string;
-    aircraftCode?: string;
-    marketingAirlineCode?: string;
-    marketingFlightNumber?: string;
-    operatingAirlineCode?: string;
-    operatingAirlineFlightNumber?: string;
-    operatingAirlineName?: string;
-    operatingFlightNumber?: string;
-    departure?: {
-      dateTime?: string;
-      locationCode?: string;
-      terminal?: string;
-    };
-    arrival?: {
-      dateTime?: string;
-      locationCode?: string;
-      terminal?: string;
-    };
-    duration?: number;
-    isIATCI?: boolean;
-    isPilgrimConfirmationRequired?: boolean;
-  }>;
-  journeyElements?: Array<{
-    id: string;
-    flightId?: string;
-    orderId?: string;
-    travelerId?: string;
-    cabin?: string;
-    checkInStatus?: string;
-    boardingStatus?: string;
-    boardingPassPrintStatus?: string;
-    acceptanceEligibility?: {
-      status?: string;
-      reasons?: string[];
-      eligibilityWindow?: {
-        openingDateAndTime?: string;
-        closingDateAndTime?: string;
-      };
-    };
-    boardingPassEligibility?: {
-      status?: string;
-      reasons?: string[];
-    };
-    seat?: {
-      seatNumber?: string;
-      cabin?: string;
-      seatAvailabilityStatus?: string;
-      seatCharacteristicsCodes?: string[];
-      isInfantAloneOnSeat?: boolean;
-      isInfantOnSeat?: boolean;
-    };
-    seatmapEligibility?: {
-      status?: string;
-    };
-    fareFamily?: {
-      code?: string;
-    };
-    regulatoryProgramsCheckStatuses?: Array<{
-      regulatoryProgram?: { name?: string };
-      statuses?: Array<{ statusCode?: string }>;
-    }>;
-  }>;
-  travelers?: Array<{
-    id: string;
-    passengerTypeCode?: string;
-    gender?: string;
-    dateOfBirth?: string;
-    isPilgrimConfirmationProvided?: boolean;
-    names?: Array<{
-      nameType?: string;
-      title?: string;
-      firstName?: string;
-      lastName?: string;
-    }>;
-  }>;
-  contacts?: Array<{
-    id?: string;
-    category?: string;
-    contactType?: string;
-    purpose?: string;
-    lang?: string;
-    address?: string;
-    countryPhoneExtension?: string;
-    number?: string;
-    travelerIds?: string[];
-  }>;
-  services?: Array<{
-    id: string;
-    travelerId?: string;
-    statusCode?: string;
-    quantity?: number;
-    flightIds?: string[];
-    descriptions?: Array<{ type?: string; content?: string }>;
-  }>;
-  [key: string]: unknown;
-}
-
-export interface JourneyDictionary {
-  aircraft?: Record<string, string>;
-  airline?: Record<string, string>;
-  country?: Record<string, string>;
-  flight?: Record<string, unknown>;
-  journeyElement?: Record<string, unknown>;
-  location?: Record<string, unknown>;
-  traveler?: Record<string, unknown>;
-  [key: string]: unknown;
-}
-
-export interface GenericEligibility {
-  eligiblityName: string;
-  isEligible: boolean;
-  journeyIds?: string[] | null;
-  journeyElementIds?: string[] | null;
-  [key: string]: unknown;
-}
 
 @Injectable()
 export class SsciJourneyIdentificationService {
@@ -212,9 +79,6 @@ export class SsciJourneyIdentificationService {
     'x-client-channel': 'WEB',
     'x-correlation-id': 'e5cdd169-e405-4386-b00c-a69832646ee9',
     'x-transaction-id': '6724360d-b130-4bf7-97f4-d8bda4bd2c82',
-    'X-BM-AUTHID':'b%dQTRZ7$&RSU&31',
-    'X-BM-AUTHSecret':'8wHpQ3vLd4FF%ZGlour$E48@jqtnTekmW$P0',
-
   } as const;
 
   constructor(private readonly httpService: HttpService) {}
@@ -227,13 +91,13 @@ export class SsciJourneyIdentificationService {
   async fetchJourneyIdentification(
     payload: JourneyIdentificationRequestPayload,
     headers?: Partial<Record<string, string>>,
-  ): Promise<JourneyIdentificationResponse> {
+  ): Promise<JourneysListReply> {
     const mergedHeaders: Record<string, string> = {
       ...this.defaultHeaders,
       ...(headers ?? {}),
     };
 
-    const response$ = this.httpService.post<JourneyIdentificationResponse>(
+    const response$ = this.httpService.post<JourneysListReply>(
       this.endpointUrl,
       payload,
       {
@@ -275,7 +139,9 @@ function toToolError(message: string): McpToolResponse {
 }
 
 export function isMockEnabled(): boolean {
-  return String(process.env.MOCK_SSCI ?? '').toLowerCase() === 'true';
+  
+  //return String(process.env.MOCK_SSCI ?? '').toLowerCase() === 'true';
+  return true;
 }
 
 export async function maybeMockDelay(): Promise<void> {
@@ -285,46 +151,68 @@ export async function maybeMockDelay(): Promise<void> {
   }
 }
 
+function deepClone<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj)) as T;
+}
+
+/**
+ * MOCK MODE:
+ * - Import JSON from source tree (no fs)
+ * - Patch identifier (PNR) + traveler lastName from tool input
+ */
 export function buildMockJourneyResponse(
   identifier: string,
   lastName: string,
-): JourneyIdentificationResponse {
-  return {
-    journeys: [
-      {
-        id: `MOCK-${identifier}`,
-        type: 'standalone',
-        isGroupBooking: false,
-        acceptance: { isAccepted: false, isPartial: false, isVoluntaryDeniedBoarding: false },
-        flights: [
-          {
-            id: 'MOCK-FLT-1',
-            marketingAirlineCode: 'EY',
-            marketingFlightNumber: '239',
-            operatingAirlineCode: 'EY',
-            operatingAirlineName: 'ETIHAD AIRWAYS',
-            status: 'scheduled',
-            departure: { locationCode: 'BLR', dateTime: '2026-01-23T22:00:00+05:30' },
-            arrival: { locationCode: 'AUH', dateTime: '2026-01-24T00:35:00+04:00' },
-          },
-        ],
-        travelers: [
-          {
-            id: 'MOCK-TRV-1',
-            passengerTypeCode: 'ADT',
-            names: [{ firstName: 'MOCK', lastName: lastName, title: 'MR', nameType: 'universal' }],
-          },
-        ],
-      },
-    ],
-    journeyDictionary: {
-      airline: { EY: 'ETIHAD AIRWAYS' },
-      aircraft: { MOCK: 'MOCK AIRCRAFT' },
-    },
-    genericEligibilities: [],
-    warnings: [],
-    errors: [],
-  };
+): JourneysListReply {
+  // Import or define the mock data for journeyMock
+
+  
+    const fixture = deepClone(journeyMock as JourneysListReply);
+
+  // Patch journey id if it follows MOCK-* convention
+  if (fixture.journeys?.[0]?.id && fixture.journeys[0].id.startsWith('MOCK-')) {
+    fixture.journeys[0].id = `MOCK-${identifier}`;
+  }
+
+  // Patch all traveler last names (across all journeys)
+  for (const j of fixture.journeys ?? []) {
+    for (const t of j.travelers ?? []) {
+      for (const n of t.names ?? []) {
+        if (n && typeof n === 'object') {
+          n.lastName = lastName;
+        }
+      }
+    }
+  }
+
+  return fixture;
+}
+
+function extractTravelerIdsByJourney(apiRes: JourneysListReply): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+
+  for (const j of apiRes.journeys ?? []) {
+    const ids = new Set<string>();
+
+    // Primary source
+    for (const t of j.travelers ?? []) {
+      if (t?.id) ids.add(t.id);
+    }
+
+
+    out[j.id] = Array.from(ids);
+  }
+
+  return out;
+}
+
+function extractAllTravelerIds(apiRes: JourneysListReply): string[] {
+  const byJourney = extractTravelerIdsByJourney(apiRes);
+  const all = new Set<string>();
+  for (const ids of Object.values(byJourney)) {
+    for (const id of ids) all.add(id);
+  }
+  return Array.from(all);
 }
 
 /**
@@ -334,8 +222,7 @@ export function buildMockJourneyResponse(
 export const ssciIdentificationJourneyMcpTool = {
   name: 'ssci_identification_journey',
   definition: {
-    description:
-      'Call SSCI Journey Identification API (POST journey) and return journeys/dictionary.',
+    description: 'Call SSCI Journey Identification API (POST journey) and return journeys/dictionary.',
     inputSchema: SsciJourneyIdentificationSchema,
     annotations: { readOnlyHint: true, idempotentHint: true },
   },
@@ -355,11 +242,25 @@ export const ssciIdentificationJourneyMcpTool = {
           encryptedParameters: payload.encryptedParameters ?? null,
         };
 
+        // MOCK MODE: return fixture JSON patched with identifier + lastName
         if (isMockEnabled()) {
+          console.log('[MOCK_SSCI]', {
+            MOCK_SSCI: process.env.MOCK_SSCI,
+            MOCK_SSCI_DELAY_MS: process.env.MOCK_SSCI_DELAY_MS,
+          });
           await maybeMockDelay();
-          return toToolResponse(buildMockJourneyResponse(apiPayload.identifier, apiPayload.lastName));
+          const mockRes = buildMockJourneyResponse(apiPayload.identifier, apiPayload.lastName);
+
+          return toToolResponse({
+            ...mockRes,
+            derived: {
+              travelerIds: extractAllTravelerIds(mockRes),
+              travelerIdsByJourney: extractTravelerIdsByJourney(mockRes),
+            },
+          });
         }
 
+        // REAL MODE: call API, return response as-is (plus derived)
         const headerOverrides =
           headers && typeof headers === 'object'
             ? (Object.fromEntries(
@@ -368,9 +269,18 @@ export const ssciIdentificationJourneyMcpTool = {
             : undefined;
 
         const apiRes = await journeyService.fetchJourneyIdentification(apiPayload, headerOverrides);
-        return toToolResponse(apiRes);
+
+        return toToolResponse({
+          ...apiRes,
+          derived: {
+            travelerIds: extractAllTravelerIds(apiRes),
+            travelerIdsByJourney: extractTravelerIdsByJourney(apiRes),
+          },
+        });
       } catch (e: any) {
         return toToolError(e?.message ?? 'ssci_identification_journey failed');
       }
     },
 } as const;
+
+

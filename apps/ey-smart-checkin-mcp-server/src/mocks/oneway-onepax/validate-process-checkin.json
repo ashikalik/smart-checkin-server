@@ -1,0 +1,127 @@
+{
+    "data": {
+        "isAccepted": false,
+        "isPartial": false,
+        "isVoluntaryDeniedBoarding": false,
+        "notCheckedInJourneyElements": [
+            {
+                "id": "600E15D7000BDE59"
+            }
+        ]
+    },
+    "dictionaries": {
+        "airline": {
+            "EY": "ETIHAD AIRWAYS"
+        },
+        "country": {
+            "AE": "UNITED ARAB EMIRATES",
+            "GB": "UNITED KINGDOM"
+        },
+        "flight": {
+            "EY-65-20260131": {
+                "acceptanceStatus": "opened",
+                "arrival": {
+                    "dateTime": "2026-01-31T14:30:00+00:00",
+                    "locationCode": "LHR",
+                    "terminal": "4"
+                },
+                "departure": {
+                    "dateTime": "2026-01-31T10:40:00+04:00",
+                    "locationCode": "AUH",
+                    "terminal": "A"
+                },
+                "duration": 28200,
+                "id": "EY-65-20260131",
+                "isIATCI": false,
+                "isPilgrimConfirmationRequired": false,
+                "marketingAirlineCode": "EY",
+                "marketingFlightNumber": "65",
+                "operatingAirlineCode": "EY",
+                "operatingAirlineFlightNumber": "65",
+                "operatingAirlineName": "ETIHAD AIRWAYS",
+                "operatingFlightNumber": "65",
+                "status": "scheduled"
+            }
+        },
+        "journeyElement": {
+            "600E15D7000BDE59": {
+                "acceptanceEligibility": {
+                    "eligibilityWindow": {
+                        "closingDateAndTime": "2026-01-31T09:40:00+04:00",
+                        "openingDateAndTime": "2026-01-30T04:40:00+04:00"
+                    },
+                    "reasons": [
+                        "regulatoryDetailsInhibition"
+                    ],
+                    "status": "ineligible"
+                },
+                "boardingPassEligibility": {
+                    "reasons": [
+                        "passengerNotAccepted"
+                    ],
+                    "status": "ineligible"
+                },
+                "boardingPassPrintStatus": "notPrinted",
+                "boardingStatus": "notBoarded",
+                "cabin": "Y",
+                "checkInStatus": "notAccepted",
+                "fareFamily": {
+                    "code": "EY-YCOMFORT"
+                },
+                "flightId": "EY-65-20260131",
+                "id": "600E15D7000BDE59",
+                "orderId": "7ML9OV",
+                "regulatoryProgramsCheckStatuses": [
+                    {
+                        "regulatoryProgram": {
+                            "name": "ADC"
+                        },
+                        "statuses": [
+                            {
+                                "statusCode": "N"
+                            }
+                        ]
+                    }
+                ],
+                "seatmapEligibility": {
+                    "status": "eligible"
+                },
+                "travelerId": "610D25D70006CCF7"
+            }
+        },
+        "location": {
+            "AUH": {
+                "airportName": "ABU DHABI ZAYED INTERNATION",
+                "cityCode": "AUH",
+                "cityName": "ABU DHABI",
+                "countryCode": "AE",
+                "stateCode": "",
+                "type": "airport"
+            },
+            "LHR": {
+                "airportName": "LONDON HEATHROW",
+                "cityCode": "LON",
+                "cityName": "LONDON",
+                "countryCode": "GB",
+                "stateCode": "",
+                "type": "airport"
+            }
+        },
+        "traveler": {
+            "610D25D70006CCF7": {
+                "gender": "female",
+                "id": "610D25D70006CCF7",
+                "isPilgrimConfirmationProvided": false,
+                "names": [
+                    {
+                        "firstName": "NILA SUCHITHRA",
+                        "lastName": "AJAY",
+                        "nameType": "universal",
+                        "title": "MS"
+                    }
+                ],
+                "passengerTypeCode": "ADT"
+            }
+        }
+    }
+}

@@ -1,5 +1,4 @@
-Worked for 20s
-Here’s the mock JSON in a clean format (no escaping). This is the JSON that was inside content[0].text:
+
 
 {
   "journeys": [
