@@ -4,17 +4,10 @@ import type { Request, Response } from 'express';
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-
-import {
-  SsciJourneyIdentificationService,
-  ssciIdentificationJourneyMcpTool,
-} from './tools/retrieve-journey.tool';
-import { SsciRetrieveOrderGqlService, ssciRetrieveOrderGqlMcpTool } from './tools/retrieve-order.tool';
-import { ssciIdentificationJourneyEligibilityMcpTool } from './tools/journey-eligibility.tool';
-import { ssciProcessCheckinMcpTool, SsciProcessCheckinService } from './auto-checkin-tools/process-acceptance.tool';
-import { SsciRegulatoryContactService, ssciRegulatoryContactUpdateMcpTool } from './auto-checkin-tools/regulatory-contact.service';
-import { ssciRegulatoryDetailsMcpTool, SsciRegulatoryDetailsService } from './auto-checkin-tools/regulatory-get.tool';
-import { ssciRegulatoryDetailsUpdateMcpTool, SsciRegulatoryDetailsUpdateService } from './auto-checkin-tools/regulatory-update.tool';
+import { ssciIdentificationJourneyEligibilityMcpTool } from "../tools/journey-eligibility.tool";
+import { ssciIdentificationJourneyMcpTool } from "../tools/retrieve-journey.tool";
+import { SsciRetrieveOrderGqlService, ssciRetrieveOrderGqlMcpTool } from "../tools/retrieve-order.tool";
+import { SsciJourneyIdentificationService } from "./journey-identification.service";
 
 type McpSession = {
   server: McpServer;
@@ -22,17 +15,13 @@ type McpSession = {
 };
 
 @Injectable()
-export class McpCheckInService implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = new Logger(McpCheckInService.name);
+export class JourneyIdentificationToolsService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(JourneyIdentificationToolsService.name);
   private readonly sessions = new Map<string, McpSession>();
 
   constructor(
     private readonly journey: SsciJourneyIdentificationService,
     private readonly order: SsciRetrieveOrderGqlService,
-    private readonly processCheckin: SsciProcessCheckinService,
-    private readonly regulatoryDetails: SsciRegulatoryDetailsService,
-    private readonly regulatoryDetailsUpdate: SsciRegulatoryDetailsUpdateService,
-    private readonly regulatoryContact: SsciRegulatoryContactService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -118,29 +107,6 @@ export class McpCheckInService implements OnModuleInit, OnModuleDestroy {
       ssciRetrieveOrderGqlMcpTool.handler(this.order),
     );
    
-    server.registerTool(
-      ssciProcessCheckinMcpTool.name,
-      ssciProcessCheckinMcpTool.definition,
-      ssciProcessCheckinMcpTool.handler(this.processCheckin),
-    );
-   
-    server.registerTool(
-      ssciRegulatoryDetailsMcpTool.name,
-      ssciRegulatoryDetailsMcpTool.definition,
-      ssciRegulatoryDetailsMcpTool.handler(this.regulatoryDetails),
-    );
-   
-    server.registerTool(
-      ssciRegulatoryDetailsUpdateMcpTool.name,
-      ssciRegulatoryDetailsUpdateMcpTool.definition,
-      ssciRegulatoryDetailsUpdateMcpTool.handler(this.regulatoryDetailsUpdate),
-    );
-   
-    server.registerTool(
-      ssciRegulatoryContactUpdateMcpTool.name,
-      ssciRegulatoryContactUpdateMcpTool.definition,
-      ssciRegulatoryContactUpdateMcpTool.handler(this.regulatoryContact),
-    );
   }
 
   private getSessionId(req: Request): string | undefined {
@@ -158,6 +124,4 @@ export class McpCheckInService implements OnModuleInit, OnModuleDestroy {
     const method = (body as { method?: string }).method;
     return method === 'initialize';
   }
-
-  // Tool response formatting is handled inside each exported MCP tool.
 }

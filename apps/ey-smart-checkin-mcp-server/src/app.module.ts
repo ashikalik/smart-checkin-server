@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { McpModule } from './mcp/mcp.module';
-import { McpCheckInStatesModule } from './mcp-check-in/mcp-check-in.module';
-import { McpCheckInModule } from './mcp-checkin/checkin-mcp.module';
+import { McpCheckInModule } from './mcp-check-in/mcp-check-in.module';
+import { MocksController } from './mocks/mock.controller';
 
 @Module({
-  imports: [McpModule, McpCheckInModule, McpCheckInStatesModule],
+  imports: [McpCheckInModule],
+  controllers:[MocksController]
 })
 export class AppModule {}

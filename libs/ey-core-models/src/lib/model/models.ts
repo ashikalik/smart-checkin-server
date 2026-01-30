@@ -943,3 +943,4 @@ export * from './voucher-value';
 export * from './warning-message';
 export * from './weight';
 export * from './wifi-amenity';
+export * from './journey-request-payload';
