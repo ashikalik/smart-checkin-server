@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 
-type FfpBookingData = {
+type TripIdentificationData = {
   data?: Array<{
     id?: string;
     frequentFlyerCardNumber?: string;
@@ -15,13 +15,13 @@ type FfpBookingData = {
 };
 
 @Injectable()
-export class FfpBookingService {
-  private data?: FfpBookingData;
-  private loading?: Promise<FfpBookingData>;
+export class TripIdentificationService {
+  private data?: TripIdentificationData;
+  private loading?: Promise<TripIdentificationData>;
 
   constructor(private readonly http: HttpService) {}
 
-  async getBooking(): Promise<FfpBookingData> {
+  async getBooking(): Promise<TripIdentificationData> {
     return this.loadData();
   }
 
@@ -37,7 +37,7 @@ export class FfpBookingService {
     return Boolean(expected && expected.toLowerCase() === value.trim().toLowerCase());
   }
 
-  private async loadData(): Promise<FfpBookingData> {
+  private async loadData(): Promise<TripIdentificationData> {
     if (this.data) {
       return this.data;
     }
@@ -46,8 +46,8 @@ export class FfpBookingService {
     }
     const port = process.env.PORT ?? '3000';
     const url =
-      process.env.FFP_BOOKING_DATA_URL ?? `http://localhost:${port}/mocks/ffp-booking`;
-    this.loading = firstValueFrom(this.http.get<FfpBookingData>(url)).then((res) => {
+      process.env.TRIP_IDENTIFICATION_DATA_URL ?? `http://localhost:${port}/mocks/ffp-booking`;
+    this.loading = firstValueFrom(this.http.get<TripIdentificationData>(url)).then((res) => {
       this.data = res.data;
       return res.data;
     });

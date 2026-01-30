@@ -6,6 +6,7 @@ import { ArithmeticOrchestratorModule } from '../arithmetic-orchestrator/arithme
 import { IdentificationOrchestratorModule } from '../identification-orchestrator/identification-orchestrator.module';
 import { FfpBookingOrchestratorModule } from '../ffp-booking-orchestrator/ffp-booking-orchestrator.module';
 import { MainOrchestratorModule } from '../main-orchestrator/main-orchestrator.module';
+import { TripIdentificationAgentModule } from '../agents/trip-identification/trip-identification-agent.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { MainOrchestratorModule } from '../main-orchestrator/main-orchestrator.m
     ArithmeticOrchestratorModule,
     IdentificationOrchestratorModule,
     FfpBookingOrchestratorModule,
+    TripIdentificationAgentModule,
     MainOrchestratorModule,
   ],
   controllers: [AppController],

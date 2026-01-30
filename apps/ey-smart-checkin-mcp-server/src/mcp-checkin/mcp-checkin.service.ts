@@ -10,6 +10,8 @@ import { SelectBookingSchema } from './schemas/select-booking.schema';
 import { FfpBookingService } from './services/ffp-booking.service';
 import { JourneyService } from './services/journey.service';
 import { UtilityService } from '../shared/utility.service';
+import { TripIdentificationService } from '../mcp-check-in/trip-identification/services/trip-identification.service';
+import { tripIdentificationMcpTool } from '../mcp-check-in/trip-identification/tools/trip-identification.tool';
 
 type ToolResponse = {
   content: Array<{ type: 'text'; text: string }>;
@@ -30,6 +32,7 @@ export class McpCheckinService implements OnModuleInit, OnModuleDestroy {
     private readonly journey: JourneyService,
     private readonly ffpBooking: FfpBookingService,
     private readonly utilityService: UtilityService,
+    private readonly tripIdentification: TripIdentificationService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -154,13 +157,13 @@ export class McpCheckinService implements OnModuleInit, OnModuleDestroy {
         annotations: { readOnlyHint: true, idempotentHint: true },
       },
       async ({ frequentFlyerCardNumber, lastName }) => {
-        if (!this.ffpBooking.isValidFrequentFlyerCardNumber(frequentFlyerCardNumber)) {
+        if (!(await this.ffpBooking.isValidFrequentFlyerCardNumber(frequentFlyerCardNumber))) {
           return this.respondError('Frequent flyer card number not found');
         }
-        if (!this.ffpBooking.isValidLastName(lastName)) {
+        if (!(await this.ffpBooking.isValidLastName(lastName))) {
           return this.respondError('Last name not found');
         }
-        return this.respond(this.ffpBooking.getBooking());
+        return this.respond(await this.ffpBooking.getBooking());
       },
     );
 
@@ -172,14 +175,14 @@ export class McpCheckinService implements OnModuleInit, OnModuleDestroy {
         annotations: { readOnlyHint: true, idempotentHint: true },
       },
       async ({ frequentFlyerCardNumber, lastName }) => {
-        if (!this.ffpBooking.isValidFrequentFlyerCardNumber(frequentFlyerCardNumber)) {
+        if (!(await this.ffpBooking.isValidFrequentFlyerCardNumber(frequentFlyerCardNumber))) {
           return this.respondError('Frequent flyer card number not found');
         }
-        if (!this.ffpBooking.isValidLastName(lastName)) {
+        if (!(await this.ffpBooking.isValidLastName(lastName))) {
           return this.respondError('Last name not found');
         }
 
-        const booking = this.ffpBooking.getBooking() as { data?: Array<Record<string, unknown>> };
+        const booking = (await this.ffpBooking.getBooking()) as { data?: Array<Record<string, unknown>> };
         const trips = Array.isArray(booking.data)
           ? booking.data.map((trip) => ({
               id: trip.id,
@@ -190,6 +193,12 @@ export class McpCheckinService implements OnModuleInit, OnModuleDestroy {
 
         return this.respond({ trips });
       },
+    );
+
+    server.registerTool(
+      tripIdentificationMcpTool.name,
+      tripIdentificationMcpTool.definition,
+      tripIdentificationMcpTool.handler(this.tripIdentification),
     );
   }
 
