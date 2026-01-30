@@ -17,7 +17,8 @@
     "paths": {
       "@smart-checkin-server/contracts": ["libs/contracts/src/index.ts"],
       "@smart-checkin-server/utils": ["libs/utils/src/index.ts"],
-      "@smart-checkin-server/integrations": ["libs/integrations/src/index.ts"]
+      "@smart-checkin-server/integrations": ["libs/integrations/src/index.ts"],
+      "@etihad-core/models": ["libs/ey-core-models/src/index.ts"],
     }
   },
   "exclude": ["node_modules", "tmp"]

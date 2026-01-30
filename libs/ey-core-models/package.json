@@ -1,0 +1,10 @@
+{
+  "name": "@etihad-core/models",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc -p tsconfig.lib.json"
+  }
+}

@@ -18,7 +18,7 @@ export class FfpBookingOrchestratorService {
     return this.agent.runAgentLoop(goal, {
       enforceToolUse: true,
       toolChoice: 'auto',
-      allowedTools: ['get_ffp_booking'],
+      allowedTools: ['get_trips_from_ffp_booking'],
       maxToolEnforcementRetries: this.parseNumber(
         this.configService.get<string>('FFP_BOOKING_TOOL_ENFORCE_RETRIES'),
       ) ?? 3,

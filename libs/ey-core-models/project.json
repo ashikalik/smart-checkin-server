@@ -1,0 +1,53 @@
+{
+  "name": "@etihad-core/models",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/ey-core-models/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project models --web",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/ey-core-models",
+        "tsConfig": "libs/ey-core-models/tsconfig.lib.json",
+        "packageJson": "libs/ey-core-models/package.json",
+        "main": "libs/ey-core-models/src/index.ts",
+        "buildLibsFromSource": false
+      }
+    },
+    "build-prod": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "node_modules/@etihad-core/models",
+        "tsConfig": "libs/ey-core-models/tsconfig.lib.json",
+        "packageJson": "libs/ey-core-models/package.json",
+        "main": "libs/ey-core-models/src/index.ts",
+        "buildLibsFromSource": false
+      }
+    },
+    "version": {
+      "executor": "@jscutlery/semver:version",
+      "options": {
+        "commitMessageFormat": "chore(${projectName}): release version ${version}",
+        "postTargets": ["models:build", "models:publish"],
+        "trackDeps": true,
+        "skipProjectChangelog": true,
+        "tagPrefix": "etihad-core-models-v",
+        "skipCommit": true,
+        "releaseAs": "minor"
+      }
+    },
+    "publish": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm publish ./dist/libs/ey-core-models"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

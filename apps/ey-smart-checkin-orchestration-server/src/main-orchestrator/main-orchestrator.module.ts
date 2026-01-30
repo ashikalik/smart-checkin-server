@@ -5,6 +5,8 @@ import { OpenAiChatModelModule } from '../open-ai-chat-model/open-ai-chat-model.
 import { MainOrchestratorController } from './main-orchestrator.controller';
 import { MainOrchestratorHelperService } from './main-orchestrator-helper.service';
 import { MainOrchestratorService } from './main-orchestrator.service';
+import { MainOrchestratorV1HelperService } from './main-orchestrator-v1-helper.service';
+import { MainOrchestratorV1Service } from './main-orchestrator-v1.service';
 import { StateModule } from '../state/state.module';
 
 @Module({
@@ -37,8 +39,13 @@ import { StateModule } from '../state/state.module';
     StateModule,
   ],
   controllers: [MainOrchestratorController],
-  providers: [MainOrchestratorService, MainOrchestratorHelperService],
-  exports: [MainOrchestratorService],
+  providers: [
+    MainOrchestratorService,
+    MainOrchestratorHelperService,
+    MainOrchestratorV1Service,
+    MainOrchestratorV1HelperService,
+  ],
+  exports: [MainOrchestratorService, MainOrchestratorV1Service],
 })
 export class MainOrchestratorModule {}
 

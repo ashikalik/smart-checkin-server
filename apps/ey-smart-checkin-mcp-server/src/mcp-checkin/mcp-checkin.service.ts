@@ -9,6 +9,7 @@ import { IdentificationSchema } from './schemas/identification.schema';
 import { SelectBookingSchema } from './schemas/select-booking.schema';
 import { FfpBookingService } from './services/ffp-booking.service';
 import { JourneyService } from './services/journey.service';
+import { UtilityService } from '../shared/utility.service';
 
 type ToolResponse = {
   content: Array<{ type: 'text'; text: string }>;
@@ -28,6 +29,7 @@ export class McpCheckinService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly journey: JourneyService,
     private readonly ffpBooking: FfpBookingService,
+    private readonly utilityService: UtilityService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -161,6 +163,34 @@ export class McpCheckinService implements OnModuleInit, OnModuleDestroy {
         return this.respond(this.ffpBooking.getBooking());
       },
     );
+
+    server.registerTool(
+      'get_trips_from_ffp_booking',
+      {
+        description: 'Return trips extracted from FFP booking data',
+        inputSchema: FfpBookingSchema,
+        annotations: { readOnlyHint: true, idempotentHint: true },
+      },
+      async ({ frequentFlyerCardNumber, lastName }) => {
+        if (!this.ffpBooking.isValidFrequentFlyerCardNumber(frequentFlyerCardNumber)) {
+          return this.respondError('Frequent flyer card number not found');
+        }
+        if (!this.ffpBooking.isValidLastName(lastName)) {
+          return this.respondError('Last name not found');
+        }
+
+        const booking = this.ffpBooking.getBooking() as { data?: Array<Record<string, unknown>> };
+        const trips = Array.isArray(booking.data)
+          ? booking.data.map((trip) => ({
+              id: trip.id,
+              creationDateTime: trip.creationDateTime,
+              flights: trip.flights,
+            }))
+          : [];
+
+        return this.respond({ trips });
+      },
+    );
   }
 
   private getSessionId(req: Request): string | undefined {
@@ -184,7 +214,7 @@ export class McpCheckinService implements OnModuleInit, OnModuleDestroy {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(data, null, 2),
+          text: this.utilityService.compactJson(data),
         },
       ],
     };

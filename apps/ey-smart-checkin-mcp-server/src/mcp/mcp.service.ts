@@ -8,6 +8,7 @@ import { PercentSchema, TwoNumberSchema } from './schemas/math.schema';
 import { SaveResultSchema } from './schemas/save-result.schema';
 import { MathService } from './services/math.service';
 import { SaveResultService } from './services/save-result.service';
+import { UtilityService } from '../shared/utility.service';
 
 type ToolResponse = {
   content: Array<{ type: 'text'; text: string }>;
@@ -27,6 +28,7 @@ export class McpService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly math: MathService,
     private readonly saver: SaveResultService,
+    private readonly utilityService: UtilityService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -191,7 +193,7 @@ export class McpService implements OnModuleInit, OnModuleDestroy {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(data, null, 2),
+          text: this.utilityService.compactJson(data),
         },
       ],
     };

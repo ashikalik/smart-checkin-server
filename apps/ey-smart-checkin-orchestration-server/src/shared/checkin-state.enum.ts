@@ -1,0 +1,15 @@
+export enum CheckInState {
+  TRIP_IDENTIFICATION = 'tripIdentification',
+  TRIP_SELECTION = 'tripSelection',
+  JOURNEY_IDENTIFICATION = 'journeyIdentification',
+  JOURNEY_SELECTION = 'journeySelection',
+  PASSENGER_IDENTIFICATION = 'passengerIdentification',
+  PASSENGER_SELECTION = 'passengerSelection',
+  PASSENGER_INFORMATION = 'passengerInformation',
+  DANGEROUS_GOODS = 'dangerousGoods',
+  PROCESS_CHECK_IN = 'processCheckIn',
+  SEAT_SELECTION = 'seatSelection',
+  ANCILLARY_SELECTION = 'ancillarySelection',
+  PAYMENT_PENDING = 'paymentPending',
+  CONFIRMATION = 'confirmation',
+}
