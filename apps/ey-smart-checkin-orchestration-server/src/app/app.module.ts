@@ -8,6 +8,7 @@ import { FfpBookingOrchestratorModule } from '../ffp-booking-orchestrator/ffp-bo
 import { MainOrchestratorModule } from '../main-orchestrator/main-orchestrator.module';
 import { TripIdentificationAgentModule } from '../agents/trip-identification/trip-identification-agent.module';
 import { AutoCheckInOrchestratorModule } from '../auto-checkin-orchestrator/auto-checkin-orchestrator.module';
+import { BeginConversationAgentModule } from '../agents/begin-conversation/begin-conversation-agent.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AutoCheckInOrchestratorModule } from '../auto-checkin-orchestrator/auto
     ArithmeticOrchestratorModule,
     IdentificationOrchestratorModule,
     FfpBookingOrchestratorModule,
+    BeginConversationAgentModule,
     TripIdentificationAgentModule,
     MainOrchestratorModule,
     AutoCheckInOrchestratorModule,

@@ -1,0 +1,9 @@
+export const STAGE_STATUS = {
+  NOT_STARTED: 'NOT_STARTED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED',
+  USER_INPUT_REQUIRED: 'USER_INPUT_REQUIRED',
+} as const;
+
+export type StageStatus = (typeof STAGE_STATUS)[keyof typeof STAGE_STATUS];
