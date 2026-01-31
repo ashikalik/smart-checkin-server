@@ -53,7 +53,27 @@ export class MainOrchestratorV1HelperService {
     state: OrchestratorState,
     goal: string,
   ): Promise<StageResponse> {
-    return this.tripIdentification.handleStage(state.sessionId, goal);
+    const context = this.stateHelper.buildContext(state);
+    const response = await this.tripIdentification.handleStage(state.sessionId, goal, context);
+    if (state.tripIdentificationState && response) {
+      const merged = this.tripIdentification.updateTripIdentificationState(
+        state.tripIdentificationState,
+        response as unknown as Partial<import('../shared/trip-identification-state.interface').TripIdentificationState>,
+      );
+      const nextState: OrchestratorState = {
+        ...state,
+        tripIdentificationState: merged,
+      };
+      await this.stateHelper.stateService.saveState(state.sessionId, nextState);
+      return {
+        ...response,
+        ...merged,
+        sessionId: state.sessionId,
+        stage: response.stage,
+        steps: response.steps,
+      };
+    }
+    return response;
   }
 
   resolveSession(
@@ -67,8 +87,9 @@ export class MainOrchestratorV1HelperService {
     goal: string,
     nextStage: CheckInState,
   ): Promise<StageResponse> {
+    const baseState = (await this.stateHelper.stateService.getState(state.sessionId)) ?? state;
     const nextState: OrchestratorState = {
-      ...state,
+      ...baseState,
       currentStage: nextStage,
     };
     await this.stateHelper.stateService.saveState(state.sessionId, nextState);

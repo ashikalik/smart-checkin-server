@@ -5,9 +5,13 @@ import { AiAgentStep } from '../../ai-agent/ai-agent.types';
 import { CheckInState } from '../../shared/checkin-state.enum';
 import { StateHelperService } from '../../shared/state-helper.service';
 import { StageResponse } from '../../shared/stage-response.type';
+import { TripIdentificationState } from '../../shared/trip-identification-state.interface';
+import { STAGE_STATUS } from '../../shared/stage-status.type';
 
 @Injectable()
 export class TripIdentificationAgentService {
+  private readonly requiredFields: Array<string> = ['userConfirmation'];
+
   constructor(
     private readonly agent: AiAgentService,
     private readonly configService: ConfigService,
@@ -18,9 +22,9 @@ export class TripIdentificationAgentService {
     return this.agent.listTools();
   }
 
-  runAgentLoop(goal: string): Promise<{ goal: string; steps: AiAgentStep[]; final: unknown }> {
+  runAgentLoop(goal: string, context?: string): Promise<{ goal: string; steps: AiAgentStep[]; final: unknown }> {
     return this.agent.runAgentLoop(goal, {
-      enforceToolUse: true,
+      enforceToolUse: false,
       toolChoice: 'auto',
       allowedTools: ['trip_identification'],
       maxToolEnforcementRetries: this.parseNumber(
@@ -30,7 +34,7 @@ export class TripIdentificationAgentService {
         this.configService.get<string>('TRIP_IDENTIFICATION_MAX_INVALID_TOOL_ARGS'),
       ) ?? 5,
       toolUsePrompt: this.buildToolUsePrompt(),
-      systemPrompt: this.buildSystemPrompt(),
+      systemPrompt: this.buildSystemPrompt(context),
       continuePrompt:
         this.configService.get<string>('TRIP_IDENTIFICATION_CONTINUE_PROMPT') ??
         'Continue. Use tools if needed.',
@@ -42,10 +46,62 @@ export class TripIdentificationAgentService {
   async handleStage(
     sessionId: string,
     goal: string,
+    context?: string,
   ): Promise<StageResponse> {
-    const result = await this.runAgentLoop(goal);
+    const result = await this.runAgentLoop(goal, context);
     const payload = this.stateHelper.extractFinalObject(result.final) ?? result.final;
     return this.stateHelper.toStageResponse(sessionId, CheckInState.TRIP_IDENTIFICATION, payload, result.steps);
+  }
+
+  updateTripIdentificationState(
+    state: TripIdentificationState,
+    update: Partial<TripIdentificationState>,
+  ): TripIdentificationState {
+    const nextString = (value?: string): string | undefined => {
+      if (value === undefined || value === null) return undefined;
+      const trimmed = value.trim();
+      return trimmed.length === 0 ? undefined : trimmed;
+    };
+    const normalizeConfirmation = (value?: string | boolean): string | undefined => {
+      if (typeof value === 'boolean') {
+        return value ? 'CONFIRMED' : 'REFUSED';
+      }
+      const trimmed = nextString(value as string | undefined);
+      return trimmed ? trimmed.toUpperCase() : undefined;
+    };
+    const merged: TripIdentificationState = {
+      ...state,
+      status: update.status ?? state.status,
+      continue: update.continue ?? state.continue,
+      updatedAtUtc: update.updatedAtUtc ?? state.updatedAtUtc,
+      startedAtUtc: update.startedAtUtc ?? state.startedAtUtc,
+      completedAtUtc: update.completedAtUtc ?? state.completedAtUtc,
+      lastEventId: update.lastEventId ?? state.lastEventId,
+      attempt: update.attempt ?? state.attempt,
+      error: update.error ?? state.error,
+      userMessage: update.userMessage ?? state.userMessage,
+      orderPreviewsListReply: update.orderPreviewsListReply ?? state.orderPreviewsListReply,
+      userConfirmation: normalizeConfirmation(update.userConfirmation) ?? state.userConfirmation,
+    };
+    const missing = this.validateRequired(merged);
+    const ready = !missing || missing.length === 0;
+    return {
+      ...merged,
+      status: ready ? STAGE_STATUS.SUCCESS : STAGE_STATUS.USER_INPUT_REQUIRED,
+      continue: ready,
+      userMessage: ready ? undefined : merged.userMessage,
+      missing,
+    };
+  }
+
+  private validateRequired(state: TripIdentificationState): string[] | undefined {
+    return this.stateHelper.computeRequiredFields<TripIdentificationState>(
+      this.requiredFields,
+      {
+        userConfirmation: (s) => s.userConfirmation !== 'CONFIRMED',
+      },
+      state,
+    );
   }
 
   private parseNumber(value?: string): number | undefined {
@@ -56,8 +112,12 @@ export class TripIdentificationAgentService {
     return Number.isFinite(parsed) ? parsed : undefined;
   }
 
-  private buildSystemPrompt(): string {
-    return this.getRequiredEnv('TRIP_IDENTIFICATION_SYSTEM_PROMPT');
+  private buildSystemPrompt(context?: string): string {
+    const base = this.getRequiredEnv('TRIP_IDENTIFICATION_SYSTEM_PROMPT');
+    if (!context || context.trim().length === 0) {
+      return base;
+    }
+    return `${base}\n\nContext (from session state, trusted):\n${context}`;
   }
 
   private buildToolUsePrompt(): string {

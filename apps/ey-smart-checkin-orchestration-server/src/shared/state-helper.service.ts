@@ -6,6 +6,7 @@ import { OrchestratorState } from '../state/state-store.interface';
 import { StateService } from '../state/state.service';
 import { v4 as uuidv4, validate as validateUuid } from 'uuid';
 import { StageResponse } from './stage-response.type';
+import { SessionState } from './session-state.interface';
 
 @Injectable()
 export class StateHelperService {
@@ -160,6 +161,23 @@ export class StateHelperService {
       }
     }
     return missing.length > 0 ? missing : undefined;
+  }
+
+  buildContext(state: SessionState): string {
+    const parts: string[] = [];
+    if (state.beginConversation?.frequentFlyerNumber) {
+      parts.push(`frequentFlyerNumber: ${state.beginConversation.frequentFlyerNumber}`);
+    }
+    if (state.beginConversation?.bookingReference) {
+      parts.push(`bookingReference: ${state.beginConversation.bookingReference}`);
+    }
+    if (state.beginConversation?.lastName) {
+      parts.push(`lastName: ${state.beginConversation.lastName}`);
+    }
+    if (state.beginConversation?.firstName) {
+      parts.push(`firstName: ${state.beginConversation.firstName}`);
+    }
+    return parts.length > 0 ? parts.join('\n') : '';
   }
 }
 
