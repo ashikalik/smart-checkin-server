@@ -1,4 +1,5 @@
 export enum CheckInState {
+  BEGIN_CONVERSATION = 'beginConversation',
   TRIP_IDENTIFICATION = 'tripIdentification',
   TRIP_SELECTION = 'tripSelection',
   JOURNEY_IDENTIFICATION = 'journeyIdentification',

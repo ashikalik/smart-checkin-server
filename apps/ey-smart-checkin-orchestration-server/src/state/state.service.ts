@@ -18,7 +18,7 @@ export class StateService {
     patch: Partial<OrchestratorState>,
     ttlSeconds?: number,
   ): Promise<OrchestratorState> {
-    const current = (await this.stateStore.get(sessionId)) ?? { sessionId };
+    const current = (await this.stateStore.get(sessionId)) ?? ({ sessionId } as OrchestratorState);
     const next = { ...current, ...patch };
     await this.stateStore.set(sessionId, next, ttlSeconds);
     return next;

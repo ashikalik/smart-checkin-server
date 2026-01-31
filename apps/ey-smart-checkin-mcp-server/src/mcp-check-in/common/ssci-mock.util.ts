@@ -1,4 +1,4 @@
-// apps/ey-smart-checkin-mcp-server/src/mcp-checkin/common/ssci-mock.util.ts
+// apps/ey-smart-checkin-mcp-server/src/mcp-check-in/common/ssci-mock.util.ts
 export function isMockEnabled(): boolean {
     //return String(process.env.MOCK_SSCI ?? '').toLowerCase() === 'true';
     return true;

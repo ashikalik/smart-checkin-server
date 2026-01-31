@@ -1,4 +1,4 @@
-// apps/ey-smart-checkin-mcp-server/src/mcp-checkin/validate-processcheckin/services/validate-process-checkin.service.ts
+// apps/ey-smart-checkin-mcp-server/src/mcp-check-in/process-check-in/services/ssci-process-checkin.service.ts
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';

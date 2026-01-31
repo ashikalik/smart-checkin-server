@@ -8,6 +8,9 @@
     "start:mcp-server": "node dist/apps/ey-smart-checkin-mcp-server/main.js",
     "build:orchestration": "yarn nx build ey-smart-checkin-orchestration-server --skip-nx-cache",
     "start:orchestration": "node dist/apps/ey-smart-checkin-orchestration-server/main.js",
+    "dev:m": "NX_TUI=false nx serve ey-smart-checkin-mcp-server",
+    "dev:o": "NX_TUI=false nx serve ey-smart-checkin-orchestration-server",
+    "dev:servers": "NX_TUI=false nx run-many --target=serve --projects=ey-smart-checkin-mcp-server,ey-smart-checkin-orchestration-server --parallel",
     "inspect:mcp-server": "npx @modelcontextprotocol/inspector",
     "build:all": "nx run-many --target=build --all --output-style=stream"
   },

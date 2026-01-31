@@ -4,9 +4,11 @@ import { JourneyIdentificationMcpModule } from './journey-identification/journey
 import { ValidateProcesscheckinModule } from './process-check-in/process-check-in.module';
 import { CheckinAcceptanceModule } from './check-in-acceptance/checkin-acceptance.module';
 import { BoardingPassModule } from './boarding-pass/boarding-pass.module';
+import { BeginConversationModule } from './begin-conversation/begin-conversation.module';
 
 @Module({
   imports: [
+    BeginConversationModule,
     TripIdentificationModule,
     JourneyIdentificationMcpModule,
     ValidateProcesscheckinModule,
@@ -14,6 +16,7 @@ import { BoardingPassModule } from './boarding-pass/boarding-pass.module';
     BoardingPassModule,
   ],
   exports: [
+    BeginConversationModule,
     TripIdentificationModule,
     JourneyIdentificationMcpModule,
     ValidateProcesscheckinModule,

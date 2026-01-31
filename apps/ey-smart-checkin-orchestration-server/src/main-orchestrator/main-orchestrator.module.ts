@@ -6,8 +6,11 @@ import { MainOrchestratorController } from './main-orchestrator.controller';
 import { MainOrchestratorHelperService } from './main-orchestrator-helper.service';
 import { MainOrchestratorService } from './main-orchestrator.service';
 import { MainOrchestratorV1HelperService } from './main-orchestrator-v1-helper.service';
+import { MainOrchestratorV1RegistryService } from './main-orchestrator-v1-registry.service';
 import { MainOrchestratorV1Service } from './main-orchestrator-v1.service';
 import { StateModule } from '../state/state.module';
+import { BeginConversationAgentModule } from '../agents/begin-conversation/begin-conversation-agent.module';
+import { TripIdentificationAgentModule } from '../agents/trip-identification/trip-identification-agent.module';
 
 @Module({
   imports: [
@@ -37,6 +40,8 @@ import { StateModule } from '../state/state.module';
       }),
     }),
     StateModule,
+    BeginConversationAgentModule,
+    TripIdentificationAgentModule,
   ],
   controllers: [MainOrchestratorController],
   providers: [
@@ -44,6 +49,7 @@ import { StateModule } from '../state/state.module';
     MainOrchestratorHelperService,
     MainOrchestratorV1Service,
     MainOrchestratorV1HelperService,
+    MainOrchestratorV1RegistryService,
   ],
   exports: [MainOrchestratorService, MainOrchestratorV1Service],
 })
@@ -105,7 +111,7 @@ const resolveMainMcpServers = (configService: ConfigService) => {
 
   const single = configService.get<string>('MAIN_ORCHESTRATOR_MCP_SERVER_URL');
   if (single) {
-    return [{ url: single, name: 'mcp-checkin' }];
+    return [{ url: single, name: 'mcp-check-in' }];
   }
 
   return [];

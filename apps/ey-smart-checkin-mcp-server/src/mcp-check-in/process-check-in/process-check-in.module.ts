@@ -1,4 +1,4 @@
-// apps/ey-smart-checkin-mcp-server/src/mcp-checkin/validate-processcheckin/validate-processcheckin.module.ts
+// apps/ey-smart-checkin-mcp-server/src/mcp-check-in/process-check-in/process-check-in.module.ts
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 
