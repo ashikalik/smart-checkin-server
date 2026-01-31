@@ -5,6 +5,8 @@ import { ValidateProcesscheckinModule } from './process-check-in/process-check-i
 import { CheckinAcceptanceModule } from './check-in-acceptance/checkin-acceptance.module';
 import { BoardingPassModule } from './boarding-pass/boarding-pass.module';
 import { BeginConversationModule } from './begin-conversation/begin-conversation.module';
+import { McpCheckInController } from './common/mcp-check-in.controller';
+import { McpCheckInToolsService } from './common/mcp-check-in.tools-service';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { BeginConversationModule } from './begin-conversation/begin-conversation
     CheckinAcceptanceModule,
     BoardingPassModule,
   ],
+  controllers: [McpCheckInController],
+  providers: [McpCheckInToolsService],
   exports: [
     BeginConversationModule,
     TripIdentificationModule,
