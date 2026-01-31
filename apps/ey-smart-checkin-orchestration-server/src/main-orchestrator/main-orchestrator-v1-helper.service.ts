@@ -27,7 +27,26 @@ export class MainOrchestratorV1HelperService {
     state: OrchestratorState,
     goal: string,
   ): Promise<StageResponse> {
-    return this.beginConversation.handleStage(state.sessionId, goal);
+    const response = await this.beginConversation.handleStage(state.sessionId, goal);
+    if (state.beginConversation && response) {
+      const merged = this.beginConversation.mergeBeginConversation(
+        state.beginConversation,
+        response as unknown as Partial<import('../shared/begin-conversation-state').BeginConversationState>,
+      );
+      const nextState: OrchestratorState = {
+        ...state,
+        beginConversation: merged,
+      };
+      await this.stateHelper.stateService.saveState(state.sessionId, nextState);
+      return {
+        ...response,
+        ...merged,
+        sessionId: state.sessionId,
+        stage: response.stage,
+        steps: response.steps,
+      };
+    }
+    return response;
   }
 
   async runTripIdentification(

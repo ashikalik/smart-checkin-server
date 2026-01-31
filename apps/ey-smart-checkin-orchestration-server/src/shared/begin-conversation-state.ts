@@ -5,4 +5,5 @@ export interface BeginConversationState extends BaseState {
   bookingReference?: string;
   lastName?: string;
   firstName?: string;
+  missing?: string[];
 }

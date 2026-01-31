@@ -3,11 +3,18 @@ import { ConfigService } from '@nestjs/config';
 import { AiAgentService } from '../../ai-agent/ai-agent.service';
 import { AiAgentStep } from '../../ai-agent/ai-agent.types';
 import { CheckInState } from '../../shared/checkin-state.enum';
+import { BeginConversationState } from '../../shared/begin-conversation-state';
 import { StateHelperService } from '../../shared/state-helper.service';
 import { StageResponse } from '../../shared/stage-response.type';
+import { STAGE_STATUS } from '../../shared/stage-status.type';
 
 @Injectable()
 export class BeginConversationAgentService {
+  private readonly requiredFields: Array<string> = [
+    'lastName',
+    'frequentFlyerOrBookingReference',
+  ];
+
   constructor(
     private readonly agent: AiAgentService,
     private readonly configService: ConfigService,
@@ -49,6 +56,53 @@ export class BeginConversationAgentService {
     console.log(payload);
     console.log("--------------------------------------------------------")
     return this.stateHelper.toStageResponse(sessionId, CheckInState.BEGIN_CONVERSATION, payload, result.steps);
+  }
+
+  mergeBeginConversation(state: BeginConversationState, update: Partial<BeginConversationState>): BeginConversationState {
+    const next = (value?: string): string | undefined => {
+      if (value === undefined || value === null) return undefined;
+      const trimmed = value.trim();
+      return trimmed.length === 0 ? undefined : trimmed;
+    };
+    const merged: BeginConversationState = {
+      ...state,
+      status: update.status ?? state.status,
+      continue: update.continue ?? state.continue,
+      updatedAtUtc: update.updatedAtUtc ?? state.updatedAtUtc,
+      startedAtUtc: update.startedAtUtc ?? state.startedAtUtc,
+      completedAtUtc: update.completedAtUtc ?? state.completedAtUtc,
+      lastEventId: update.lastEventId ?? state.lastEventId,
+      attempt: update.attempt ?? state.attempt,
+      error: update.error ?? state.error,
+      userMessage: update.userMessage ?? state.userMessage,
+      frequentFlyerNumber: next(update.frequentFlyerNumber) ?? state.frequentFlyerNumber,
+      bookingReference: next(update.bookingReference) ?? state.bookingReference,
+      lastName: next(update.lastName) ?? state.lastName,
+      firstName: next(update.firstName) ?? state.firstName,
+    };
+    const missing = this.computeMissing(merged);
+    const ready = !missing || missing.length === 0;
+    return {
+      ...merged,
+      status: ready ? STAGE_STATUS.SUCCESS : STAGE_STATUS.USER_INPUT_REQUIRED,
+      continue: ready,
+      userMessage: ready ? undefined : merged.userMessage,
+      missing,
+    };
+  }
+
+  private computeMissing(state: BeginConversationState): string[] | undefined {
+    return this.stateHelper.computeMissingFields<BeginConversationState>(
+      this.requiredFields,
+      {
+        lastName: (s) => !s.lastName,
+        frequentFlyerOrBookingReference: (s) => !s.frequentFlyerNumber && !s.bookingReference,
+      },
+      state,
+      {
+        frequentFlyerOrBookingReference: 'frequentFlyerNumber or bookingReference',
+      },
+    );
   }
 
   private parseNumber(value?: string): number | undefined {

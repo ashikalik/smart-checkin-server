@@ -145,6 +145,22 @@ export class StateHelperService {
 
     return { sessionId: currentSessionId, state };
   }
+
+  computeMissingFields<T extends object>(
+    required: string[],
+    checks: Record<string, (state: T) => boolean>,
+    state: T,
+    labels: Record<string, string> = {},
+  ): string[] | undefined {
+    const missing: string[] = [];
+    for (const field of required) {
+      const isMissing = checks[field]?.(state);
+      if (isMissing) {
+        missing.push(labels[field] ?? field);
+      }
+    }
+    return missing.length > 0 ? missing : undefined;
+  }
 }
 
 const isStageStatus = (value: unknown): value is StageStatus =>
