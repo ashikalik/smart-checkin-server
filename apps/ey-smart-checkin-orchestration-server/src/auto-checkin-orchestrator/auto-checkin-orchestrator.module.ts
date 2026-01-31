@@ -80,7 +80,7 @@ const resolveAutoCheckInMcpServers = (configService: ConfigService) => {
 
   const single = configService.get<string>('IDENTIFICATION_MCP_SERVER_URL');
   if (single) {
-    return [{ url: single, name: 'mcp-checkin' }];
+    return [{ url: single, name: 'mcp-check-in' }];
   }
 
   return [];

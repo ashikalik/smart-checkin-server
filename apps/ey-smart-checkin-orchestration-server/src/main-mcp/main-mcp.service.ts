@@ -6,7 +6,6 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { OpenAiChatModelService } from '../open-ai-chat-model/open-ai-chat-model.service';
 import { IdentificationOrchestratorService } from '../identification-orchestrator/identification-orchestrator.service';
 import { FfpBookingOrchestratorService } from '../ffp-booking-orchestrator/ffp-booking-orchestrator.service';
-import { ArithmeticOrchestratorService } from '../arithmetic-orchestrator/arithmetic-orchestrator.service';
 
 type ToolResponse = {
   content: Array<{ type: 'text'; text: string }>;
@@ -48,7 +47,6 @@ export class MainMcpService implements OnModuleDestroy {
     private readonly chatModel: OpenAiChatModelService,
     private readonly identification: IdentificationOrchestratorService,
     private readonly ffpBooking: FfpBookingOrchestratorService,
-    private readonly arithmetic: ArithmeticOrchestratorService,
   ) {}
 
   async start(): Promise<void> {
@@ -139,23 +137,6 @@ export class MainMcpService implements OnModuleDestroy {
           const result = await this.ffpBooking.runAgentLoop(
             `frequentFlyerCardNumber ${frequentFlyerCardNumber} lastName ${lastName}`,
           );
-          return this.respond(this.extractFinal(result.final));
-        } catch (error) {
-          return this.respondError(error instanceof Error ? error.message : String(error));
-        }
-      },
-    );
-
-    server.registerTool(
-      'orchestrator_arithmetic',
-      {
-        description: 'Run the arithmetic orchestrator for a math goal.',
-        inputSchema: ArithmeticSchema,
-        annotations: { readOnlyHint: true, idempotentHint: true },
-      },
-      async ({ goal }) => {
-        try {
-          const result = await this.arithmetic.runAgentLoop(goal);
           return this.respond(this.extractFinal(result.final));
         } catch (error) {
           return this.respondError(error instanceof Error ? error.message : String(error));

@@ -1,3 +1,4 @@
+/* eslint-disable @nx/enforce-module-boundaries */
 import type { JourneysListReply } from '@etihad-core/models';
 import type { BaseState } from './base-state.interface';
 

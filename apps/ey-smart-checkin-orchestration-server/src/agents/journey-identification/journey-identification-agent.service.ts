@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AiAgentService } from '../ai-agent/ai-agent.service';
-import { AiAgentStep } from '../ai-agent/ai-agent.types';
+import { AiAgentService } from '../../ai-agent/ai-agent.service';
+import { AiAgentStep } from '../../ai-agent/ai-agent.types';
 
 @Injectable()
-export class IdentificationOrchestratorService {
+export class JourneyIdentificationAgentService {
   constructor(
     private readonly agent: AiAgentService,
     private readonly configService: ConfigService,
@@ -20,18 +20,18 @@ export class IdentificationOrchestratorService {
       toolChoice: 'auto',
       allowedTools: ['ssci_identification_journey',  'ssci_identification_journey_eligibility'],
       maxToolEnforcementRetries: this.parseNumber(
-        this.configService.get<string>('IDENTIFICATION_ORCHESTRATOR_TOOL_ENFORCE_RETRIES'),
+        this.configService.get<string>('JOURNEY_IDENTIFICATION_ORCHESTRATOR_TOOL_ENFORCE_RETRIES'),
       ) ?? 3,
       maxInvalidToolArgs: this.parseNumber(
-        this.configService.get<string>('IDENTIFICATION_ORCHESTRATOR_MAX_INVALID_TOOL_ARGS'),
+        this.configService.get<string>('JOURNEY_IDENTIFICATION_ORCHESTRATOR_MAX_INVALID_TOOL_ARGS'),
       ) ?? 5,
       toolUsePrompt: this.buildToolUsePrompt(),
       systemPrompt: this.buildSystemPrompt(),
       continuePrompt:
-        this.configService.get<string>('IDENTIFICATION_ORCHESTRATOR_CONTINUE_PROMPT') ??
+        this.configService.get<string>('JOURNEY_IDENTIFICATION_ORCHESTRATOR_CONTINUE_PROMPT') ??
         'Continue. Use tools if needed.',
       computedNotesTemplate: this.buildComputedNotesTemplate(),
-      maxModelCalls: this.parseNumber(this.configService.get<string>('IDENTIFICATION_ORCHESTRATOR_MAX_CALLS')) ?? 6,
+      maxModelCalls: this.parseNumber(this.configService.get<string>('JOURNEY_IDENTIFICATION_ORCHESTRATOR_MAX_CALLS')) ?? 6,
     });
   }
 
@@ -44,15 +44,15 @@ export class IdentificationOrchestratorService {
   }
 
   private buildSystemPrompt(): string {
-    return this.getRequiredEnv('IDENTIFICATION_ORCHESTRATOR_SYSTEM_PROMPT');
+    return this.getRequiredEnv('JOURNEY_IDENTIFICATION_ORCHESTRATOR_SYSTEM_PROMPT');
   }
 
   private buildToolUsePrompt(): string {
-    return this.getRequiredEnv('IDENTIFICATION_ORCHESTRATOR_TOOL_USE_PROMPT');
+    return this.getRequiredEnv('JOURNEY_IDENTIFICATION_ORCHESTRATOR_TOOL_USE_PROMPT');
   }
 
   private buildComputedNotesTemplate(): string {
-    return this.getRequiredEnv('IDENTIFICATION_ORCHESTRATOR_COMPUTED_NOTES_TEMPLATE');
+    return this.getRequiredEnv('JOURNEY_IDENTIFICATION_ORCHESTRATOR_COMPUTED_NOTES_TEMPLATE');
   }
 
   private getRequiredEnv(key: string): string {

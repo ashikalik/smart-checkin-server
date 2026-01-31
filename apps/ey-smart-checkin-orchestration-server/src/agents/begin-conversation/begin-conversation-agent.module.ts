@@ -83,7 +83,7 @@ const resolveBeginConversationMcpServers = (configService: ConfigService) => {
 
   const single = configService.get<string>('BEGIN_CONVERSATION_MCP_SERVER_URL');
   if (single) {
-    return [{ url: single, name: 'mcp-checkin' }];
+    return [{ url: single, name: 'mcp-check-in' }];
   }
 
   return [];

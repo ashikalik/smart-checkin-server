@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AiAgentModule } from '../ai-agent/ai-agent.module';
-import { OpenAiChatModelModule } from '../open-ai-chat-model/open-ai-chat-model.module';
-import { OutputFormatterModule } from '../output-formatter/output-formatter.module';
-import { IdentificationOrchestratorController } from './identification-orchestrator.controller';
-import { IdentificationOrchestratorService } from './identification-orchestrator.service';
+import { AiAgentModule } from '../../ai-agent/ai-agent.module';
+import { OpenAiChatModelModule } from '../../open-ai-chat-model/open-ai-chat-model.module';
+import { OutputFormatterModule } from '../../output-formatter/output-formatter.module';
+import { JourneyIdentificationAgentController } from './journey-identification-agent.controller';
+import { JourneyIdentificationAgentService } from './journey-identification-agent.service';
 
 @Module({
   imports: [
@@ -35,11 +35,11 @@ import { IdentificationOrchestratorService } from './identification-orchestrator
       }),
     }),
   ],
-  controllers: [IdentificationOrchestratorController],
-  providers: [IdentificationOrchestratorService],
-  exports: [IdentificationOrchestratorService],
+  controllers: [JourneyIdentificationAgentController],
+  providers: [JourneyIdentificationAgentService],
+  exports: [JourneyIdentificationAgentService],
 })
-export class IdentificationOrchestratorModule {}
+export class JourneyIdentificationAgentModule {}
 
 const parseNumber = (value?: string): number | undefined => {
   if (!value) {
@@ -50,7 +50,7 @@ const parseNumber = (value?: string): number | undefined => {
 };
 
 const resolveIdentificationMcpServers = (configService: ConfigService) => {
-  const list = configService.get<string>('IDENTIFICATION_MCP_SERVER_URLS');
+  const list = configService.get<string>('JOURNEY_IDENTIFICATION_MCP_SERVER_URLS');
   if (list) {
     try {
       const parsed = JSON.parse(list) as Array<{ url?: string; name?: string; toolNamePrefix?: string }>;
@@ -79,7 +79,7 @@ const resolveIdentificationMcpServers = (configService: ConfigService) => {
     }
   }
 
-  const single = configService.get<string>('IDENTIFICATION_MCP_SERVER_URL');
+  const single = configService.get<string>('JOURNEY_IDENTIFICATION_MCP_SERVER_URL');
   if (single) {
     return [{ url: single, name: 'mcp-check-in' }];
   }
