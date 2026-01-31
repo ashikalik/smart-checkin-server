@@ -1,13 +1,15 @@
+
 {
     "data": {
-        "isAccepted": false,
-        "isPartial": false,
-        "isVoluntaryDeniedBoarding": false,
-        "notCheckedInJourneyElements": [
+        "checkedInJourneyElements": [
             {
                 "id": "600E15D7000BDE59"
             }
-        ]
+        ],
+        "isAccepted": true,
+        "isEligibleForVoluntaryDeniedBoarding": false,
+        "isPartial": false,
+        "isVoluntaryDeniedBoarding": false
     },
     "dictionaries": {
         "airline": {
@@ -50,21 +52,15 @@
                         "closingDateAndTime": "2026-01-31T09:40:00+04:00",
                         "openingDateAndTime": "2026-01-30T04:40:00+04:00"
                     },
-                    "reasons": [
-                        "regulatoryDetailsInhibition"
-                    ],
-                    "status": "ineligible"
+                    "status": "eligible"
                 },
                 "boardingPassEligibility": {
-                    "reasons": [
-                        "passengerNotAccepted"
-                    ],
-                    "status": "ineligible"
+                    "status": "eligible"
                 },
-                "boardingPassPrintStatus": "notPrinted",
+                "boardingPassPrintStatus": "needPrinting",
                 "boardingStatus": "notBoarded",
                 "cabin": "Y",
-                "checkInStatus": "notAccepted",
+                "checkInStatus": "accepted",
                 "fareFamily": {
                     "code": "EY-YCOMFORT"
                 },
@@ -78,11 +74,23 @@
                         },
                         "statuses": [
                             {
-                                "statusCode": "N"
+                                "statusCode": "I"
                             }
                         ]
                     }
                 ],
+                "seat": {
+                    "cabin": "Y",
+                    "isInfantAloneOnSeat": false,
+                    "isInfantOnSeat": false,
+                    "seatAvailabilityStatus": "occupied",
+                    "seatCharacteristicsCodes": [
+                        "A",
+                        "ES",
+                        "N"
+                    ],
+                    "seatNumber": "37G"
+                },
                 "seatmapEligibility": {
                     "status": "eligible"
                 },
@@ -109,6 +117,7 @@
         },
         "traveler": {
             "610D25D70006CCF7": {
+                "dateOfBirth": "1992-11-20",
                 "gender": "female",
                 "id": "610D25D70006CCF7",
                 "isPilgrimConfirmationProvided": false,

@@ -1,0 +1,73 @@
+{
+    "enableBPDisplay": false,
+    "displayBoardingPriority": false,
+    "enablePriorityAccessTextGroup": true,
+    "creationDateTime": "2026-01-30T06:31:00.000Z",
+    "boardingPassNotFound": [],
+    "boardingPasses": [
+        {
+            "travelerId": "610D25D70006CCF7",
+            "travelerName": "PAVITHRA PARTHASARATHY",
+            "legs": [
+                {
+                    "travelerInfo": {
+                        "travelerId": "610D25D70006CCF7",
+                        "travelerTitle": "MS",
+                        "travelerName": "PAVITHRA PARTHASARATHY",
+                        "ticketNumber": "6072412970663",
+                        "orderId": "7ML9OV",
+                        "ffpNo": "",
+                        "seqNo": "1",
+                        "tierLevel": "",
+                        "tierLevelName": "",
+                        "ffpAirlineCode": ""
+                    },
+                    "flightInfo": {
+                        "flightId": "EY-65-20260131",
+                        "flightNumber": "EY 65",
+                        "origin": "AUH",
+                        "originCityCode": "AUH",
+                        "destination": "LHR",
+                        "destinationCityCode": "LON",
+                        "departureTime": "2026-01-31T10:40:00Z",
+                        "departureTerminal": "A",
+                        "arrivalTime": "2026-01-31T14:30:00Z",
+                        "arrivalTerminal": "4",
+                        "operatingAirlineCode": "EY",
+                        "cabinClass": "Economy",
+                        "seat": "37G",
+                        "group": "3"
+                    },
+                    "airportInfo": {
+                        "originAirportCode": "ABU DHABI ZAYED INTERNATION",
+                        "destinationAirportCode": "LONDON HEATHROW",
+                        "originCity": "ABU DHABI",
+                        "destinationCity": "LONDON"
+                    },
+                    "boardingDetails": {
+                        "gate": "-",
+                        "boardingTime": "2026-01-31T09:45:00Z",
+                        "tsaPreCheckText": "",
+                        "zone": "N/A",
+                        "lounges": []
+                    },
+                    "extras": {
+                        "fastTrack": "BOARDING_PASS_FAST_TRACK_NOT_AVAILABLE",
+                        "loungeAccess": "BOARDING_PASS_LOUNGE_ACCESS_NOT_AVAILABLE",
+                        "priorityAccess": "BOARDING_PASS_PRIORITY_ACCESS_NOT_AVAILABLE",
+                        "wheelchair": "BOARDING_PASS_WHEELCHAIR_NOT_AVAILABLE",
+                        "meetAndAssist": "BOARDING_PASS_MEET_AND_ASSIST_NOT_AVAILABLE"
+                    },
+                    "fareBrandInfo": {
+                        "fareBrandCode": "C",
+                        "fareBrandName": "Comfort"
+                    },
+                    "barcodeMessage": "M1PARTHASARATHY/PAVITHRA E7ML9OV AUHLHREY 0065 031Y037G0001 348>5180 M6030BEY              2A60724129706630 EY                        N",
+                    "journeyElementId": "600E15D7000BDE59",
+                    "eligibility": "BOARDING_PASS_ELIGIBLE",
+                    "staffServiceCode": ""
+                }
+            ]
+        }
+    ]
+}
