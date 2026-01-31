@@ -88,7 +88,53 @@ export class MainOrchestratorV1HelperService {
     state: OrchestratorState,
     goal: string,
   ): Promise<StageResponse> {
-    return this.journeyIdentification.handleStage(state.sessionId, goal, CheckInState.JOURNEY_IDENTIFICATION);
+    const bookingReference = state.beginConversation?.bookingReference;
+    const lastName = state.beginConversation?.lastName;
+    if (!bookingReference || !lastName) {
+      return this.stateHelper.toStageResponse(
+        state.sessionId,
+        CheckInState.JOURNEY_IDENTIFICATION,
+        {
+          status: 'USER_INPUT_REQUIRED',
+          continue: false,
+          userMessage: 'PNR (booking reference) and last name are required.',
+        },
+        [],
+      );
+    }
+    const response = await this.journeyIdentification.handleStage(
+      state.sessionId,
+      goal,
+      CheckInState.JOURNEY_IDENTIFICATION,
+    );
+    if (state.journeyIdentificationState && response) {
+      const nextState: OrchestratorState = {
+        ...state,
+        journeyIdentificationState: {
+          ...state.journeyIdentificationState,
+          status: response.status,
+          continue: response.continue,
+          updatedAtUtc: response.updatedAtUtc,
+          startedAtUtc: response.startedAtUtc,
+          completedAtUtc: response.completedAtUtc,
+          lastEventId: response.lastEventId,
+          attempt: response.attempt,
+          error: response.error,
+          userMessage: response.userMessage,
+          bookingReference,
+          lastName,
+          journeyReply: (response as { eligibility?: unknown }).eligibility as any,
+        },
+      };
+      await this.stateHelper.stateService.saveState(state.sessionId, nextState);
+      return {
+        ...response,
+        sessionId: state.sessionId,
+        stage: response.stage,
+        steps: response.steps,
+      };
+    }
+    return response;
   }
 
   async runJourneySelection(

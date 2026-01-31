@@ -18,22 +18,47 @@ export class MainOrchestratorV1RegistryService {
       [CheckInState.BEGIN_CONVERSATION]: async (state, goal) => {
         const result = await this.helper.runBeginConversation(state, goal);
         if (result.status === STAGE_STATUS.SUCCESS && result.continue === true) {
-          return this.helper.navigate(state, goal, CheckInState.TRIP_IDENTIFICATION);
+          const hasFfp =
+            typeof (result as { frequentFlyerNumber?: string }).frequentFlyerNumber === 'string' &&
+            (result as { frequentFlyerNumber?: string }).frequentFlyerNumber!.trim().length > 0;
+          return this.helper.navigate(
+            state,
+            goal,
+            hasFfp ? CheckInState.TRIP_IDENTIFICATION : CheckInState.JOURNEY_IDENTIFICATION,
+          );
         }
         return result;
       },
       [CheckInState.TRIP_IDENTIFICATION]: (state, goal) =>
         this.helper.runTripIdentification(state, goal),
       [CheckInState.JOURNEY_IDENTIFICATION]: (state, goal) =>
-        this.helper.runJourneyIdentification(state, goal),
+        (async () => {
+          const result = await this.helper.runJourneyIdentification(state, goal);
+          if (result.status === STAGE_STATUS.SUCCESS && result.continue === true) {
+            return this.helper.navigate(state, goal, CheckInState.VALIDATE_PROCESS_CHECKIN);
+          }
+          return result;
+        })(),
       [CheckInState.JOURNEY_SELECTION]: (state, goal) =>
         this.helper.runJourneySelection(state, goal),
       [CheckInState.VALIDATE_PROCESS_CHECKIN]: (state, goal) =>
-        this.helper.runValidateProcessCheckin(state, goal),
+        (async () => {
+          const result = await this.helper.runValidateProcessCheckin(state, goal);
+          if (this.isUserConfirming(goal)) {
+            return this.helper.navigate(state, goal, CheckInState.CHECKIN_ACCEPTANCE);
+          }
+          return result;
+        })(),
       [CheckInState.PROCESS_CHECK_IN]: (state, goal) =>
         this.helper.runValidateProcessCheckin(state, goal),
       [CheckInState.CHECKIN_ACCEPTANCE]: (state, goal) =>
-        this.helper.runCheckinAcceptance(state, goal),
+        (async () => {
+          const result = await this.helper.runCheckinAcceptance(state, goal);
+          if ((result as { isAccepted?: boolean }).isAccepted === true && this.isUserConfirming(goal)) {
+            return this.helper.navigate(state, goal, CheckInState.BOARDING_PASS);
+          }
+          return result;
+        })(),
       [CheckInState.BOARDING_PASS]: (state, goal) =>
         this.helper.runBoardingPass(state, goal),
     };
@@ -41,5 +66,14 @@ export class MainOrchestratorV1RegistryService {
 
   getHandler(stage: CheckInState): StageHandler | undefined {
     return this.handlers[stage];
+  }
+
+  private isUserConfirming(goal: string): boolean {
+    const text = goal.trim().toLowerCase();
+    if (!text) return false;
+    if (/\b(no|dont|don't|decline|cancel|stop)\b/.test(text)) {
+      return false;
+    }
+    return /\b(yes|yep|yeah|confirm|confirmed|proceed|ok|okay|sure|continue)\b/.test(text);
   }
 }

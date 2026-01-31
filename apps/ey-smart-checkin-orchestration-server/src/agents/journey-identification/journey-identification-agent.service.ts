@@ -5,6 +5,7 @@ import { AiAgentStep } from '../../ai-agent/ai-agent.types';
 import { CheckInState } from '../../shared/checkin-state.enum';
 import { StateHelperService } from '../../shared/state-helper.service';
 import { StageResponse } from '../../shared/stage-response.type';
+import { STAGE_STATUS } from '../../shared/stage-status.type';
 
 @Injectable()
 export class JourneyIdentificationAgentService {
@@ -46,6 +47,24 @@ export class JourneyIdentificationAgentService {
   ): Promise<StageResponse> {
     const result = await this.runAgentLoop(goal);
     const payload = this.stateHelper.extractFinalObject(result.final) ?? result.final;
+    const record = payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : undefined;
+    if (record) {
+      const hasEligibility = record.eligibility !== undefined && record.eligibility !== null;
+      const hasError = Boolean(record.error);
+      if (hasEligibility && !hasError) {
+        record.status = STAGE_STATUS.SUCCESS;
+        record.continue = true;
+      } else if (hasError) {
+        record.status = STAGE_STATUS.USER_INPUT_REQUIRED;
+        record.continue = false;
+        if (!record.userMessage && typeof record.error === 'string') {
+          record.userMessage = record.error;
+        }
+      } else if (record.status === undefined) {
+        record.status = STAGE_STATUS.FAILED;
+        record.continue = false;
+      }
+    }
     return this.stateHelper.toStageResponse(
       sessionId,
       stageOverride ?? CheckInState.JOURNEY_IDENTIFICATION,

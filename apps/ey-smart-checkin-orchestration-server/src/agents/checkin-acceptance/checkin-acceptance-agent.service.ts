@@ -5,6 +5,7 @@ import { AiAgentStep } from '../../ai-agent/ai-agent.types';
 import { CheckInState } from '../../shared/checkin-state.enum';
 import { StateHelperService } from '../../shared/state-helper.service';
 import { StageResponse } from '../../shared/stage-response.type';
+import { STAGE_STATUS } from '../../shared/stage-status.type';
 
 @Injectable()
 export class CheckinAcceptanceAgentService {
@@ -46,6 +47,22 @@ export class CheckinAcceptanceAgentService {
   ): Promise<StageResponse> {
     const result = await this.runAgentLoop(goal);
     const payload = this.stateHelper.extractFinalObject(result.final) ?? result.final;
+    const record = payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : undefined;
+    if (record) {
+      const isAccepted = record.isAccepted === true;
+      const hasError = Boolean(record.error);
+      if (isAccepted) {
+        record.status = STAGE_STATUS.USER_INPUT_REQUIRED;
+        record.continue = false;
+        record.userMessage = 'Check in is successfully completed. Do you want to generate the boarding pass?';
+      } else if (hasError) {
+        record.status = STAGE_STATUS.FAILED;
+        record.continue = false;
+      } else if (record.status === undefined) {
+        record.status = STAGE_STATUS.SUCCESS;
+        record.continue = true;
+      }
+    }
     return this.stateHelper.toStageResponse(sessionId, CheckInState.CHECKIN_ACCEPTANCE, payload, result.steps);
   }
 
