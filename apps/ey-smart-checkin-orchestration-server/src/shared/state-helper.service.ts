@@ -108,6 +108,10 @@ export class StateHelperService {
       journeySelectionState: { ...base },
       passengerIdentificationState: { ...base },
       passengerSelectionState: { ...base },
+      validateProcessCheckInState: { ...base },
+      processCheckInState: { ...base },
+      checkinAcceptanceState: { ...base },
+      boardingPassState: { ...base },
     };
   }
 

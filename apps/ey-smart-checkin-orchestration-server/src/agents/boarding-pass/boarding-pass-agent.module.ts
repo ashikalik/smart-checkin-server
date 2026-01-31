@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AiAgentModule } from '../../ai-agent/ai-agent.module';
 import { OpenAiChatModelModule } from '../../open-ai-chat-model/open-ai-chat-model.module';
 import { OutputFormatterModule } from '../../output-formatter/output-formatter.module';
+import { StateModule } from '../../state/state.module';
 import { BoardingPassAgentController } from './boarding-pass-agent.controller';
 import { BoardingPassAgentService } from './boarding-pass-agent.service';
 
@@ -14,6 +15,7 @@ import { BoardingPassAgentService } from './boarding-pass-agent.service';
     }),
     OpenAiChatModelModule.registerAsync(),
     OutputFormatterModule,
+    StateModule,
     AiAgentModule.forFeatureAsync({
       imports: [ConfigModule, OpenAiChatModelModule.registerAsync()],
       inject: [ConfigService],

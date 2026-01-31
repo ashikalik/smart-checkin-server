@@ -11,6 +11,10 @@ import { MainOrchestratorV1Service } from './main-orchestrator-v1.service';
 import { StateModule } from '../state/state.module';
 import { BeginConversationAgentModule } from '../agents/begin-conversation/begin-conversation-agent.module';
 import { TripIdentificationAgentModule } from '../agents/trip-identification/trip-identification-agent.module';
+import { JourneyIdentificationAgentModule } from '../agents/journey-identification/journey-identification-agent.module';
+import { ValidateProcessCheckInAgentModule } from '../agents/validate-process-checkin/validate-process-checkin-agent.module';
+import { CheckinAcceptanceAgentModule } from '../agents/checkin-acceptance/checkin-acceptance-agent.module';
+import { BoardingPassAgentModule } from '../agents/boarding-pass/boarding-pass-agent.module';
 
 @Module({
   imports: [
@@ -42,6 +46,10 @@ import { TripIdentificationAgentModule } from '../agents/trip-identification/tri
     StateModule,
     BeginConversationAgentModule,
     TripIdentificationAgentModule,
+    JourneyIdentificationAgentModule,
+    ValidateProcessCheckInAgentModule,
+    CheckinAcceptanceAgentModule,
+    BoardingPassAgentModule,
   ],
   controllers: [MainOrchestratorController],
   providers: [

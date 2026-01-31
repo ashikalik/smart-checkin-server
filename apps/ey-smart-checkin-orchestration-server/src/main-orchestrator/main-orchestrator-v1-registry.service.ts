@@ -24,6 +24,18 @@ export class MainOrchestratorV1RegistryService {
       },
       [CheckInState.TRIP_IDENTIFICATION]: (state, goal) =>
         this.helper.runTripIdentification(state, goal),
+      [CheckInState.JOURNEY_IDENTIFICATION]: (state, goal) =>
+        this.helper.runJourneyIdentification(state, goal),
+      [CheckInState.JOURNEY_SELECTION]: (state, goal) =>
+        this.helper.runJourneySelection(state, goal),
+      [CheckInState.VALIDATE_PROCESS_CHECKIN]: (state, goal) =>
+        this.helper.runValidateProcessCheckin(state, goal),
+      [CheckInState.PROCESS_CHECK_IN]: (state, goal) =>
+        this.helper.runValidateProcessCheckin(state, goal),
+      [CheckInState.CHECKIN_ACCEPTANCE]: (state, goal) =>
+        this.helper.runCheckinAcceptance(state, goal),
+      [CheckInState.BOARDING_PASS]: (state, goal) =>
+        this.helper.runBoardingPass(state, goal),
     };
   }
 

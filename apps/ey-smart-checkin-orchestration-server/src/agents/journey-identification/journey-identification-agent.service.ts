@@ -2,12 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AiAgentService } from '../../ai-agent/ai-agent.service';
 import { AiAgentStep } from '../../ai-agent/ai-agent.types';
+import { CheckInState } from '../../shared/checkin-state.enum';
+import { StateHelperService } from '../../shared/state-helper.service';
+import { StageResponse } from '../../shared/stage-response.type';
 
 @Injectable()
 export class JourneyIdentificationAgentService {
   constructor(
     private readonly agent: AiAgentService,
     private readonly configService: ConfigService,
+    private readonly stateHelper: StateHelperService,
   ) {}
 
   listTools(): Promise<{ tools: Array<Record<string, unknown>> }> {
@@ -33,6 +37,21 @@ export class JourneyIdentificationAgentService {
       computedNotesTemplate: this.buildComputedNotesTemplate(),
       maxModelCalls: this.parseNumber(this.configService.get<string>('JOURNEY_IDENTIFICATION_ORCHESTRATOR_MAX_CALLS')) ?? 6,
     });
+  }
+
+  async handleStage(
+    sessionId: string,
+    goal: string,
+    stageOverride?: CheckInState,
+  ): Promise<StageResponse> {
+    const result = await this.runAgentLoop(goal);
+    const payload = this.stateHelper.extractFinalObject(result.final) ?? result.final;
+    return this.stateHelper.toStageResponse(
+      sessionId,
+      stageOverride ?? CheckInState.JOURNEY_IDENTIFICATION,
+      payload,
+      result.steps,
+    );
   }
 
   private parseNumber(value?: string): number | undefined {

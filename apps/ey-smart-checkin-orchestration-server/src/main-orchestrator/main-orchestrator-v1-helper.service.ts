@@ -5,6 +5,10 @@ import { OrchestratorState } from '../state/state-store.interface';
 import { TripIdentificationAgentService } from '../agents/trip-identification/trip-identification-agent.service';
 import { StageResponse } from '../shared/stage-response.type';
 import { StateHelperService } from '../shared/state-helper.service';
+import { JourneyIdentificationAgentService } from '../agents/journey-identification/journey-identification-agent.service';
+import { ValidateProcessCheckInAgentService } from '../agents/validate-process-checkin/validate-process-checkin-agent.service';
+import { CheckinAcceptanceAgentService } from '../agents/checkin-acceptance/checkin-acceptance-agent.service';
+import { BoardingPassAgentService } from '../agents/boarding-pass/boarding-pass-agent.service';
 
 @Injectable()
 export class MainOrchestratorV1HelperService {
@@ -12,6 +16,10 @@ export class MainOrchestratorV1HelperService {
     private readonly stateHelper: StateHelperService,
     private readonly beginConversation: BeginConversationAgentService,
     private readonly tripIdentification: TripIdentificationAgentService,
+    private readonly journeyIdentification: JourneyIdentificationAgentService,
+    private readonly validateProcessCheckin: ValidateProcessCheckInAgentService,
+    private readonly checkinAcceptance: CheckinAcceptanceAgentService,
+    private readonly boardingPass: BoardingPassAgentService,
   ) { }
   buildInitialState(sessionId: string): OrchestratorState {
     return this.stateHelper.buildInitialState(sessionId);
@@ -76,6 +84,41 @@ export class MainOrchestratorV1HelperService {
     return response;
   }
 
+  async runJourneyIdentification(
+    state: OrchestratorState,
+    goal: string,
+  ): Promise<StageResponse> {
+    return this.journeyIdentification.handleStage(state.sessionId, goal, CheckInState.JOURNEY_IDENTIFICATION);
+  }
+
+  async runJourneySelection(
+    state: OrchestratorState,
+    goal: string,
+  ): Promise<StageResponse> {
+    return this.journeyIdentification.handleStage(state.sessionId, goal, CheckInState.JOURNEY_SELECTION);
+  }
+
+  async runValidateProcessCheckin(
+    state: OrchestratorState,
+    goal: string,
+  ): Promise<StageResponse> {
+    return this.validateProcessCheckin.handleStage(state.sessionId, goal);
+  }
+
+  async runCheckinAcceptance(
+    state: OrchestratorState,
+    goal: string,
+  ): Promise<StageResponse> {
+    return this.checkinAcceptance.handleStage(state.sessionId, goal);
+  }
+
+  async runBoardingPass(
+    state: OrchestratorState,
+    goal: string,
+  ): Promise<StageResponse> {
+    return this.boardingPass.handleStage(state.sessionId, goal);
+  }
+
   resolveSession(
     sessionId: string | undefined,
   ): Promise<{ sessionId: string; state: OrchestratorState; response?: StageResponse }> {
@@ -98,6 +141,18 @@ export class MainOrchestratorV1HelperService {
         return this.runBeginConversation(nextState, goal);
       case CheckInState.TRIP_IDENTIFICATION:
         return this.runTripIdentification(nextState, goal);
+      case CheckInState.JOURNEY_IDENTIFICATION:
+        return this.runJourneyIdentification(nextState, goal);
+      case CheckInState.JOURNEY_SELECTION:
+        return this.runJourneySelection(nextState, goal);
+      case CheckInState.VALIDATE_PROCESS_CHECKIN:
+        return this.runValidateProcessCheckin(nextState, goal);
+      case CheckInState.PROCESS_CHECK_IN:
+        return this.runValidateProcessCheckin(nextState, goal);
+      case CheckInState.CHECKIN_ACCEPTANCE:
+        return this.runCheckinAcceptance(nextState, goal);
+      case CheckInState.BOARDING_PASS:
+        return this.runBoardingPass(nextState, goal);
       default:
         return this.stateHelper.buildUnknownStageResponse(state.sessionId, nextStage);
     }

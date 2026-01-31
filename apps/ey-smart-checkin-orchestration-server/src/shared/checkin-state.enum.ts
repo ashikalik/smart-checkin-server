@@ -8,9 +8,12 @@ export enum CheckInState {
   PASSENGER_SELECTION = 'passengerSelection',
   PASSENGER_INFORMATION = 'passengerInformation',
   DANGEROUS_GOODS = 'dangerousGoods',
+  VALIDATE_PROCESS_CHECKIN = 'validateProcessCheckin',
   PROCESS_CHECK_IN = 'processCheckIn',
+  CHECKIN_ACCEPTANCE = 'checkinAcceptance',
   SEAT_SELECTION = 'seatSelection',
   ANCILLARY_SELECTION = 'ancillarySelection',
   PAYMENT_PENDING = 'paymentPending',
+  BOARDING_PASS = 'boardingPass',
   CONFIRMATION = 'confirmation',
 }
