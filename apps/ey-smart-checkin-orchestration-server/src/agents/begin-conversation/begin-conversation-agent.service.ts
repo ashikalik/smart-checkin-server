@@ -58,7 +58,10 @@ export class BeginConversationAgentService {
     return this.stateHelper.toStageResponse(sessionId, CheckInState.BEGIN_CONVERSATION, payload, result.steps);
   }
 
-  mergeBeginConversation(state: BeginConversationState, update: Partial<BeginConversationState>): BeginConversationState {
+  updateBeginConversationState(
+    state: BeginConversationState,
+    update: Partial<BeginConversationState>,
+  ): BeginConversationState {
     const next = (value?: string): string | undefined => {
       if (value === undefined || value === null) return undefined;
       const trimmed = value.trim();
@@ -80,7 +83,7 @@ export class BeginConversationAgentService {
       lastName: next(update.lastName) ?? state.lastName,
       firstName: next(update.firstName) ?? state.firstName,
     };
-    const missing = this.computeMissing(merged);
+    const missing = this.validateRequired(merged);
     const ready = !missing || missing.length === 0;
     return {
       ...merged,
@@ -91,8 +94,8 @@ export class BeginConversationAgentService {
     };
   }
 
-  private computeMissing(state: BeginConversationState): string[] | undefined {
-    return this.stateHelper.computeMissingFields<BeginConversationState>(
+  private validateRequired(state: BeginConversationState): string[] | undefined {
+    return this.stateHelper.computeRequiredFields<BeginConversationState>(
       this.requiredFields,
       {
         lastName: (s) => !s.lastName,

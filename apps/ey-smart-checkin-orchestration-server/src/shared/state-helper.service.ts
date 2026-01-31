@@ -146,7 +146,7 @@ export class StateHelperService {
     return { sessionId: currentSessionId, state };
   }
 
-  computeMissingFields<T extends object>(
+  computeRequiredFields<T extends object>(
     required: string[],
     checks: Record<string, (state: T) => boolean>,
     state: T,

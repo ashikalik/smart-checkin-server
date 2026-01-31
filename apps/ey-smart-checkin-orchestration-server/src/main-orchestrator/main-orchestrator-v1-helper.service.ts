@@ -29,7 +29,7 @@ export class MainOrchestratorV1HelperService {
   ): Promise<StageResponse> {
     const response = await this.beginConversation.handleStage(state.sessionId, goal);
     if (state.beginConversation && response) {
-      const merged = this.beginConversation.mergeBeginConversation(
+      const merged = this.beginConversation.updateBeginConversationState(
         state.beginConversation,
         response as unknown as Partial<import('../shared/begin-conversation-state').BeginConversationState>,
       );
