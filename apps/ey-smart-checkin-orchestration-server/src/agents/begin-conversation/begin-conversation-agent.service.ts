@@ -45,6 +45,9 @@ export class BeginConversationAgentService {
   ): Promise<StageResponse> {
     const result = await this.runAgentLoop(goal);
     const payload = this.stateHelper.extractFinalObject(result.final) ?? result.final;
+    console.log("--------------------------------------------------------")
+    console.log(payload);
+    console.log("--------------------------------------------------------")
     return this.stateHelper.toStageResponse(sessionId, CheckInState.BEGIN_CONVERSATION, payload, result.steps);
   }
 

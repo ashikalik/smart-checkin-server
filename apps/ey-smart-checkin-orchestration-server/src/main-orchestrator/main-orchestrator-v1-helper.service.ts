@@ -12,7 +12,7 @@ export class MainOrchestratorV1HelperService {
     private readonly stateHelper: StateHelperService,
     private readonly beginConversation: BeginConversationAgentService,
     private readonly tripIdentification: TripIdentificationAgentService,
-  ) {}
+  ) { }
   buildInitialState(sessionId: string): OrchestratorState {
     return this.stateHelper.buildInitialState(sessionId);
   }
@@ -21,16 +21,13 @@ export class MainOrchestratorV1HelperService {
     return this.stateHelper.getCurrentStage(state);
   }
 
-  async advanceToTripIdentification(
+  
+
+  async runBeginConversation(
     state: OrchestratorState,
     goal: string,
   ): Promise<StageResponse> {
-    const nextState: OrchestratorState = {
-      ...state,
-      currentStage: CheckInState.TRIP_IDENTIFICATION,
-    };
-    await this.stateHelper.stateService.saveState(state.sessionId, nextState);
-    return this.runTripIdentification(nextState, goal);
+    return this.beginConversation.handleStage(state.sessionId, goal);
   }
 
   async runTripIdentification(
@@ -40,20 +37,30 @@ export class MainOrchestratorV1HelperService {
     return this.tripIdentification.handleStage(state.sessionId, goal);
   }
 
-  async runBeginConversation(
-    state: OrchestratorState,
-    goal: string,
-  ): Promise<StageResponse> {
-    return this.beginConversation.handleStage(state.sessionId, goal);
-  }
-
-
-
   resolveSession(
     sessionId: string | undefined,
   ): Promise<{ sessionId: string; state: OrchestratorState; response?: StageResponse }> {
     return this.stateHelper.resolveSession(sessionId);
   }
 
+  async navigate(
+    state: OrchestratorState,
+    goal: string,
+    nextStage: CheckInState,
+  ): Promise<StageResponse> {
+    const nextState: OrchestratorState = {
+      ...state,
+      currentStage: nextStage,
+    };
+    await this.stateHelper.stateService.saveState(state.sessionId, nextState);
+    switch (nextStage) {
+      case CheckInState.BEGIN_CONVERSATION:
+        return this.runBeginConversation(nextState, goal);
+      case CheckInState.TRIP_IDENTIFICATION:
+        return this.runTripIdentification(nextState, goal);
+      default:
+        return this.stateHelper.buildUnknownStageResponse(state.sessionId, nextStage);
+    }
+  }
 
 }

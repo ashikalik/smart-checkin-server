@@ -4,7 +4,7 @@ import { CheckInState } from './checkin-state.enum';
 import { StageStatus, STAGE_STATUS } from './stage-status.type';
 import { OrchestratorState } from '../state/state-store.interface';
 import { StateService } from '../state/state.service';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, validate as validateUuid } from 'uuid';
 import { StageResponse } from './stage-response.type';
 
 @Injectable()
@@ -31,7 +31,7 @@ export class StateHelperService {
     const base = this.normalizeBaseState(payload);
     return {
       sessionId,
-      stage,
+      stage: this.toStageKey(stage),
       steps,
       ...(payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : {}),
       ...base,
@@ -69,7 +69,7 @@ export class StateHelperService {
   buildInitialResponse(sessionId: string): StageResponse {
     return {
       sessionId,
-      stage: CheckInState.BEGIN_CONVERSATION,
+      stage: this.toStageKey(CheckInState.BEGIN_CONVERSATION),
       status: STAGE_STATUS.USER_INPUT_REQUIRED,
       continue: false,
       updatedAtUtc: new Date().toISOString(),
@@ -80,12 +80,19 @@ export class StateHelperService {
   buildUnknownStageResponse(sessionId: string, stage: CheckInState): StageResponse {
     return {
       sessionId,
-      stage,
+      stage: this.toStageKey(stage),
       status: STAGE_STATUS.FAILED,
       continue: false,
       updatedAtUtc: new Date().toISOString(),
       userMessage: `No orchestrator configured for stage ${stage}.`,
     };
+  }
+
+  private toStageKey(stage: CheckInState): string {
+    return stage
+      .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      .replace(/-/g, '_')
+      .toUpperCase();
   }
 
   buildInitialState(sessionId: string): OrchestratorState {
@@ -123,7 +130,8 @@ export class StateHelperService {
   async resolveSession(
     sessionId: string | undefined,
   ): Promise<{ sessionId: string; state: OrchestratorState; response?: StageResponse }> {
-    const currentSessionId = sessionId ?? uuidv4();
+    const trimmed = typeof sessionId === 'string' ? sessionId.trim() : undefined;
+    const currentSessionId = trimmed && trimmed !== 'null' && validateUuid(trimmed) ? trimmed : uuidv4();
     const state = (await this.stateService.getState(currentSessionId)) ?? this.buildInitialState(currentSessionId);
 
     if (!sessionId) {
