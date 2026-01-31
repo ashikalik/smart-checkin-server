@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AiAgentModule } from '../../ai-agent/ai-agent.module';
 import { OpenAiChatModelModule } from '../../open-ai-chat-model/open-ai-chat-model.module';
 import { OutputFormatterModule } from '../../output-formatter/output-formatter.module';
+import { StateHelperService } from '../../shared/state-helper.service';
 import { BeginConversationAgentController } from './begin-conversation-agent.controller';
 import { BeginConversationAgentService } from './begin-conversation-agent.service';
 
@@ -36,7 +37,7 @@ import { BeginConversationAgentService } from './begin-conversation-agent.servic
     }),
   ],
   controllers: [BeginConversationAgentController],
-  providers: [BeginConversationAgentService],
+  providers: [BeginConversationAgentService, StateHelperService],
   exports: [BeginConversationAgentService],
 })
 export class BeginConversationAgentModule {}

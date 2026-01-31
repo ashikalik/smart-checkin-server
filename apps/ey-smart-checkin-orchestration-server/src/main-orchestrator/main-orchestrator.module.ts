@@ -6,7 +6,9 @@ import { MainOrchestratorController } from './main-orchestrator.controller';
 import { MainOrchestratorHelperService } from './main-orchestrator-helper.service';
 import { MainOrchestratorService } from './main-orchestrator.service';
 import { MainOrchestratorV1HelperService } from './main-orchestrator-v1-helper.service';
+import { MainOrchestratorV1RegistryService } from './main-orchestrator-v1-registry.service';
 import { MainOrchestratorV1Service } from './main-orchestrator-v1.service';
+import { StateHelperService } from '../shared/state-helper.service';
 import { StateModule } from '../state/state.module';
 import { BeginConversationAgentModule } from '../agents/begin-conversation/begin-conversation-agent.module';
 import { TripIdentificationAgentModule } from '../agents/trip-identification/trip-identification-agent.module';
@@ -48,6 +50,8 @@ import { TripIdentificationAgentModule } from '../agents/trip-identification/tri
     MainOrchestratorHelperService,
     MainOrchestratorV1Service,
     MainOrchestratorV1HelperService,
+    MainOrchestratorV1RegistryService,
+    StateHelperService,
   ],
   exports: [MainOrchestratorService, MainOrchestratorV1Service],
 })

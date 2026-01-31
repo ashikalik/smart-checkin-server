@@ -10,12 +10,14 @@ import { TripSelectionState } from './trip-selection-state.interface';
 
 export interface SessionState {
   sessionId: string;
-  currentStage: CheckInState;
-  beginConversation: BeginConversationState;
-  tripIdentificationState: TripIdentificationState;
-  tripSelectionState: TripSelectionState;
-  journeyIdentificationState: JourneyIdentificationState;
-  journeySelectionState: JourneySelectionState;
-  passengerIdentificationState: PassengerIdentificationState;
-  passengerSelectionState: PassengerSelectionState;
+  currentStage?: CheckInState;
+  beginConversation?: BeginConversationState;
+  tripIdentificationState?: TripIdentificationState;
+  tripSelectionState?: TripSelectionState;
+  journeyIdentificationState?: JourneyIdentificationState;
+  journeySelectionState?: JourneySelectionState;
+  passengerIdentificationState?: PassengerIdentificationState;
+  passengerSelectionState?: PassengerSelectionState;
+  lastStep?: string;
+  data?: Record<string, unknown>;
 }

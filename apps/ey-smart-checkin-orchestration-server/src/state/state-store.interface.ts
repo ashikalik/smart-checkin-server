@@ -1,12 +1,10 @@
-export type OrchestratorState = {
-  sessionId: string;
-  lastStep?: string;
-  data?: Record<string, unknown>;
-};
+import type { SessionState } from '../shared/session-state.interface';
+
+export type OrchestratorState = SessionState;
 
 export type StateStore = {
-  get(sessionId: string): Promise<OrchestratorState | undefined>;
-  set(sessionId: string, state: OrchestratorState, ttlSeconds?: number): Promise<void>;
+  get(sessionId: string): Promise<SessionState | undefined>;
+  set(sessionId: string, state: SessionState, ttlSeconds?: number): Promise<void>;
   delete(sessionId: string): Promise<void>;
 };
 
