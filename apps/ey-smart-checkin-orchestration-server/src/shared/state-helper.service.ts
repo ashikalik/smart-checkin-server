@@ -6,7 +6,6 @@ import { OrchestratorState } from '../state/state-store.interface';
 import { StateService } from '../state/state.service';
 import { v4 as uuidv4 } from 'uuid';
 import { StageResponse } from './stage-response.type';
-import { StageResponse } from './stage-response.type';
 
 @Injectable()
 export class StateHelperService {

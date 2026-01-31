@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AiAgentModule } from '../../ai-agent/ai-agent.module';
 import { OpenAiChatModelModule } from '../../open-ai-chat-model/open-ai-chat-model.module';
 import { OutputFormatterModule } from '../../output-formatter/output-formatter.module';
-import { StateHelperService } from '../../shared/state-helper.service';
+import { StateModule } from '../../state/state.module';
 import { TripIdentificationAgentController } from './trip-identification-agent.controller';
 import { TripIdentificationAgentService } from './trip-identification-agent.service';
 
@@ -15,6 +15,7 @@ import { TripIdentificationAgentService } from './trip-identification-agent.serv
     }),
     OpenAiChatModelModule.registerAsync(),
     OutputFormatterModule,
+    StateModule,
     AiAgentModule.forFeatureAsync({
       imports: [ConfigModule, OpenAiChatModelModule.registerAsync()],
       inject: [ConfigService],
@@ -37,7 +38,7 @@ import { TripIdentificationAgentService } from './trip-identification-agent.serv
     }),
   ],
   controllers: [TripIdentificationAgentController],
-  providers: [TripIdentificationAgentService, StateHelperService],
+  providers: [TripIdentificationAgentService],
   exports: [TripIdentificationAgentService],
 })
 export class TripIdentificationAgentModule {}
