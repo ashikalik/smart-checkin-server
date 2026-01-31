@@ -1,4 +1,4 @@
-// apps/ey-smart-checkin-mcp-server/src/mcp-checkin/validate-processcheckin/controller/validate-process-checkin.controller.ts
+// apps/ey-smart-checkin-mcp-server/src/mcp-check-in/process-check-in/controller/validate-process-checkin.controller.ts
 import { Body, Controller, Req, Res, All } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { ValidateProcessCheckInToolsService } from '../services/validate-process-checkin.tools-service';

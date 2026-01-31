@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MemoryStateStoreService } from './memory-state-store.service';
 import { StateService } from './state.service';
 import { STATE_STORE, StateStore } from './state-store.interface';
+import { StateHelperService } from '../shared/state-helper.service';
 
 @Module({
   imports: [
@@ -28,7 +29,8 @@ import { STATE_STORE, StateStore } from './state-store.interface';
     },
     MemoryStateStoreService,
     StateService,
+    StateHelperService,
   ],
-  exports: [STATE_STORE, StateService],
+  exports: [STATE_STORE, StateService, StateHelperService],
 })
 export class StateModule {}

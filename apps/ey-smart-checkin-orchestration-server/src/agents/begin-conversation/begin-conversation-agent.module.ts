@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AiAgentModule } from '../ai-agent/ai-agent.module';
-import { OpenAiChatModelModule } from '../open-ai-chat-model/open-ai-chat-model.module';
-import { OutputFormatterModule } from '../output-formatter/output-formatter.module';
-import { IdentificationOrchestratorController } from './identification-orchestrator.controller';
-import { IdentificationOrchestratorService } from './identification-orchestrator.service';
+import { AiAgentModule } from '../../ai-agent/ai-agent.module';
+import { OpenAiChatModelModule } from '../../open-ai-chat-model/open-ai-chat-model.module';
+import { OutputFormatterModule } from '../../output-formatter/output-formatter.module';
+import { StateModule } from '../../state/state.module';
+import { BeginConversationAgentController } from './begin-conversation-agent.controller';
+import { BeginConversationAgentService } from './begin-conversation-agent.service';
 
 @Module({
   imports: [
@@ -14,11 +15,12 @@ import { IdentificationOrchestratorService } from './identification-orchestrator
     }),
     OpenAiChatModelModule.registerAsync(),
     OutputFormatterModule,
+    StateModule,
     AiAgentModule.forFeatureAsync({
       imports: [ConfigModule, OpenAiChatModelModule.registerAsync()],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        mcpServers: resolveIdentificationMcpServers(configService),
+        mcpServers: resolveBeginConversationMcpServers(configService),
         systemPrompt: configService.get<string>('AI_AGENT_SYSTEM_PROMPT'),
         maxModelCalls: parseNumber(configService.get<string>('AI_AGENT_MAX_CALLS')),
         continuePrompt: configService.get<string>('AI_AGENT_CONTINUE_PROMPT'),
@@ -35,11 +37,11 @@ import { IdentificationOrchestratorService } from './identification-orchestrator
       }),
     }),
   ],
-  controllers: [IdentificationOrchestratorController],
-  providers: [IdentificationOrchestratorService],
-  exports: [IdentificationOrchestratorService],
+  controllers: [BeginConversationAgentController],
+  providers: [BeginConversationAgentService],
+  exports: [BeginConversationAgentService],
 })
-export class IdentificationOrchestratorModule {}
+export class BeginConversationAgentModule {}
 
 const parseNumber = (value?: string): number | undefined => {
   if (!value) {
@@ -49,8 +51,8 @@ const parseNumber = (value?: string): number | undefined => {
   return Number.isFinite(parsed) ? parsed : undefined;
 };
 
-const resolveIdentificationMcpServers = (configService: ConfigService) => {
-  const list = configService.get<string>('IDENTIFICATION_MCP_SERVER_URLS');
+const resolveBeginConversationMcpServers = (configService: ConfigService) => {
+  const list = configService.get<string>('BEGIN_CONVERSATION_MCP_SERVER_URLS');
   if (list) {
     try {
       const parsed = JSON.parse(list) as Array<{ url?: string; name?: string; toolNamePrefix?: string }>;
@@ -58,7 +60,7 @@ const resolveIdentificationMcpServers = (configService: ConfigService) => {
         .filter((item) => typeof item?.url === 'string')
         .map((item, index) => ({
           url: item.url as string,
-          name: item.name ?? `identification-mcp-${index + 1}`,
+          name: item.name ?? `begin-conversation-mcp-${index + 1}`,
           toolNamePrefix: item.toolNamePrefix,
         }));
       if (servers.length > 0) {
@@ -71,7 +73,7 @@ const resolveIdentificationMcpServers = (configService: ConfigService) => {
         .filter(Boolean)
         .map((url, index) => ({
           url,
-          name: `identification-mcp-${index + 1}`,
+          name: `begin-conversation-mcp-${index + 1}`,
         }));
       if (servers.length > 0) {
         return servers;
@@ -79,7 +81,7 @@ const resolveIdentificationMcpServers = (configService: ConfigService) => {
     }
   }
 
-  const single = configService.get<string>('IDENTIFICATION_MCP_SERVER_URL');
+  const single = configService.get<string>('BEGIN_CONVERSATION_MCP_SERVER_URL');
   if (single) {
     return [{ url: single, name: 'mcp-check-in' }];
   }

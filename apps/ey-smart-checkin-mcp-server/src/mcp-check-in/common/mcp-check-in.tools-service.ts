@@ -4,10 +4,12 @@ import type { Request, Response } from 'express';
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { ssciIdentificationJourneyEligibilityMcpTool } from "../tools/journey-eligibility.tool";
-import { ssciIdentificationJourneyMcpTool } from "../tools/retrieve-journey.tool";
-import { SsciRetrieveOrderGqlService, ssciRetrieveOrderGqlMcpTool } from "../tools/retrieve-order.tool";
-import { SsciJourneyIdentificationService } from "./journey-identification.service";
+import { tripIdentificationMcpTool } from '../trip-identification/tools/trip-identification.tool';
+import { ssciIdentificationJourneyEligibilityMcpTool } from '../journey-identification/tools/journey-eligibility.tool';
+import { ssciIdentificationJourneyMcpTool } from '../journey-identification/tools/retrieve-journey.tool';
+import { ssciRetrieveOrderGqlMcpTool, SsciRetrieveOrderGqlService } from '../journey-identification/tools/retrieve-order.tool';
+import { SsciJourneyIdentificationService } from '../journey-identification/services/journey-identification.service';
+import { TripIdentificationService } from '../trip-identification/services/trip-identification.service';
 
 type McpSession = {
   server: McpServer;
@@ -15,17 +17,18 @@ type McpSession = {
 };
 
 @Injectable()
-export class JourneyIdentificationToolsService implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = new Logger(JourneyIdentificationToolsService.name);
+export class McpCheckInToolsService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(McpCheckInToolsService.name);
   private readonly sessions = new Map<string, McpSession>();
 
   constructor(
     private readonly journey: SsciJourneyIdentificationService,
     private readonly order: SsciRetrieveOrderGqlService,
+    private readonly tripIdentification: TripIdentificationService,
   ) {}
 
   async onModuleInit(): Promise<void> {
-    this.logger.log('MCP server started (streamable HTTP). Endpoint: /mcp-check-in/v1/journey-identification');
+    this.logger.log('MCP server started (streamable HTTP). Endpoint: /mcp-check-in');
   }
 
   async onModuleDestroy(): Promise<void> {
@@ -61,7 +64,7 @@ export class JourneyIdentificationToolsService implements OnModuleInit, OnModule
 
   private createSession(): McpSession {
     const server = new McpServer({
-      name: 'nest-mcp-ssci',
+      name: 'nest-mcp-check-in',
       version: '1.0.0',
     });
     this.registerTools(server);
@@ -90,23 +93,25 @@ export class JourneyIdentificationToolsService implements OnModuleInit, OnModule
 
   private registerTools(server: McpServer): void {
     server.registerTool(
+      tripIdentificationMcpTool.name,
+      tripIdentificationMcpTool.definition,
+      tripIdentificationMcpTool.handler(this.tripIdentification),
+    );
+    server.registerTool(
       ssciIdentificationJourneyMcpTool.name,
       ssciIdentificationJourneyMcpTool.definition,
       ssciIdentificationJourneyMcpTool.handler(this.journey),
     );
-   
     server.registerTool(
       ssciIdentificationJourneyEligibilityMcpTool.name,
       ssciIdentificationJourneyEligibilityMcpTool.definition,
       ssciIdentificationJourneyEligibilityMcpTool.handler(this.journey),
     );
-   
     server.registerTool(
       ssciRetrieveOrderGqlMcpTool.name,
       ssciRetrieveOrderGqlMcpTool.definition,
       ssciRetrieveOrderGqlMcpTool.handler(this.order),
     );
-   
   }
 
   private getSessionId(req: Request): string | undefined {
@@ -118,10 +123,10 @@ export class JourneyIdentificationToolsService implements OnModuleInit, OnModule
   }
 
   private isInitializeRequest(body?: unknown): boolean {
-    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    if (!body || typeof body !== 'object') {
       return false;
     }
-    const method = (body as { method?: string }).method;
-    return method === 'initialize';
+    const payload = body as { method?: string };
+    return payload.method === 'initialize';
   }
 }

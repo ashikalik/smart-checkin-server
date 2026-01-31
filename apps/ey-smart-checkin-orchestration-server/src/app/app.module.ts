@@ -7,7 +7,9 @@ import { AppService } from './app.service';
 // import { FfpBookingOrchestratorModule } from '../ffp-booking-orchestrator/ffp-booking-orchestrator.module';
 // import { MainOrchestratorModule } from '../main-orchestrator/main-orchestrator.module';
 import { TripIdentificationAgentModule } from '../agents/trip-identification/trip-identification-agent.module';
+import { BeginConversationAgentModule } from '../agents/begin-conversation/begin-conversation-agent.module';
 import { JourneyIdentificationAgentModule } from '../agents/journey-identification/journey-identification-agent.module';
+import { MainOrchestratorModule } from '../main-orchestrator/main-orchestrator.module';
 // import { AutoCheckInOrchestratorModule } from '../auto-checkin-orchestrator/auto-checkin-orchestrator.module';
 
 @Module({
@@ -16,12 +18,11 @@ import { JourneyIdentificationAgentModule } from '../agents/journey-identificati
       isGlobal: true,
       envFilePath: 'apps/ey-smart-checkin-orchestration-server/.env',
     }),
-    // ArithmeticOrchestratorModule,
-    // IdentificationOrchestratorModule,
-    // FfpBookingOrchestratorModule,
+
+    BeginConversationAgentModule,
     TripIdentificationAgentModule,
-    JourneyIdentificationAgentModule
-    // MainOrchestratorModule,
+    JourneyIdentificationAgentModule,
+    MainOrchestratorModule,
     // AutoCheckInOrchestratorModule,
   ],
   controllers: [AppController],

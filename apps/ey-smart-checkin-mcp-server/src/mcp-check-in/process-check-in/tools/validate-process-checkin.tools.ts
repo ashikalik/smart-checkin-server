@@ -1,4 +1,4 @@
-// apps/ey-smart-checkin-mcp-server/src/mcp-checkin/validate-processcheckin/tools/validate-process-checkin.tool.ts
+// apps/ey-smart-checkin-mcp-server/src/mcp-check-in/process-check-in/tools/validate-process-checkin.tools.ts
 import { z } from 'zod';
 import type { ValidateProcessCheckinService, ValidateProcessCheckinApiResponse } from '../services/ssci-process-checkin.service';
 import { normalizeHeaderOverrides } from '../../common/ssci-mock.util';
