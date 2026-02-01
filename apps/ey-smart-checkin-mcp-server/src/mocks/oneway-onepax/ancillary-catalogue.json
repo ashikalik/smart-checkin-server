@@ -1,0 +1,1241 @@
+{
+  "journeys": {
+    "journeys": [
+      {
+        "acceptance": {
+          "checkedInJourneyElements": [
+            {
+              "id": "600A34DA0008B41E"
+            },
+            {
+              "id": "600A34DA0008B41F"
+            }
+          ],
+          "isAccepted": false,
+          "isPartial": true,
+          "isVoluntaryDeniedBoarding": false,
+          "notCheckedInJourneyElements": [
+            {
+              "id": "600A34DA0008DB30"
+            }
+          ]
+        },
+        "acceptanceEligibility": {
+          "eligibilityWindow": {
+            "closingDateAndTime": "2025-05-23T03:30:00+04:00",
+            "openingDateAndTime": "2025-05-21T22:30:00+04:00"
+          },
+          "reasons": [
+            "regulatoryDetailsInhibition"
+          ],
+          "status": "partial"
+        },
+        "contacts": [
+          {
+            "address": "TEST@MAIL.COM",
+            "category": "personal",
+            "contactType": "Email",
+            "id": "610754D90008B23B_49bb87fb",
+            "purpose": "notification",
+            "travelerIds": [
+              "610754D90008B23B"
+            ]
+          },
+          {
+            "category": "personal",
+            "contactType": "Phone",
+            "countryPhoneExtension": "971",
+            "id": "610754D90008B23B_68fc27c5",
+            "number": "585984536",
+            "purpose": "notification",
+            "travelerIds": [
+              "610754D90008B23B"
+            ]
+          },
+          {
+            "address": "TEST@MAIL.COM",
+            "category": "personal",
+            "contactType": "Email",
+            "id": "610754D90008B299_49bb87fb",
+            "purpose": "notification",
+            "travelerIds": [
+              "610754D90008B299"
+            ]
+          },
+          {
+            "category": "personal",
+            "contactType": "Phone",
+            "countryPhoneExtension": "971",
+            "id": "610754D90008B299_f479880a",
+            "number": "585981111",
+            "purpose": "notification",
+            "travelerIds": [
+              "610754D90008B299"
+            ]
+          }
+        ],
+        "flights": [
+          {
+            "id": "EY-691-20250523",
+            "acceptanceStatus": "opened",
+            "aircraftCode": "32N",
+            "arrival": {
+              "dateTime": "2025-05-23T05:25:00+04:00",
+              "estimatedDateTime": "2025-05-23T05:35:00+04:00",
+              "locationCode": "AUH",
+              "terminal": "A"
+            },
+            "departure": {
+              "dateTime": "2025-05-23T04:20:00+04:00",
+              "estimatedDateTime": "2025-05-23T04:30:00+04:00",
+              "locationCode": "MCT"
+            },
+            "duration": 3900,
+            "isIATCI": false,
+            "isPilgrimConfirmationRequired": false,
+            "marketingAirlineCode": "EY",
+            "marketingFlightNumber": "691",
+            "operatingAirlineCode": "EY",
+            "operatingAirlineFlightNumber": "691",
+            "operatingAirlineName": "ETIHAD AIRWAYS",
+            "operatingFlightNumber": "691",
+            "status": "scheduled"
+          }
+        ],
+        "id": "2128B2F8321B1701AD4A285C71E1DE2FE08BFFBD1748076837",
+        "isGroupBooking": false,
+        "journeyElements": [
+          {
+            "id": "600A34DA0008B41E",
+            "acceptanceEligibility": {
+              "eligibilityWindow": {
+                "closingDateAndTime": "2025-05-23T03:30:00+04:00",
+                "openingDateAndTime": "2025-05-21T22:30:00+04:00"
+              },
+              "status": "eligible"
+            },
+            "boardingPassEligibility": {
+              "status": "eligible"
+            },
+            "boardingPassPrintStatus": "needPrinting",
+            "boardingStatus": "notBoarded",
+            "cabin": "Y",
+            "checkInStatus": "accepted",
+            "fareFamily": {
+              "code": "EY-YBASIC"
+            },
+            "flightId": "EY-691-20250523",
+            "orderId": "P73WCC",
+            "regulatoryProgramsCheckStatuses": [
+              {
+                "regulatoryProgram": {
+                  "name": "ADC"
+                },
+                "statuses": [
+                  {
+                    "statusCode": "O"
+                  }
+                ]
+              }
+            ],
+            "seat": {
+              "cabin": "Y",
+              "isInfantAloneOnSeat": false,
+              "isInfantOnSeat": false,
+              "seatAvailabilityStatus": "occupied",
+              "seatCharacteristicsCodes": [
+                "ES",
+                "N",
+                "W"
+              ],
+              "seatNumber": "18F"
+            },
+            "seatmapEligibility": {
+              "status": "eligible"
+            },
+            "travelerId": "610754D90008B23B"
+          },
+          {
+            "id": "600A34DA0008DB30",
+            "acceptanceEligibility": {
+              "eligibilityWindow": {
+                "closingDateAndTime": "2025-05-23T03:30:00+04:00",
+                "openingDateAndTime": "2025-05-21T22:30:00+04:00"
+              },
+              "reasons": [
+                "regulatoryDetailsInhibition"
+              ],
+              "status": "ineligible"
+            },
+            "boardingPassEligibility": {
+              "reasons": [
+                "passengerNotAccepted"
+              ],
+              "status": "ineligible"
+            },
+            "boardingPassPrintStatus": "notPrinted",
+            "boardingStatus": "notBoarded",
+            "cabin": "Y",
+            "checkInStatus": "notAccepted",
+            "fareFamily": {
+              "code": "EY-YBASIC"
+            },
+            "flightId": "EY-691-20250523",
+            "orderId": "P73WCC",
+            "regulatoryProgramsCheckStatuses": [
+              {
+                "regulatoryProgram": {
+                  "name": "ADC"
+                },
+                "statuses": [
+                  {
+                    "statusCode": "N"
+                  }
+                ]
+              }
+            ],
+            "seatmapEligibility": {
+              "status": "eligible"
+            },
+            "travelerId": "610754D90008B23C"
+          },
+          {
+            "id": "600A34DA0008B41F",
+            "acceptanceEligibility": {
+              "eligibilityWindow": {
+                "closingDateAndTime": "2025-05-23T03:30:00+04:00",
+                "openingDateAndTime": "2025-05-21T22:30:00+04:00"
+              },
+              "status": "eligible"
+            },
+            "boardingPassEligibility": {
+              "status": "eligible"
+            },
+            "boardingPassPrintStatus": "needPrinting",
+            "boardingStatus": "notBoarded",
+            "cabin": "Y",
+            "checkInStatus": "accepted",
+            "fareFamily": {
+              "code": "EY-YBASIC"
+            },
+            "flightId": "EY-691-20250523",
+            "orderId": "P73WCC",
+            "regulatoryProgramsCheckStatuses": [
+              {
+                "regulatoryProgram": {
+                  "name": "ADC"
+                },
+                "statuses": [
+                  {
+                    "statusCode": "O"
+                  }
+                ]
+              }
+            ],
+            "seat": {
+              "cabin": "Y",
+              "isInfantAloneOnSeat": false,
+              "isInfantOnSeat": false,
+              "seatAvailabilityStatus": "occupied",
+              "seatCharacteristicsCodes": [
+                "9",
+                "ES",
+                "N"
+              ],
+              "seatNumber": "18E"
+            },
+            "seatmapEligibility": {
+              "status": "eligible"
+            },
+            "travelerId": "610754D90008B299"
+          }
+        ],
+        "services": [
+          {
+            "descriptions": [
+              {
+                "content": "PRIO",
+                "type": "shortText"
+              }
+            ],
+            "flightIds": [
+              "EY-691-20250523"
+            ],
+            "id": "10000000001A3DC7",
+            "quantity": 1,
+            "statusCode": "MCF",
+            "travelerId": "610754D90008B23B"
+          },
+          {
+            "descriptions": [
+              {
+                "content": "PRIO",
+                "type": "shortText"
+              }
+            ],
+            "flightIds": [
+              "EY-691-20250523"
+            ],
+            "id": "10000000001A3E26",
+            "quantity": 1,
+            "statusCode": "MCF",
+            "travelerId": "610754D90008B299"
+          }
+        ],
+        "travelers": [
+          {
+            "dateOfBirth": "2013-05-03",
+            "gender": "female",
+            "id": "610754D90008B23B",
+            "isPilgrimConfirmationProvided": false,
+            "names": [
+              {
+                "firstName": "DONNA",
+                "lastName": "TEST",
+                "nameType": "universal",
+                "title": "MRS"
+              }
+            ],
+            "passengerTypeCode": "ADT"
+          },
+          {
+            "gender": "male",
+            "id": "610754D90008B23C",
+            "isPilgrimConfirmationProvided": false,
+            "names": [
+              {
+                "firstName": "CHRISTOPHER",
+                "lastName": "TEST",
+                "nameType": "universal",
+                "title": "MR"
+              }
+            ],
+            "passengerTypeCode": "ADT"
+          },
+          {
+            "dateOfBirth": "2013-05-10",
+            "gender": "female",
+            "id": "610754D90008B299",
+            "isPilgrimConfirmationProvided": false,
+            "names": [
+              {
+                "firstName": "LAURA",
+                "lastName": "TEST",
+                "nameType": "universal",
+                "title": "MS"
+              }
+            ],
+            "passengerTypeCode": "ADT"
+          }
+        ],
+        "type": "standalone"
+      }
+    ],
+    "journeyDictionary": {
+      "aircraft": {
+        "32N": "AIRBUS A320NEO"
+      },
+      "airline": {
+        "EY": "ETIHAD AIRWAYS"
+      },
+      "country": {
+        "AE": "UNITED ARAB EMIRATES",
+        "OM": "OMAN"
+      },
+      "flight": {
+        "EY-691-20250523": {
+          "acceptanceStatus": "opened",
+          "aircraftCode": "32N",
+          "arrival": {
+            "dateTime": "2025-05-23T05:25:00+04:00",
+            "estimatedDateTime": "2025-05-23T05:35:00+04:00",
+            "locationCode": "AUH",
+            "terminal": "A"
+          },
+          "departure": {
+            "dateTime": "2025-05-23T04:20:00+04:00",
+            "estimatedDateTime": "2025-05-23T04:30:00+04:00",
+            "locationCode": "MCT"
+          },
+          "duration": 3900,
+          "id": "EY-691-20250523",
+          "isIATCI": false,
+          "isPilgrimConfirmationRequired": false,
+          "marketingAirlineCode": "EY",
+          "marketingFlightNumber": "691",
+          "operatingAirlineCode": "EY",
+          "operatingAirlineFlightNumber": "691",
+          "operatingAirlineName": "ETIHAD AIRWAYS",
+          "operatingFlightNumber": "691",
+          "status": "scheduled"
+        }
+      },
+      "journeyElement": {
+        "600A34DA0008B41E": {
+          "acceptanceEligibility": {
+            "eligibilityWindow": {
+              "closingDateAndTime": "2025-05-23T03:30:00+04:00",
+              "openingDateAndTime": "2025-05-21T22:30:00+04:00"
+            },
+            "status": "eligible"
+          },
+          "boardingPassEligibility": {
+            "status": "eligible"
+          },
+          "boardingPassPrintStatus": "needPrinting",
+          "boardingStatus": "notBoarded",
+          "cabin": "Y",
+          "checkInStatus": "accepted",
+          "fareFamily": {
+            "code": "EY-YBASIC"
+          },
+          "flightId": "EY-691-20250523",
+          "id": "600A34DA0008B41E",
+          "orderId": "P73WCC",
+          "regulatoryProgramsCheckStatuses": [
+            {
+              "regulatoryProgram": {
+                "name": "ADC"
+              },
+              "statuses": [
+                {
+                  "statusCode": "O"
+                }
+              ]
+            }
+          ],
+          "seat": {
+            "cabin": "Y",
+            "isInfantAloneOnSeat": false,
+            "isInfantOnSeat": false,
+            "seatAvailabilityStatus": "occupied",
+            "seatCharacteristicsCodes": [
+              "ES",
+              "N",
+              "W"
+            ],
+            "seatNumber": "18F"
+          },
+          "seatmapEligibility": {
+            "status": "eligible"
+          },
+          "travelerId": "610754D90008B23B"
+        },
+        "600A34DA0008B41F": {
+          "acceptanceEligibility": {
+            "eligibilityWindow": {
+              "closingDateAndTime": "2025-05-23T03:30:00+04:00",
+              "openingDateAndTime": "2025-05-21T22:30:00+04:00"
+            },
+            "status": "eligible"
+          },
+          "boardingPassEligibility": {
+            "status": "eligible"
+          },
+          "boardingPassPrintStatus": "needPrinting",
+          "boardingStatus": "notBoarded",
+          "cabin": "Y",
+          "checkInStatus": "accepted",
+          "fareFamily": {
+            "code": "EY-YBASIC"
+          },
+          "flightId": "EY-691-20250523",
+          "id": "600A34DA0008B41F",
+          "orderId": "P73WCC",
+          "regulatoryProgramsCheckStatuses": [
+            {
+              "regulatoryProgram": {
+                "name": "ADC"
+              },
+              "statuses": [
+                {
+                  "statusCode": "O"
+                }
+              ]
+            }
+          ],
+          "seat": {
+            "cabin": "Y",
+            "isInfantAloneOnSeat": false,
+            "isInfantOnSeat": false,
+            "seatAvailabilityStatus": "occupied",
+            "seatCharacteristicsCodes": [
+              "9",
+              "ES",
+              "N"
+            ],
+            "seatNumber": "18E"
+          },
+          "seatmapEligibility": {
+            "status": "eligible"
+          },
+          "travelerId": "610754D90008B299"
+        },
+        "600A34DA0008DB30": {
+          "acceptanceEligibility": {
+            "eligibilityWindow": {
+              "closingDateAndTime": "2025-05-23T03:30:00+04:00",
+              "openingDateAndTime": "2025-05-21T22:30:00+04:00"
+            },
+            "reasons": [
+              "regulatoryDetailsInhibition"
+            ],
+            "status": "ineligible"
+          },
+          "boardingPassEligibility": {
+            "reasons": [
+              "passengerNotAccepted"
+            ],
+            "status": "ineligible"
+          },
+          "boardingPassPrintStatus": "notPrinted",
+          "boardingStatus": "notBoarded",
+          "cabin": "Y",
+          "checkInStatus": "notAccepted",
+          "fareFamily": {
+            "code": "EY-YBASIC"
+          },
+          "flightId": "EY-691-20250523",
+          "id": "600A34DA0008DB30",
+          "orderId": "P73WCC",
+          "regulatoryProgramsCheckStatuses": [
+            {
+              "regulatoryProgram": {
+                "name": "ADC"
+              },
+              "statuses": [
+                {
+                  "statusCode": "N"
+                }
+              ]
+            }
+          ],
+          "seatmapEligibility": {
+            "status": "eligible"
+          },
+          "travelerId": "610754D90008B23C"
+        }
+      },
+      "location": {
+        "AUH": {
+          "airportName": "ABU DHABI ZAYED INTERNATION",
+          "cityCode": "AUH",
+          "cityName": "ABU DHABI",
+          "countryCode": "AE",
+          "stateCode": "",
+          "type": "airport"
+        },
+        "MCT": {
+          "airportName": "MUSCAT INTERNATIONAL",
+          "cityCode": "MCT",
+          "cityName": "MUSCAT",
+          "countryCode": "OM",
+          "stateCode": "",
+          "type": "airport"
+        }
+      },
+      "traveler": {
+        "610754D90008B23B": {
+          "dateOfBirth": "2013-05-03",
+          "gender": "female",
+          "id": "610754D90008B23B",
+          "isPilgrimConfirmationProvided": false,
+          "names": [
+            {
+              "firstName": "DONNA",
+              "lastName": "TEST",
+              "nameType": "universal",
+              "title": "MRS"
+            }
+          ],
+          "passengerTypeCode": "ADT"
+        },
+        "610754D90008B23C": {
+          "gender": "male",
+          "id": "610754D90008B23C",
+          "isPilgrimConfirmationProvided": false,
+          "names": [
+            {
+              "firstName": "CHRISTOPHER",
+              "lastName": "TEST",
+              "nameType": "universal",
+              "title": "MR"
+            }
+          ],
+          "passengerTypeCode": "ADT"
+        },
+        "610754D90008B299": {
+          "dateOfBirth": "2013-05-10",
+          "gender": "female",
+          "id": "610754D90008B299",
+          "isPilgrimConfirmationProvided": false,
+          "names": [
+            {
+              "firstName": "LAURA",
+              "lastName": "TEST",
+              "nameType": "universal",
+              "title": "MS"
+            }
+          ],
+          "passengerTypeCode": "ADT"
+        }
+      }
+    },
+    "genericEligibilities": [
+      {
+        "eligiblityName": "seatmapEligible",
+        "isEligible": true,
+        "journeyIds": [
+          "2128B2F8321B1701AD4A285C71E1DE2FE08BFFBD1748076837"
+        ],
+        "journeyElementIds": [
+          "600A34DA0008B41F",
+          "600A34DA0008DB30",
+          "600A34DA0008B41E"
+        ]
+      },
+      {
+        "eligiblityName": "canOneJourneyElementBeEligible",
+        "isEligible": true,
+        "journeyIds": [
+          "2128B2F8321B1701AD4A285C71E1DE2FE08BFFBD1748076837"
+        ],
+        "journeyElementIds": null
+      },
+      {
+        "eligiblityName": "isWithinAcceptanceWindow",
+        "isEligible": true,
+        "journeyIds": [
+          "2128B2F8321B1701AD4A285C71E1DE2FE08BFFBD1748076837"
+        ],
+        "journeyElementIds": null
+      },
+      {
+        "eligiblityName": "enableCancelCheckInInterim",
+        "isEligible": true,
+        "journeyIds": [
+          "2128B2F8321B1701AD4A285C71E1DE2FE08BFFBD1748076837"
+        ],
+        "journeyElementIds": null
+      },
+      {
+        "eligiblityName": "enableCancelCheckIn",
+        "isEligible": true,
+        "journeyIds": [
+          "2128B2F8321B1701AD4A285C71E1DE2FE08BFFBD1748076837"
+        ],
+        "journeyElementIds": null
+      },
+      {
+        "eligiblityName": "isEligibleJourneyStatusFromJourneyElements",
+        "isEligible": true,
+        "journeyIds": [
+          "2128B2F8321B1701AD4A285C71E1DE2FE08BFFBD1748076837"
+        ],
+        "journeyElementIds": null
+      },
+      {
+        "eligiblityName": "isAtLeastOneTravelerEligible",
+        "isEligible": true,
+        "journeyIds": [
+          "2128B2F8321B1701AD4A285C71E1DE2FE08BFFBD1748076837"
+        ],
+        "journeyElementIds": null
+      },
+      {
+        "eligiblityName": "isCheckInEligibleOrPartial",
+        "isEligible": true,
+        "journeyIds": [
+          "2128B2F8321B1701AD4A285C71E1DE2FE08BFFBD1748076837"
+        ],
+        "journeyElementIds": null
+      },
+      {
+        "eligiblityName": "isCheckInOpened",
+        "isEligible": true,
+        "journeyIds": [
+          "2128B2F8321B1701AD4A285C71E1DE2FE08BFFBD1748076837"
+        ],
+        "journeyElementIds": null
+      },
+      {
+        "eligiblityName": "isCheckInAcceptancePartial",
+        "isEligible": true,
+        "journeyIds": [
+          "2128B2F8321B1701AD4A285C71E1DE2FE08BFFBD1748076837"
+        ],
+        "journeyElementIds": null
+      },
+      {
+        "eligiblityName": "isCheckInEligibilityPartial",
+        "isEligible": true,
+        "journeyIds": [
+          "2128B2F8321B1701AD4A285C71E1DE2FE08BFFBD1748076837"
+        ],
+        "journeyElementIds": null
+      },
+      {
+        "eligiblityName": "isPartial",
+        "isEligible": true,
+        "journeyIds": [
+          "2128B2F8321B1701AD4A285C71E1DE2FE08BFFBD1748076837"
+        ],
+        "journeyElementIds": null
+      },
+      {
+        "eligiblityName": "isSomeFlightsAreCheckedIn",
+        "isEligible": true,
+        "journeyIds": [
+          "2128B2F8321B1701AD4A285C71E1DE2FE08BFFBD1748076837"
+        ],
+        "journeyElementIds": null
+      }
+    ],
+    "warnings": [],
+    "errors": []
+  },
+  "unpaid": {
+    "data": {
+      "services": [
+        {
+          "descriptions": [
+            {
+              "content": "PRIO",
+              "type": "shortText"
+            }
+          ],
+          "flightIds": [
+            "EY-691-20250523"
+          ],
+          "id": "10000000001A3E26",
+          "prices": {
+            "totalPrices": [
+              {
+                "currencyCode": "OMR",
+                "total": 19300,
+                "totalTaxes": 0
+              }
+            ]
+          },
+          "quantity": 1,
+          "travelerId": "610754D90008B299"
+        }
+      ],
+      "total": {
+        "currencyCode": "OMR",
+        "value": 19300
+      }
+    },
+    "dictionaries": {
+      "currency": {
+        "OMR": {
+          "decimalPlaces": 3,
+          "name": "OMR"
+        }
+      },
+      "flight": {
+        "EY-691-20250523": {
+          "acceptanceStatus": "opened",
+          "aircraftCode": "32N",
+          "arrival": {
+            "dateTime": "2025-05-23T05:25:00+04:00",
+            "estimatedDateTime": "2025-05-23T05:35:00+04:00",
+            "locationCode": "AUH",
+            "terminal": "A"
+          },
+          "departure": {
+            "dateTime": "2025-05-23T04:20:00+04:00",
+            "estimatedDateTime": "2025-05-23T04:30:00+04:00",
+            "locationCode": "MCT"
+          },
+          "duration": 3900,
+          "id": "EY-691-20250523",
+          "isIATCI": false,
+          "isPilgrimConfirmationRequired": false,
+          "marketingAirlineCode": "EY",
+          "marketingFlightNumber": "691",
+          "operatingAirlineCode": "EY",
+          "operatingAirlineFlightNumber": "691",
+          "operatingAirlineName": "ETIHAD AIRWAYS",
+          "operatingFlightNumber": "691",
+          "status": "scheduled"
+        }
+      },
+      "traveler": {
+        "610754D90008B299": {
+          "dateOfBirth": "2013-05-10",
+          "gender": "female",
+          "id": "610754D90008B299",
+          "isPilgrimConfirmationProvided": false,
+          "names": [
+            {
+              "firstName": "LAURA",
+              "lastName": "TEST",
+              "nameType": "universal",
+              "title": "MS"
+            }
+          ],
+          "passengerTypeCode": "ADT"
+        }
+      }
+    }
+  },
+  "serviceDetails": {
+    "businessClassLoungeAccessDetails": {
+      "currency": null,
+      "totalAmount": 0,
+      "discountedAmount": 0,
+      "totalTaxes": 0,
+      "flights": [],
+      "isUnpaidItemAvailable": false,
+      "showService": false,
+      "decimalPlaces": 0
+    },
+    "firstClassLoungeAccessDetails": {
+      "currency": null,
+      "totalAmount": 0,
+      "discountedAmount": 0,
+      "totalTaxes": 0,
+      "flights": [],
+      "isUnpaidItemAvailable": false,
+      "showService": false,
+      "decimalPlaces": 0
+    },
+    "priorityAccessDetails": {
+      "currency": "OMR",
+      "totalAmount": 19.3,
+      "discountedAmount": 0,
+      "totalTaxes": 0,
+      "flights": [
+        {
+          "currency": "OMR",
+          "totalAmount": 19.3,
+          "discountedAmount": 0,
+          "totalTaxes": 0,
+          "flightIds": "EY-691-20250523",
+          "decimalPlaces": 3,
+          "travelerDetails": [
+            {
+              "travelerId": "610754D90008B23B",
+              "serviceId": "",
+              "unitPrices": {
+                "currencyCode": "",
+                "total": 0,
+                "discountedAmount": 0,
+                "totalTaxes": 0
+              },
+              "decimalPlaces": 0,
+              "flightIds": "EY-691-20250523",
+              "isAlreadyAdded": true,
+              "isComplimentary": false
+            },
+            {
+              "travelerId": "610754D90008B299",
+              "serviceId": "",
+              "unpaidItemServiceId": "10000000001A3E26",
+              "unitPrices": {
+                "currencyCode": "OMR",
+                "total": 19.3,
+                "discountedAmount": 0,
+                "totalTaxes": 0
+              },
+              "decimalPlaces": 3,
+              "flightIds": "EY-691-20250523",
+              "isAlreadyAdded": true,
+              "isComplimentary": false
+            }
+          ]
+        }
+      ],
+      "isUnpaidItemAvailable": true,
+      "showService": true,
+      "decimalPlaces": 3
+    }
+  },
+  "flightDetails": [
+    {
+      "id": "EY-691-20250523",
+      "arrival": {
+        "dateTime": "2025-05-23T05:25:00+04:00",
+        "estimatedDateTime": "2025-05-23T05:35:00+04:00",
+        "locationCode": "AUH",
+        "terminal": "A"
+      },
+      "departure": {
+        "dateTime": "2025-05-23T04:20:00+04:00",
+        "estimatedDateTime": "2025-05-23T04:30:00+04:00",
+        "locationCode": "MCT"
+      },
+      "duration": 3900,
+      "operatingAirlineCode": "EY",
+      "isIATCI": false
+    }
+  ],
+  "travelers": {
+    "610754D90008B23B": {
+      "dateOfBirth": "2013-05-03",
+      "gender": "female",
+      "id": "610754D90008B23B",
+      "isPilgrimConfirmationProvided": false,
+      "names": [
+        {
+          "firstName": "DONNA",
+          "lastName": "TEST",
+          "nameType": "universal",
+          "title": "MRS"
+        }
+      ],
+      "passengerTypeCode": "ADT"
+    },
+    "610754D90008B299": {
+      "dateOfBirth": "2013-05-10",
+      "gender": "female",
+      "id": "610754D90008B299",
+      "isPilgrimConfirmationProvided": false,
+      "names": [
+        {
+          "firstName": "LAURA",
+          "lastName": "TEST",
+          "nameType": "universal",
+          "title": "MS"
+        }
+      ],
+      "passengerTypeCode": "ADT"
+    }
+  },
+  "frequentFlyerDetails": {},
+  "catalogue": [
+    {
+      "services": [
+        {
+          "descriptions": [
+            {
+              "content": "XWBG",
+              "type": "shortText"
+            },
+            {
+              "content": "WT",
+              "type": "longText"
+            }
+          ],
+          "flightIds": [
+            "EY-691-20250523"
+          ],
+          "id": "0DG_EY-691-20250523",
+          "prices": {
+            "totalPrices": [
+              {
+                "currencyCode": "OMR",
+                "total": 29000,
+                "totalTaxes": 0
+              },
+              {
+                "currencyCode": "OMR",
+                "total": 29000,
+                "totalTaxes": 0
+              }
+            ],
+            "unitPrices": [
+              {
+                "flightIds": [
+                  "EY-691-20250523"
+                ],
+                "prices": [
+                  {
+                    "currencyCode": "OMR",
+                    "total": 29000,
+                    "totalTaxes": 0
+                  }
+                ],
+                "travelerIds": [
+                  "610754D90008B23B"
+                ]
+              },
+              {
+                "flightIds": [
+                  "EY-691-20250523"
+                ],
+                "prices": [
+                  {
+                    "currencyCode": "OMR",
+                    "total": 29000,
+                    "totalTaxes": 0
+                  }
+                ],
+                "travelerIds": [
+                  "610754D90008B299"
+                ]
+              }
+            ]
+          },
+          "tags": [
+            "OTH"
+          ],
+          "travelerIds": [
+            "610754D90008B23B",
+            "610754D90008B299"
+          ]
+        },
+        {
+          "descriptions": [
+            {
+              "content": "DBCF",
+              "type": "shortText"
+            }
+          ],
+          "flightIds": [
+            "EY-691-20250523"
+          ],
+          "id": "BC0_EY-691-20250523",
+          "prices": {
+            "totalPrices": [
+              {
+                "currencyCode": "OMR",
+                "total": 700,
+                "totalTaxes": 0
+              },
+              {
+                "currencyCode": "OMR",
+                "total": 700,
+                "totalTaxes": 0
+              }
+            ],
+            "unitPrices": [
+              {
+                "flightIds": [
+                  "EY-691-20250523"
+                ],
+                "prices": [
+                  {
+                    "currencyCode": "OMR",
+                    "total": 700,
+                    "totalTaxes": 0
+                  }
+                ],
+                "travelerIds": [
+                  "610754D90008B23B"
+                ]
+              },
+              {
+                "flightIds": [
+                  "EY-691-20250523"
+                ],
+                "prices": [
+                  {
+                    "currencyCode": "OMR",
+                    "total": 700,
+                    "totalTaxes": 0
+                  }
+                ],
+                "travelerIds": [
+                  "610754D90008B299"
+                ]
+              }
+            ]
+          },
+          "tags": [
+            "OTH"
+          ],
+          "travelerIds": [
+            "610754D90008B23B",
+            "610754D90008B299"
+          ]
+        },
+        {
+          "descriptions": [
+            {
+              "content": "DNCF",
+              "type": "shortText"
+            }
+          ],
+          "flightIds": [
+            "EY-691-20250523"
+          },
+          "id": "NCF_EY-691-20250523",
+          "prices": {
+            "totalPrices": [
+              {
+                "currencyCode": "OMR",
+                "total": 38600,
+                "totalTaxes": 0
+              },
+              {
+                "currencyCode": "OMR",
+                "total": 38600,
+                "totalTaxes": 0
+              }
+            ],
+            "unitPrices": [
+              {
+                "flightIds": [
+                  "EY-691-20250523"
+                ],
+                "prices": [
+                  {
+                    "currencyCode": "OMR",
+                    "total": 38600,
+                    "totalTaxes": 0
+                  }
+                ],
+                "travelerIds": [
+                  "610754D90008B23B"
+                ]
+              },
+              {
+                "flightIds": [
+                  "EY-691-20250523"
+                ],
+                "prices": [
+                  {
+                    "currencyCode": "OMR",
+                    "total": 38600,
+                    "totalTaxes": 0
+                  }
+                ],
+                "travelerIds": [
+                  "610754D90008B299"
+                ]
+              }
+            ]
+          },
+          "tags": [
+            "OTH"
+          ],
+          "travelerIds": [
+            "610754D90008B23B",
+            "610754D90008B299"
+          ]
+        },
+        {
+          "descriptions": [
+            {
+              "content": "DTCF",
+              "type": "shortText"
+            }
+          ],
+          "flightIds": [
+            "EY-691-20250523"
+          ],
+          "id": "TCF_EY-691-20250523",
+          "prices": {
+            "totalPrices": [
+              {
+                "currencyCode": "OMR",
+                "total": 11600,
+                "totalTaxes": 0
+              },
+              {
+                "currencyCode": "OMR",
+                "total": 11600,
+                "totalTaxes": 0
+              }
+            ],
+            "unitPrices": [
+              {
+                "flightIds": [
+                  "EY-691-20250523"
+                ],
+                "prices": [
+                  {
+                    "currencyCode": "OMR",
+                    "total": 11600,
+                    "totalTaxes": 0
+                  }
+                ],
+                "travelerIds": [
+                  "610754D90008B23B"
+                ]
+              },
+              {
+                "flightIds": [
+                  "EY-691-20250523"
+                ],
+                "prices": [
+                  {
+                    "currencyCode": "OMR",
+                    "total": 11600,
+                    "totalTaxes": 0
+                  }
+                ],
+                "travelerIds": [
+                  "610754D90008B299"
+                ]
+              }
+            ]
+          },
+          "tags": [
+            "OTH"
+          ],
+          "travelerIds": [
+            "610754D90008B23B",
+            "610754D90008B299"
+          ]
+        },
+        {
+          "descriptions": [
+            {
+              "content": "UMNR",
+              "type": "shortText"
+            }
+          ],
+          "flightIds": [
+            "EY-691-20250523"
+          ],
+          "id": "0BH_EY-691-20250523",
+          "prices": {
+            "totalPrices": [
+              {
+                "currencyCode": "OMR",
+                "total": 38600,
+                "totalTaxes": 0
+              },
+              {
+                "currencyCode": "OMR",
+                "total": 38600,
+                "totalTaxes": 0
+              }
+            ],
+            "unitPrices": [
+              {
+                "flightIds": [
+                  "EY-691-20250523"
+                ],
+                "prices": [
+                  {
+                    "currencyCode": "OMR",
+                    "total": 38600,
+                    "totalTaxes": 0
+                  }
+                ],
+                "travelerIds": [
+                  "610754D90008B23B"
+                ]
+              },
+              {
+                "flightIds": [
+                  "EY-691-20250523"
+                ],
+                "prices": [
+                  {
+                    "currencyCode": "OMR",
+                    "total": 38600,
+                    "totalTaxes": 0
+                  }
+                ],
+                "travelerIds": [
+                  "610754D90008B299"
+                ]
+              }
+            ]
+          },
+          "tags": [
+            "OTH"
+          ],
+          "travelerIds": [
+            "610754D90008B23B",
+            "610754D90008B299"
+          ]
+        }
+      ]
+    }
+  ]

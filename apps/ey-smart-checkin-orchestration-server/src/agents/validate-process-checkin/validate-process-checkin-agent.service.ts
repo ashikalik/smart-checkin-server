@@ -53,6 +53,10 @@ export class ValidateProcessCheckInAgentService {
       const passengers = Array.isArray(record.passengersToCheckIn)
         ? (record.passengersToCheckIn as Array<Record<string, unknown>>)
         : [];
+      const journeyElementId =
+        typeof passengers[0]?.journeyElementId === 'string' && passengers[0].journeyElementId.trim().length > 0
+          ? String(passengers[0].journeyElementId)
+          : undefined;
       const travelerId =
         typeof passengers[0]?.travelerId === 'string' && passengers[0].travelerId.trim().length > 0
           ? String(passengers[0].travelerId)
@@ -63,6 +67,7 @@ export class ValidateProcessCheckInAgentService {
           data: {
             ...(state?.data ?? {}),
             travelerId,
+            ...(journeyElementId ? { journeyElementId } : {}),
           },
         };
         if (state) {

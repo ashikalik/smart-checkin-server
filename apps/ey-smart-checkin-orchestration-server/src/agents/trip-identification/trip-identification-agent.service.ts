@@ -69,6 +69,11 @@ export class TripIdentificationAgentService {
       const trimmed = nextString(value as string | undefined);
       return trimmed ? trimmed.toUpperCase() : undefined;
     };
+    const data = (update as { data?: Record<string, unknown> }).data;
+    const fromData = (key: string): string | boolean | undefined => {
+      const value = data?.[key];
+      return typeof value === 'string' || typeof value === 'boolean' ? value : undefined;
+    };
     const merged: TripIdentificationState = {
       ...state,
       status: update.status ?? state.status,
@@ -81,7 +86,10 @@ export class TripIdentificationAgentService {
       error: update.error ?? state.error,
       userMessage: update.userMessage ?? state.userMessage,
       orderPreviewsListReply: update.orderPreviewsListReply ?? state.orderPreviewsListReply,
-      userConfirmation: normalizeConfirmation(update.userConfirmation) ?? state.userConfirmation,
+      userConfirmation:
+        normalizeConfirmation(update.userConfirmation) ??
+        normalizeConfirmation(fromData('userConfirmation')) ??
+        state.userConfirmation,
     };
     const missing = this.validateRequired(merged);
     const ready = !missing || missing.length === 0;

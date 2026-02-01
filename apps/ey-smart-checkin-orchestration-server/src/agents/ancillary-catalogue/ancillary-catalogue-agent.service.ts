@@ -6,10 +6,9 @@ import { CheckInState } from '../../shared/checkin-state.enum';
 import { StateHelperService } from '../../shared/state-helper.service';
 import { StageResponse } from '../../shared/stage-response.type';
 import { STAGE_STATUS } from '../../shared/stage-status.type';
-import { NATIONALITY_CODE_MAP } from './nationality-mapping';
 
 @Injectable()
-export class RegulatoryDetailsAgentService {
+export class AncillaryCatalogueAgentService {
   constructor(
     private readonly agent: AiAgentService,
     private readonly configService: ConfigService,
@@ -24,21 +23,21 @@ export class RegulatoryDetailsAgentService {
     return this.agent.runAgentLoop(goal, {
       enforceToolUse: true,
       toolChoice: 'auto',
-      allowedTools: ['ssci_regulatory_details', 'ssci_regulatory_details_update'],
+      allowedTools: ['ssci_ancillary_catalogue'],
       maxToolEnforcementRetries: this.parseNumber(
-        this.configService.get<string>('REGULATORY_DETAILS_ORCHESTRATOR_TOOL_ENFORCE_RETRIES'),
+        this.configService.get<string>('ANCILLARY_CATALOGUE_ORCHESTRATOR_TOOL_ENFORCE_RETRIES'),
       ) ?? 3,
       maxInvalidToolArgs: this.parseNumber(
-        this.configService.get<string>('REGULATORY_DETAILS_ORCHESTRATOR_MAX_INVALID_TOOL_ARGS'),
+        this.configService.get<string>('ANCILLARY_CATALOGUE_ORCHESTRATOR_MAX_INVALID_TOOL_ARGS'),
       ) ?? 5,
       toolUsePrompt: this.buildToolUsePrompt(),
       systemPrompt: this.buildSystemPrompt(),
       continuePrompt:
-        this.configService.get<string>('REGULATORY_DETAILS_ORCHESTRATOR_CONTINUE_PROMPT') ??
+        this.configService.get<string>('ANCILLARY_CATALOGUE_ORCHESTRATOR_CONTINUE_PROMPT') ??
         'Continue. Use tools if needed.',
       computedNotesTemplate: this.buildComputedNotesTemplate(),
       maxModelCalls:
-        this.parseNumber(this.configService.get<string>('REGULATORY_DETAILS_ORCHESTRATOR_MAX_CALLS')) ?? 6,
+        this.parseNumber(this.configService.get<string>('ANCILLARY_CATALOGUE_ORCHESTRATOR_MAX_CALLS')) ?? 6,
     });
   }
 
@@ -46,32 +45,33 @@ export class RegulatoryDetailsAgentService {
     sessionId: string,
     goal: string,
   ): Promise<StageResponse> {
-    const normalizedGoal = this.normalizeNationalityGoal(goal);
-    const result = await this.runAgentLoop(normalizedGoal);
+    const result = await this.runAgentLoop(goal);
     const payload = this.stateHelper.extractFinalObject(result.final) ?? result.final;
     const record = payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : undefined;
     if (record) {
-      const required = Array.isArray(record.requiredFieldsMissing)
-        ? (record.requiredFieldsMissing as string[])
-        : [];
+      const hasAncillary = record.hasAncillaryForPurchase === true;
       const hasError = Boolean(record.error);
-      if (required.length > 0) {
+      if (hasAncillary) {
+        const services = Array.isArray(record.availableServices)
+          ? (record.availableServices as Array<{ key?: string }>).map((s) => s?.key).filter(Boolean)
+          : [];
+        const labels = services.map((key) => this.toFriendlyServiceName(key as string)).filter(Boolean);
         record.status = STAGE_STATUS.USER_INPUT_REQUIRED;
         record.continue = false;
-        record.userMessage = `Please provide ${required.map(this.toFriendlyFieldName).join(', ')}.`;
-        record.missingFields = required;
+        const suffix =
+          labels.length > 0
+            ? `Do you want to purchase ${labels.join(', ')}?`
+            : 'Do you want to purchase ancillary services?';
+        record.userMessage = `Boarding pass added to wallet. ${suffix}`;
       } else if (hasError) {
         record.status = STAGE_STATUS.FAILED;
         record.continue = false;
       } else if (record.status === undefined) {
         record.status = STAGE_STATUS.SUCCESS;
         record.continue = true;
-        if (!record.userMessage) {
-          record.userMessage = 'Regulatory details updated successfully.';
-        }
       }
     }
-    return this.stateHelper.toStageResponse(sessionId, CheckInState.REGULATORY_DETAILS, payload, result.steps);
+    return this.stateHelper.toStageResponse(sessionId, CheckInState.ANCILLARY_SELECTION, payload, result.steps);
   }
 
   private parseNumber(value?: string): number | undefined {
@@ -83,15 +83,15 @@ export class RegulatoryDetailsAgentService {
   }
 
   private buildSystemPrompt(): string {
-    return this.getRequiredEnv('REGULATORY_DETAILS_ORCHESTRATOR_SYSTEM_PROMPT');
+    return this.getRequiredEnv('ANCILLARY_CATALOGUE_ORCHESTRATOR_SYSTEM_PROMPT');
   }
 
   private buildToolUsePrompt(): string {
-    return this.getRequiredEnv('REGULATORY_DETAILS_ORCHESTRATOR_TOOL_USE_PROMPT');
+    return this.getRequiredEnv('ANCILLARY_CATALOGUE_ORCHESTRATOR_TOOL_USE_PROMPT');
   }
 
   private buildComputedNotesTemplate(): string {
-    return this.getRequiredEnv('REGULATORY_DETAILS_ORCHESTRATOR_COMPUTED_NOTES_TEMPLATE');
+    return this.getRequiredEnv('ANCILLARY_CATALOGUE_ORCHESTRATOR_COMPUTED_NOTES_TEMPLATE');
   }
 
   private getRequiredEnv(key: string): string {
@@ -102,30 +102,16 @@ export class RegulatoryDetailsAgentService {
     return value;
   }
 
-  private toFriendlyFieldName(field: string): string {
-    switch (field) {
-      case 'nationalityCountryCode':
-        return 'nationality';
+  private toFriendlyServiceName(key: string): string {
+    switch (key) {
+      case 'priorityAccessDetails':
+        return 'priority access';
+      case 'businessClassLoungeAccessDetails':
+        return 'business class lounge access';
+      case 'firstClassLoungeAccessDetails':
+        return 'first class lounge access';
       default:
-        return field;
+        return key;
     }
-  }
-
-  private normalizeNationalityGoal(goal: string): string {
-    const text = goal.trim();
-    if (!text) return goal;
-    if (/\bnationalityCountryCode\b/i.test(text)) {
-      return goal;
-    }
-    const match = text.match(/\bnationality\s+([A-Za-z]+)\b/i);
-    if (!match) {
-      return goal;
-    }
-    const value = match[1].toLowerCase().replace(/[^a-z]/g, '');
-    const code = NATIONALITY_CODE_MAP[value];
-    if (!code) {
-      return goal;
-    }
-    return `${goal} nationalityCountryCode ${code}`;
   }
 }

@@ -16,6 +16,7 @@ import { ValidateProcessCheckInAgentModule } from '../agents/validate-process-ch
 import { CheckinAcceptanceAgentModule } from '../agents/checkin-acceptance/checkin-acceptance-agent.module';
 import { BoardingPassAgentModule } from '../agents/boarding-pass/boarding-pass-agent.module';
 import { RegulatoryDetailsAgentModule } from '../agents/regulatory-details/regulatory-details-agent.module';
+import { AncillaryCatalogueAgentModule } from '../agents/ancillary-catalogue/ancillary-catalogue-agent.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { RegulatoryDetailsAgentModule } from '../agents/regulatory-details/regul
     CheckinAcceptanceAgentModule,
     BoardingPassAgentModule,
     RegulatoryDetailsAgentModule,
+    AncillaryCatalogueAgentModule,
   ],
   controllers: [MainOrchestratorController],
   providers: [

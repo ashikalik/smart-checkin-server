@@ -1,0 +1,11 @@
+{
+  "status": "updated",
+  "detailsToAdd": [
+    {
+      "personalDetails": {
+        "nationalityCountryCode": "AE"
+      }
+    }
+  ],
+  "detailsToDecline": []
+}

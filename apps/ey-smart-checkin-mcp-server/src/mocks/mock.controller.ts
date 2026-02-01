@@ -7,6 +7,8 @@ import validateProcessCheckIn from './oneway-onepax/validate-process-checkin.jso
 import checkinAcceptance from './oneway-onepax/checkin-acceptance.json';
 import boardingPass from './oneway-onepax/boarding-pass.json';
 import regulatoryDetails from './oneway-onepax/regulatory-details.json';
+import regulatoryDetailsUpdate from './oneway-onepax/regulatory-details-update.json';
+import ancillaryCatalogue from './oneway-onepax/ancillary-catalogue.json';
 
 @Controller('mocks')
 export class MocksController {
@@ -38,5 +40,15 @@ export class MocksController {
   @Get('oneway-onepax/regulatory-details')
   regulatoryDetailsMock() {
     return regulatoryDetails;
+  }
+
+  @Get('oneway-onepax/regulatory-details-update')
+  regulatoryDetailsUpdateMock() {
+    return regulatoryDetailsUpdate;
+  }
+
+  @Get('oneway-onepax/ancillary-catalogue')
+  ancillaryCatalogueMock() {
+    return ancillaryCatalogue;
   }
 }

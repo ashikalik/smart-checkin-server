@@ -55,8 +55,26 @@ export class RegulatoryDetailsService {
     return this.callUpstream(params);
   }
 
+  async updateRegulatoryDetails(params: {
+    url?: string;
+    id?: string;
+    travelerId?: string;
+    rawBody?: unknown;
+    headers?: Partial<Record<string, string>>;
+  }): Promise<unknown> {
+    if (isMockEnabled()) {
+      await maybeMockDelay();
+      return this.getUpdateMock();
+    }
+    return this.callUpdateUpstream(params);
+  }
+
   async getMock(): Promise<RegulatoryDetailsApiResponse> {
     return this.loadMockData();
+  }
+
+  async getUpdateMock(): Promise<unknown> {
+    return this.loadUpdateMockData();
   }
 
   private async loadMockData(): Promise<RegulatoryDetailsApiResponse> {
@@ -81,6 +99,15 @@ export class RegulatoryDetailsService {
     return this.mockLoading;
   }
 
+  private async loadUpdateMockData(): Promise<unknown> {
+    const port = process.env.PORT ?? '3000';
+    const url =
+      process.env.REGULATORY_DETAILS_UPDATE_MOCK_DATA_URL ??
+      `http://localhost:${port}/mocks/oneway-onepax/regulatory-details-update`;
+    const { data } = await firstValueFrom(this.http.get<unknown>(url));
+    return data;
+  }
+
   private async callUpstream(params: {
     url?: string;
     id?: string;
@@ -101,6 +128,35 @@ export class RegulatoryDetailsService {
         : this.baseUrl;
 
     const response$ = this.http.get<RegulatoryDetailsApiResponse>(url, {
+      headers: mergedHeaders,
+      timeout: 55_000,
+    });
+
+    const { data } = await firstValueFrom(response$);
+    return data;
+  }
+
+  private async callUpdateUpstream(params: {
+    url?: string;
+    id?: string;
+    travelerId?: string;
+    rawBody?: unknown;
+    headers?: Partial<Record<string, string>>;
+  }): Promise<unknown> {
+    const mergedHeaders: Record<string, string> = {
+      ...this.defaultHeaders,
+      ...(params.headers ?? {}),
+    };
+
+    const url = params.url
+      ? params.url
+      : params.id && params.travelerId
+        ? `${this.baseUrl}/${encodeURIComponent(params.id)}/travelers/${encodeURIComponent(
+            params.travelerId,
+          )}`
+        : this.baseUrl;
+
+    const response$ = this.http.post<unknown>(url, params.rawBody ?? {}, {
       headers: mergedHeaders,
       timeout: 55_000,
     });

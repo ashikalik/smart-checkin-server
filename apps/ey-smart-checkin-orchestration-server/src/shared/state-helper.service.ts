@@ -30,11 +30,14 @@ export class StateHelperService {
 
   toStageResponse(sessionId: string, stage: CheckInState, payload: unknown, steps: unknown): StageResponse {
     const base = this.normalizeBaseState(payload);
+    const data = this.buildDataPayload(payload);
+    const sanitized = this.sanitizePayload(payload);
     return {
       sessionId,
       stage: this.toStageKey(stage),
       steps,
-      ...(payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : {}),
+      ...(sanitized ?? {}),
+      ...(data !== undefined ? { data } : {}),
       ...base,
     };
   }
@@ -94,6 +97,71 @@ export class StateHelperService {
       .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
       .replace(/-/g, '_')
       .toUpperCase();
+  }
+
+  private buildDataPayload(payload: unknown): Record<string, unknown> | null | undefined {
+    if (!payload || typeof payload !== 'object') {
+      return null;
+    }
+    const record = payload as Record<string, unknown>;
+    if ('data' in record) {
+      const existing = record.data;
+      if (existing && typeof existing === 'object') {
+        return existing as Record<string, unknown>;
+      }
+      return existing === null ? null : undefined;
+    }
+    const excluded = new Set([
+      'status',
+      'continue',
+      'updatedAtUtc',
+      'startedAtUtc',
+      'completedAtUtc',
+      'lastEventId',
+      'attempt',
+      'error',
+      'userMessage',
+      'missing',
+      'steps',
+      'sessionId',
+      'stage',
+    ]);
+    const extras: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(record)) {
+      if (excluded.has(key)) continue;
+      extras[key] = value;
+    }
+    return Object.keys(extras).length > 0 ? extras : null;
+  }
+
+  private sanitizePayload(payload: unknown): Record<string, unknown> | undefined {
+    if (!payload || typeof payload !== 'object') {
+      return undefined;
+    }
+    const record = payload as Record<string, unknown>;
+    const excluded = new Set([
+      'status',
+      'continue',
+      'updatedAtUtc',
+      'startedAtUtc',
+      'completedAtUtc',
+      'lastEventId',
+      'attempt',
+      'error',
+      'userMessage',
+      'missing',
+      'steps',
+      'sessionId',
+      'stage',
+      'data',
+    ]);
+    const cleaned: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(record)) {
+      if (excluded.has(key)) {
+        cleaned[key] = value;
+      }
+    }
+    return Object.keys(cleaned).length > 0 ? cleaned : undefined;
   }
 
   buildInitialState(sessionId: string): OrchestratorState {

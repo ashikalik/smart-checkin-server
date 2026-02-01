@@ -33,11 +33,8 @@ export class MainOrchestratorV1RegistryService {
       },
       [CheckInState.TRIP_IDENTIFICATION]: (state, goal) =>
         (async () => {
-          const hasFfp =
-            typeof state.beginConversation?.frequentFlyerNumber === 'string' &&
-            state.beginConversation.frequentFlyerNumber.trim().length > 0;
           const hasBookingRef = /\b(bookingReference|pnr)\s+[A-Za-z0-9]{5,8}\b/i.test(goal);
-          if (!hasFfp && hasBookingRef) {
+          if (hasBookingRef) {
             return this.helper.navigate(state, goal, CheckInState.JOURNEY_IDENTIFICATION);
           }
           return this.helper.runTripIdentification(state, goal);
@@ -64,6 +61,9 @@ export class MainOrchestratorV1RegistryService {
         this.helper.runValidateProcessCheckin(state, goal),
       [CheckInState.CHECKIN_ACCEPTANCE]: (state, goal) =>
         (async () => {
+          if (this.isBoardingPassIntent(goal)) {
+            return this.helper.navigate(state, goal, CheckInState.BOARDING_PASS);
+          }
           const result = await this.helper.runCheckinAcceptance(state, goal);
           if ((result as { isAccepted?: boolean }).isAccepted === true && this.isUserConfirming(goal)) {
             return this.helper.navigate(state, goal, CheckInState.BOARDING_PASS);
@@ -71,24 +71,17 @@ export class MainOrchestratorV1RegistryService {
           return result;
         })(),
       [CheckInState.BOARDING_PASS]: (state, goal) =>
-        this.helper.runBoardingPass(state, goal),
+        (async () => {
+          const result = await this.helper.runBoardingPass(state, goal);
+          if (this.isUserConfirming(goal)) {
+            return this.helper.navigate(state, goal, CheckInState.ANCILLARY_SELECTION);
+          }
+          return result;
+        })(),
+      [CheckInState.ANCILLARY_SELECTION]: (state, goal) =>
+        this.helper.runAncillaryCatalogue(state, goal),
       [CheckInState.REGULATORY_DETAILS]: (state, goal) =>
         (async () => {
-          if (!this.hasRegulatoryFieldInput(goal)) {
-            const required = Array.isArray(state.data?.requiredRegulatoryFields)
-              ? (state.data?.requiredRegulatoryFields as string[])
-              : [];
-            if (required.length > 0) {
-              return {
-                sessionId: state.sessionId,
-                stage: 'REGULATORY_DETAILS',
-                status: STAGE_STATUS.USER_INPUT_REQUIRED,
-                continue: false,
-                updatedAtUtc: new Date().toISOString(),
-                userMessage: `Please provide ${required.join(', ')}.`,
-              };
-            }
-          }
           const result = await this.helper.runRegulatoryDetails(state, goal);
           const missingFields = Array.isArray((result as { missingFields?: string[] }).missingFields)
             ? (result as { missingFields?: string[] }).missingFields
@@ -132,5 +125,9 @@ export class MainOrchestratorV1RegistryService {
     const text = goal.trim();
     if (!text) return false;
     return /\b(nationality|nationalityCountryCode)\b/i.test(text);
+  }
+
+  private isBoardingPassIntent(goal: string): boolean {
+    return /\b(boarding pass|boarding-pass|boardingpass)\b/i.test(goal);
   }
 }

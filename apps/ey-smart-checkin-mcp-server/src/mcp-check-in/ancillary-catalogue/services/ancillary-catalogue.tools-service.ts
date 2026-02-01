@@ -5,21 +5,20 @@ import type { Request, Response } from 'express';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 
-import { RegulatoryDetailsService } from './ssci-regulatory-details.service';
-import { ssciRegulatoryDetailsMcpTool } from '../tools/regulatory-details.tools';
-import { ssciRegulatoryDetailsUpdateMcpTool } from '../tools/regulatory-details-update.tools';
+import { AncillaryCatalogueService } from './ssci-ancillary-catalogue.service';
+import { ssciAncillaryCatalogueMcpTool } from '../tools/ancillary-catalogue.tools';
 
 type McpSession = { server: McpServer; transport: StreamableHTTPServerTransport };
 
 @Injectable()
-export class RegulatoryDetailsToolsService implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = new Logger(RegulatoryDetailsToolsService.name);
+export class AncillaryCatalogueToolsService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(AncillaryCatalogueToolsService.name);
   private readonly sessions = new Map<string, McpSession>();
 
-  constructor(private readonly regulatorySvc: RegulatoryDetailsService) {}
+  constructor(private readonly ancillarySvc: AncillaryCatalogueService) {}
 
   async onModuleInit(): Promise<void> {
-    this.logger.log('MCP regulatory-details started. Endpoint: /mcp-check-in/v1/regulatory-details');
+    this.logger.log('MCP ancillary-catalogue started. Endpoint: /mcp-check-in/v1/ancillary-catalogue');
   }
 
   async onModuleDestroy(): Promise<void> {
@@ -58,14 +57,9 @@ export class RegulatoryDetailsToolsService implements OnModuleInit, OnModuleDest
     const server = new McpServer({ name: 'nest-mcp-ssci', version: '1.0.0' });
 
     server.registerTool(
-      ssciRegulatoryDetailsMcpTool.name,
-      ssciRegulatoryDetailsMcpTool.definition,
-      ssciRegulatoryDetailsMcpTool.handler(this.regulatorySvc),
-    );
-    server.registerTool(
-      ssciRegulatoryDetailsUpdateMcpTool.name,
-      ssciRegulatoryDetailsUpdateMcpTool.definition,
-      ssciRegulatoryDetailsUpdateMcpTool.handler(this.regulatorySvc),
+      ssciAncillaryCatalogueMcpTool.name,
+      ssciAncillaryCatalogueMcpTool.definition,
+      ssciAncillaryCatalogueMcpTool.handler(this.ancillarySvc),
     );
 
     const session: McpSession = {

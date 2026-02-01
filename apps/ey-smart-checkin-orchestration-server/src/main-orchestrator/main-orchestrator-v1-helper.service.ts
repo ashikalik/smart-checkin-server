@@ -10,6 +10,7 @@ import { ValidateProcessCheckInAgentService } from '../agents/validate-process-c
 import { CheckinAcceptanceAgentService } from '../agents/checkin-acceptance/checkin-acceptance-agent.service';
 import { BoardingPassAgentService } from '../agents/boarding-pass/boarding-pass-agent.service';
 import { RegulatoryDetailsAgentService } from '../agents/regulatory-details/regulatory-details-agent.service';
+import { AncillaryCatalogueAgentService } from '../agents/ancillary-catalogue/ancillary-catalogue-agent.service';
 
 @Injectable()
 export class MainOrchestratorV1HelperService {
@@ -22,6 +23,7 @@ export class MainOrchestratorV1HelperService {
     private readonly checkinAcceptance: CheckinAcceptanceAgentService,
     private readonly boardingPass: BoardingPassAgentService,
     private readonly regulatoryDetails: RegulatoryDetailsAgentService,
+    private readonly ancillaryCatalogue: AncillaryCatalogueAgentService,
   ) { }
   buildInitialState(sessionId: string): OrchestratorState {
     return this.stateHelper.buildInitialState(sessionId);
@@ -90,12 +92,22 @@ export class MainOrchestratorV1HelperService {
     state: OrchestratorState,
     goal: string,
   ): Promise<StageResponse> {
-    const bookingReference =
-      state.beginConversation?.bookingReference ??
-      goal.match(/\b(bookingReference|pnr)\s+([A-Za-z0-9]{5,8})\b/i)?.[2];
-    const lastName =
-      state.beginConversation?.lastName ??
-      goal.match(/\blastName\s+([A-Za-z]+)/i)?.[1];
+    const bookingReferenceFromGoal = goal.match(/\b(bookingReference|pnr)\s+([A-Za-z0-9]{5,8})\b/i)?.[2];
+    const lastNameFromGoal = goal.match(/\blastName\s+([A-Za-z]+)/i)?.[1];
+    const bookingReference = state.beginConversation?.bookingReference ?? bookingReferenceFromGoal;
+    const lastName = state.beginConversation?.lastName ?? lastNameFromGoal;
+    if ((bookingReferenceFromGoal || lastNameFromGoal) && state.beginConversation) {
+      const nextState: OrchestratorState = {
+        ...state,
+        beginConversation: {
+          ...state.beginConversation,
+          bookingReference: bookingReferenceFromGoal ?? state.beginConversation.bookingReference,
+          lastName: lastNameFromGoal ?? state.beginConversation.lastName,
+        },
+      };
+      await this.stateHelper.stateService.saveState(state.sessionId, nextState);
+      state = nextState;
+    }
     if (!bookingReference || !lastName) {
       const missingParts: string[] = [];
       if (!bookingReference) missingParts.push('PNR/bookingReference');
@@ -187,6 +199,20 @@ export class MainOrchestratorV1HelperService {
     return this.boardingPass.handleStage(state.sessionId, goal);
   }
 
+  async runAncillaryCatalogue(
+    state: OrchestratorState,
+    goal: string,
+  ): Promise<StageResponse> {
+    const data = state.data ?? {};
+    const journeyId = typeof data.journeyId === 'string' ? data.journeyId : undefined;
+    const journeyElementId = typeof data.journeyElementId === 'string' ? data.journeyElementId : undefined;
+    const enrichedGoal =
+      journeyId && journeyElementId
+        ? `ancillary catalogue for journey ${journeyId} journeyElementId ${journeyElementId}`
+        : goal;
+    return this.ancillaryCatalogue.handleStage(state.sessionId, enrichedGoal);
+  }
+
   async runRegulatoryDetails(
     state: OrchestratorState,
     goal: string,
@@ -237,6 +263,8 @@ export class MainOrchestratorV1HelperService {
         return this.runBoardingPass(nextState, goal);
       case CheckInState.REGULATORY_DETAILS:
         return this.runRegulatoryDetails(nextState, goal);
+      case CheckInState.ANCILLARY_SELECTION:
+        return this.runAncillaryCatalogue(nextState, goal);
       default:
         return this.stateHelper.buildUnknownStageResponse(state.sessionId, nextStage);
     }

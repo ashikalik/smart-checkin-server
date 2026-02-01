@@ -8,6 +8,7 @@ import { BeginConversationModule } from './begin-conversation/begin-conversation
 import { McpCheckInController } from './common/mcp-check-in.controller';
 import { McpCheckInToolsService } from './common/mcp-check-in.tools-service';
 import { RegulatoryDetailsModule } from './regulatory-details/regulatory-details.module';
+import { AncillaryCatalogueModule } from './ancillary-catalogue/ancillary-catalogue.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { RegulatoryDetailsModule } from './regulatory-details/regulatory-details
     CheckinAcceptanceModule,
     BoardingPassModule,
     RegulatoryDetailsModule,
+    AncillaryCatalogueModule,
   ],
   controllers: [McpCheckInController],
   providers: [McpCheckInToolsService],
@@ -29,6 +31,7 @@ import { RegulatoryDetailsModule } from './regulatory-details/regulatory-details
     CheckinAcceptanceModule,
     BoardingPassModule,
     RegulatoryDetailsModule,
+    AncillaryCatalogueModule,
   ],
 })
 export class McpCheckInModule {}

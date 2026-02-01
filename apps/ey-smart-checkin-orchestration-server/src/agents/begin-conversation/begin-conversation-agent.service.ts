@@ -52,6 +52,17 @@ export class BeginConversationAgentService {
   ): Promise<StageResponse> {
     const result = await this.runAgentLoop(goal);
     const payload = this.stateHelper.extractFinalObject(result.final) ?? result.final;
+    const record = payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : undefined;
+    if (record) {
+      const bookingReferenceFromGoal = goal.match(/\b(bookingReference|pnr)\s+([A-Za-z0-9]{5,8})\b/i)?.[2];
+      const lastNameFromGoal = goal.match(/\blastName\s+([A-Za-z]+)/i)?.[1];
+      if (bookingReferenceFromGoal && !record.bookingReference) {
+        record.bookingReference = bookingReferenceFromGoal;
+      }
+      if (lastNameFromGoal && !record.lastName) {
+        record.lastName = lastNameFromGoal;
+      }
+    }
     console.log("--------------------------------------------------------")
     console.log(payload);
     console.log("--------------------------------------------------------")
@@ -67,6 +78,11 @@ export class BeginConversationAgentService {
       const trimmed = value.trim();
       return trimmed.length === 0 ? undefined : trimmed;
     };
+    const data = (update as { data?: Record<string, unknown> }).data;
+    const fromData = (key: string): string | undefined => {
+      const value = data?.[key];
+      return typeof value === 'string' ? value : undefined;
+    };
     const merged: BeginConversationState = {
       ...state,
       status: update.status ?? state.status,
@@ -78,10 +94,12 @@ export class BeginConversationAgentService {
       attempt: update.attempt ?? state.attempt,
       error: update.error ?? state.error,
       userMessage: update.userMessage ?? state.userMessage,
-      frequentFlyerNumber: next(update.frequentFlyerNumber) ?? state.frequentFlyerNumber,
-      bookingReference: next(update.bookingReference) ?? state.bookingReference,
-      lastName: next(update.lastName) ?? state.lastName,
-      firstName: next(update.firstName) ?? state.firstName,
+      frequentFlyerNumber:
+        next(update.frequentFlyerNumber) ?? next(fromData('frequentFlyerNumber')) ?? state.frequentFlyerNumber,
+      bookingReference:
+        next(update.bookingReference) ?? next(fromData('bookingReference')) ?? state.bookingReference,
+      lastName: next(update.lastName) ?? next(fromData('lastName')) ?? state.lastName,
+      firstName: next(update.firstName) ?? next(fromData('firstName')) ?? state.firstName,
     };
     const missing = this.validateRequired(merged);
     const ready = !missing || missing.length === 0;
