@@ -1,0 +1,99 @@
+{
+  "data": {
+    "journeyElementIds": [
+      "600E15D7000BDE59"
+    ],
+    "missingDetails": [
+      {
+        "detailsCategory": "personalDetails",
+        "detailsChoices": [
+          {
+            "canBeDeclined": false,
+            "detailsType": "personalDetails",
+            "regulatoryType": "personalDetails",
+            "requiredDetailsFields": [
+              "nationalityCountryCode"
+            ]
+          }
+        ],
+        "isOptional": false
+      }
+    ],
+    "statusCleared": false,
+    "storedDetails": [
+      {
+        "personalDetails": {
+          "gender": "female"
+        }
+      }
+    ],
+    "travelerId": "610D25D70006CCF7"
+  },
+  "dictionaries": {
+    "airline": {
+      "EY": "ETIHAD AIRWAYS"
+    },
+    "country": {
+      "AE": "UNITED ARAB EMIRATES",
+      "GB": "UNITED KINGDOM"
+    },
+    "flight": {
+      "EY-65-20260131": {
+        "arrival": {
+          "dateTime": "2026-01-31T14:30:00+00:00",
+          "locationCode": "LHR",
+          "terminal": "4"
+        },
+        "departure": {
+          "dateTime": "2026-01-31T10:40:00+04:00",
+          "locationCode": "AUH",
+          "terminal": "A"
+        },
+        "duration": 28200,
+        "id": "EY-65-20260131",
+        "marketingAirlineCode": "EY",
+        "marketingFlightNumber": "65",
+        "operatingAirlineCode": "EY",
+        "operatingAirlineFlightNumber": "65",
+        "operatingAirlineName": "ETIHAD AIRWAYS",
+        "operatingFlightNumber": "65"
+      }
+    },
+    "journeyElement": {
+      "600E15D7000BDE59": {
+        "flightId": "EY-65-20260131",
+        "id": "600E15D7000BDE59",
+        "regulatoryProgramsCheckStatuses": [
+          {
+            "regulatoryProgram": {
+              "name": "ADC"
+            },
+            "statuses": [
+              {
+                "statusCode": "N"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "location": {
+      "AUH": {
+        "airportName": "ABU DHABI ZAYED INTERNATION",
+        "cityCode": "AUH",
+        "cityName": "ABU DHABI",
+        "countryCode": "AE",
+        "stateCode": "",
+        "type": "airport"
+      },
+      "LHR": {
+        "airportName": "LONDON HEATHROW",
+        "cityCode": "LON",
+        "cityName": "LONDON",
+        "countryCode": "GB",
+        "stateCode": "",
+        "type": "airport"
+      }
+    }
+  }
+}

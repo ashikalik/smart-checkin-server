@@ -9,6 +9,7 @@ import { JourneyIdentificationAgentService } from '../agents/journey-identificat
 import { ValidateProcessCheckInAgentService } from '../agents/validate-process-checkin/validate-process-checkin-agent.service';
 import { CheckinAcceptanceAgentService } from '../agents/checkin-acceptance/checkin-acceptance-agent.service';
 import { BoardingPassAgentService } from '../agents/boarding-pass/boarding-pass-agent.service';
+import { RegulatoryDetailsAgentService } from '../agents/regulatory-details/regulatory-details-agent.service';
 
 @Injectable()
 export class MainOrchestratorV1HelperService {
@@ -20,6 +21,7 @@ export class MainOrchestratorV1HelperService {
     private readonly validateProcessCheckin: ValidateProcessCheckInAgentService,
     private readonly checkinAcceptance: CheckinAcceptanceAgentService,
     private readonly boardingPass: BoardingPassAgentService,
+    private readonly regulatoryDetails: RegulatoryDetailsAgentService,
   ) { }
   buildInitialState(sessionId: string): OrchestratorState {
     return this.stateHelper.buildInitialState(sessionId);
@@ -115,6 +117,14 @@ export class MainOrchestratorV1HelperService {
       CheckInState.JOURNEY_IDENTIFICATION,
     );
     if (state.journeyIdentificationState && response) {
+      const journeyId =
+        typeof (response as { journeyId?: string }).journeyId === 'string'
+          ? (response as { journeyId?: string }).journeyId
+          : undefined;
+      const travelerId =
+        typeof (response as { travelerId?: string }).travelerId === 'string'
+          ? (response as { travelerId?: string }).travelerId
+          : undefined;
       const nextState: OrchestratorState = {
         ...state,
         journeyIdentificationState: {
@@ -131,6 +141,11 @@ export class MainOrchestratorV1HelperService {
           bookingReference,
           lastName,
           journeyReply: (response as { eligibility?: unknown }).eligibility as any,
+        },
+        data: {
+          ...state.data,
+          ...(journeyId ? { journeyId } : {}),
+          ...(travelerId ? { travelerId } : {}),
         },
       };
       await this.stateHelper.stateService.saveState(state.sessionId, nextState);
@@ -172,6 +187,20 @@ export class MainOrchestratorV1HelperService {
     return this.boardingPass.handleStage(state.sessionId, goal);
   }
 
+  async runRegulatoryDetails(
+    state: OrchestratorState,
+    goal: string,
+  ): Promise<StageResponse> {
+    const data = state.data ?? {};
+    const journeyId = typeof data.journeyId === 'string' ? data.journeyId : undefined;
+    const travelerId = typeof data.travelerId === 'string' ? data.travelerId : undefined;
+    const enrichedGoal =
+      journeyId && travelerId
+        ? `regulatory details for journey ${journeyId} travelerId ${travelerId}`
+        : goal;
+    return this.regulatoryDetails.handleStage(state.sessionId, enrichedGoal);
+  }
+
   resolveSession(
     sessionId: string | undefined,
   ): Promise<{ sessionId: string; state: OrchestratorState; response?: StageResponse }> {
@@ -206,6 +235,8 @@ export class MainOrchestratorV1HelperService {
         return this.runCheckinAcceptance(nextState, goal);
       case CheckInState.BOARDING_PASS:
         return this.runBoardingPass(nextState, goal);
+      case CheckInState.REGULATORY_DETAILS:
+        return this.runRegulatoryDetails(nextState, goal);
       default:
         return this.stateHelper.buildUnknownStageResponse(state.sessionId, nextStage);
     }

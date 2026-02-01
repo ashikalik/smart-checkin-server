@@ -112,6 +112,7 @@ export class StateHelperService {
       processCheckInState: { ...base },
       checkinAcceptanceState: { ...base },
       boardingPassState: { ...base },
+      regulatoryDetailsState: { ...base },
     };
   }
 

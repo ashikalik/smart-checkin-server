@@ -8,7 +8,7 @@ import { StageResponse } from '../../shared/stage-response.type';
 import { STAGE_STATUS } from '../../shared/stage-status.type';
 
 @Injectable()
-export class ValidateProcessCheckInAgentService {
+export class RegulatoryDetailsAgentService {
   constructor(
     private readonly agent: AiAgentService,
     private readonly configService: ConfigService,
@@ -23,20 +23,21 @@ export class ValidateProcessCheckInAgentService {
     return this.agent.runAgentLoop(goal, {
       enforceToolUse: true,
       toolChoice: 'auto',
-      allowedTools: ['ssci_validate_process_checkin'],
+      allowedTools: ['ssci_regulatory_details'],
       maxToolEnforcementRetries: this.parseNumber(
-        this.configService.get<string>('VALIDATE_PROCESS_CHECKIN_ORCHESTRATOR_TOOL_ENFORCE_RETRIES'),
+        this.configService.get<string>('REGULATORY_DETAILS_ORCHESTRATOR_TOOL_ENFORCE_RETRIES'),
       ) ?? 3,
       maxInvalidToolArgs: this.parseNumber(
-        this.configService.get<string>('VALIDATE_PROCESS_CHECKIN_ORCHESTRATOR_MAX_INVALID_TOOL_ARGS'),
+        this.configService.get<string>('REGULATORY_DETAILS_ORCHESTRATOR_MAX_INVALID_TOOL_ARGS'),
       ) ?? 5,
       toolUsePrompt: this.buildToolUsePrompt(),
       systemPrompt: this.buildSystemPrompt(),
       continuePrompt:
-        this.configService.get<string>('VALIDATE_PROCESS_CHECKIN_ORCHESTRATOR_CONTINUE_PROMPT') ??
+        this.configService.get<string>('REGULATORY_DETAILS_ORCHESTRATOR_CONTINUE_PROMPT') ??
         'Continue. Use tools if needed.',
       computedNotesTemplate: this.buildComputedNotesTemplate(),
-      maxModelCalls: this.parseNumber(this.configService.get<string>('VALIDATE_PROCESS_CHECKIN_ORCHESTRATOR_MAX_CALLS')) ?? 6,
+      maxModelCalls:
+        this.parseNumber(this.configService.get<string>('REGULATORY_DETAILS_ORCHESTRATOR_MAX_CALLS')) ?? 6,
     });
   }
 
@@ -48,49 +49,15 @@ export class ValidateProcessCheckInAgentService {
     const payload = this.stateHelper.extractFinalObject(result.final) ?? result.final;
     const record = payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : undefined;
     if (record) {
-      const state = await this.stateHelper.stateService.getState(sessionId);
-      const userLastName = state?.beginConversation?.lastName;
-      const passengers = Array.isArray(record.passengersToCheckIn)
-        ? (record.passengersToCheckIn as Array<Record<string, unknown>>)
+      const required = Array.isArray(record.requiredFieldsMissing)
+        ? (record.requiredFieldsMissing as string[])
         : [];
-      const travelerId =
-        typeof passengers[0]?.travelerId === 'string' && passengers[0].travelerId.trim().length > 0
-          ? String(passengers[0].travelerId)
-          : undefined;
-      if (travelerId) {
-        const nextState = {
-          ...state,
-          data: {
-            ...(state?.data ?? {}),
-            travelerId,
-          },
-        };
-        if (state) {
-          await this.stateHelper.stateService.saveState(sessionId, nextState);
-        }
-      }
-      const firstName =
-        typeof passengers[0]?.firstName === 'string' && passengers[0]?.firstName.trim().length > 0
-          ? String(passengers[0].firstName)
-          : undefined;
-      const lastName =
-        typeof userLastName === 'string' && userLastName.trim().length > 0
-          ? userLastName.trim()
-          : typeof passengers[0]?.lastName === 'string'
-            ? String(passengers[0].lastName)
-            : undefined;
-      const personalizedPrompt =
-        firstName || lastName
-          ? `Do you want to check in this passenger: ${[firstName, lastName].filter(Boolean).join(' ')}?`
-          : undefined;
-      const prompt = typeof record.prompt === 'string' ? record.prompt : undefined;
       const hasError = Boolean(record.error);
-      if (prompt) {
+      if (required.length > 0) {
         record.status = STAGE_STATUS.USER_INPUT_REQUIRED;
         record.continue = false;
-        if (!record.userMessage) {
-          record.userMessage = personalizedPrompt ?? prompt;
-        }
+        record.userMessage = `Please provide ${required.map(this.toFriendlyFieldName).join(', ')}.`;
+        record.missingFields = required;
       } else if (hasError) {
         record.status = STAGE_STATUS.FAILED;
         record.continue = false;
@@ -99,7 +66,7 @@ export class ValidateProcessCheckInAgentService {
         record.continue = true;
       }
     }
-    return this.stateHelper.toStageResponse(sessionId, CheckInState.VALIDATE_PROCESS_CHECKIN, payload, result.steps);
+    return this.stateHelper.toStageResponse(sessionId, CheckInState.REGULATORY_DETAILS, payload, result.steps);
   }
 
   private parseNumber(value?: string): number | undefined {
@@ -111,15 +78,15 @@ export class ValidateProcessCheckInAgentService {
   }
 
   private buildSystemPrompt(): string {
-    return this.getRequiredEnv('VALIDATE_PROCESS_CHECKIN_ORCHESTRATOR_SYSTEM_PROMPT');
+    return this.getRequiredEnv('REGULATORY_DETAILS_ORCHESTRATOR_SYSTEM_PROMPT');
   }
 
   private buildToolUsePrompt(): string {
-    return this.getRequiredEnv('VALIDATE_PROCESS_CHECKIN_ORCHESTRATOR_TOOL_USE_PROMPT');
+    return this.getRequiredEnv('REGULATORY_DETAILS_ORCHESTRATOR_TOOL_USE_PROMPT');
   }
 
   private buildComputedNotesTemplate(): string {
-    return this.getRequiredEnv('VALIDATE_PROCESS_CHECKIN_ORCHESTRATOR_COMPUTED_NOTES_TEMPLATE');
+    return this.getRequiredEnv('REGULATORY_DETAILS_ORCHESTRATOR_COMPUTED_NOTES_TEMPLATE');
   }
 
   private getRequiredEnv(key: string): string {
@@ -128,5 +95,14 @@ export class ValidateProcessCheckInAgentService {
       throw new Error(`${key} is not set`);
     }
     return value;
+  }
+
+  private toFriendlyFieldName(field: string): string {
+    switch (field) {
+      case 'nationalityCountryCode':
+        return 'nationality';
+      default:
+        return field;
+    }
   }
 }

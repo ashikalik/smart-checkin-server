@@ -4,6 +4,7 @@ import { SessionState } from '../shared/session-state.interface';
 import { MainOrchestratorV1HelperService } from './main-orchestrator-v1-helper.service';
 import { StageResponse } from '../shared/stage-response.type';
 import { STAGE_STATUS } from '../shared/stage-status.type';
+import { StateHelperService } from '../shared/state-helper.service';
 
 export type StageHandler = (state: SessionState, goal: string) => Promise<StageResponse>;
 
@@ -13,6 +14,7 @@ export class MainOrchestratorV1RegistryService {
 
   constructor(
     private readonly helper: MainOrchestratorV1HelperService,
+    private readonly stateHelper: StateHelperService,
   ) {
     this.handlers = {
       [CheckInState.BEGIN_CONVERSATION]: async (state, goal) => {
@@ -54,7 +56,7 @@ export class MainOrchestratorV1RegistryService {
         (async () => {
           const result = await this.helper.runValidateProcessCheckin(state, goal);
           if (this.isUserConfirming(goal)) {
-            return this.helper.navigate(state, goal, CheckInState.CHECKIN_ACCEPTANCE);
+            return this.helper.navigate(state, goal, CheckInState.REGULATORY_DETAILS);
           }
           return result;
         })(),
@@ -70,6 +72,42 @@ export class MainOrchestratorV1RegistryService {
         })(),
       [CheckInState.BOARDING_PASS]: (state, goal) =>
         this.helper.runBoardingPass(state, goal),
+      [CheckInState.REGULATORY_DETAILS]: (state, goal) =>
+        (async () => {
+          if (!this.hasRegulatoryFieldInput(goal)) {
+            const required = Array.isArray(state.data?.requiredRegulatoryFields)
+              ? (state.data?.requiredRegulatoryFields as string[])
+              : [];
+            if (required.length > 0) {
+              return {
+                sessionId: state.sessionId,
+                stage: 'REGULATORY_DETAILS',
+                status: STAGE_STATUS.USER_INPUT_REQUIRED,
+                continue: false,
+                updatedAtUtc: new Date().toISOString(),
+                userMessage: `Please provide ${required.join(', ')}.`,
+              };
+            }
+          }
+          const result = await this.helper.runRegulatoryDetails(state, goal);
+          const missingFields = Array.isArray((result as { missingFields?: string[] }).missingFields)
+            ? (result as { missingFields?: string[] }).missingFields
+            : undefined;
+          if (missingFields && missingFields.length > 0) {
+            const nextState = {
+              ...state,
+              data: {
+                ...(state.data ?? {}),
+                requiredRegulatoryFields: missingFields,
+              },
+            };
+            await this.stateHelper.stateService.saveState(state.sessionId, nextState);
+          }
+          if (result.status === STAGE_STATUS.SUCCESS && result.continue === true) {
+            return this.helper.navigate(state, goal, CheckInState.CHECKIN_ACCEPTANCE);
+          }
+          return result;
+        })(),
     };
   }
 
@@ -84,5 +122,15 @@ export class MainOrchestratorV1RegistryService {
       return false;
     }
     return /\b(yes|yep|yeah|confirm|confirmed|proceed|ok|okay|sure|continue)\b/.test(text);
+  }
+
+  private isRegulatoryDetailsIntent(goal: string): boolean {
+    return /\b(regulatory|missing details|regulatory details)\b/i.test(goal);
+  }
+
+  private hasRegulatoryFieldInput(goal: string): boolean {
+    const text = goal.trim();
+    if (!text) return false;
+    return /\b(nationality|nationalityCountryCode)\b/i.test(text);
   }
 }

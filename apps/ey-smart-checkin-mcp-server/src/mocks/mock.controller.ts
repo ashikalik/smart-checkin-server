@@ -6,6 +6,7 @@ import ffpBooking from './ffp-booking.json';
 import validateProcessCheckIn from './oneway-onepax/validate-process-checkin.json';
 import checkinAcceptance from './oneway-onepax/checkin-acceptance.json';
 import boardingPass from './oneway-onepax/boarding-pass.json';
+import regulatoryDetails from './oneway-onepax/regulatory-details.json';
 
 @Controller('mocks')
 export class MocksController {
@@ -32,5 +33,10 @@ export class MocksController {
   @Get('oneway-onepax/boarding-pass')
   boardingPassMock() {
     return boardingPass;
+  }
+
+  @Get('oneway-onepax/regulatory-details')
+  regulatoryDetailsMock() {
+    return regulatoryDetails;
   }
 }

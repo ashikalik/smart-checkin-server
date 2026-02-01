@@ -55,6 +55,14 @@ export class JourneyIdentificationAgentService {
         record.destination = journeySummary.destination;
         record.departureDate = journeySummary.departureDate;
       }
+      const journeyId = this.extractJourneyId(result.steps);
+      if (journeyId) {
+        record.journeyId = journeyId;
+      }
+      const travelerId = this.extractTravelerId(result.steps);
+      if (travelerId) {
+        record.travelerId = travelerId;
+      }
       const hasEligibility = record.eligibility !== undefined && record.eligibility !== null;
       const hasError = Boolean(record.error);
       if (hasEligibility && !hasError) {
@@ -120,6 +128,54 @@ export class JourneyIdentificationAgentService {
       return undefined;
     }
     return undefined;
+  }
+
+  private extractJourneyId(steps: AiAgentStep[]): string | undefined {
+    const parsed = this.extractJourneyPayload(steps);
+    const journeyId = parsed?.journeys?.[0]?.id;
+    return typeof journeyId === 'string' && journeyId.length > 0 ? journeyId : undefined;
+  }
+
+  private extractTravelerId(steps: AiAgentStep[]): string | undefined {
+    const parsed = this.extractJourneyPayload(steps);
+    const travelerId = parsed?.journeys?.[0]?.travelers?.[0]?.id;
+    return typeof travelerId === 'string' && travelerId.length > 0 ? travelerId : undefined;
+  }
+
+  private extractJourneyPayload(
+    steps: AiAgentStep[],
+  ):
+    | {
+        journeys?: Array<{
+          id?: string;
+          travelers?: Array<{ id?: string }>;
+        }>;
+      }
+    | undefined {
+    const lastCall = [...steps]
+      .reverse()
+      .find(
+        (step) =>
+          step &&
+          typeof step === 'object' &&
+          (step as { action?: string }).action === 'call-tool' &&
+          (step as { tool?: string }).tool === 'ssci_identification_journey' &&
+          (step as { result?: unknown }).result,
+      ) as { result?: { content?: Array<{ text?: string }> } } | undefined;
+    const text = lastCall?.result?.content?.[0]?.text;
+    if (!text) {
+      return undefined;
+    }
+    try {
+      return JSON.parse(text) as {
+        journeys?: Array<{
+          id?: string;
+          travelers?: Array<{ id?: string }>;
+        }>;
+      };
+    } catch {
+      return undefined;
+    }
   }
 
   private parseNumber(value?: string): number | undefined {

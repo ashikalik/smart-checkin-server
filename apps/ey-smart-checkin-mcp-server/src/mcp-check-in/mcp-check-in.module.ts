@@ -7,6 +7,7 @@ import { BoardingPassModule } from './boarding-pass/boarding-pass.module';
 import { BeginConversationModule } from './begin-conversation/begin-conversation.module';
 import { McpCheckInController } from './common/mcp-check-in.controller';
 import { McpCheckInToolsService } from './common/mcp-check-in.tools-service';
+import { RegulatoryDetailsModule } from './regulatory-details/regulatory-details.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { McpCheckInToolsService } from './common/mcp-check-in.tools-service';
     ValidateProcesscheckinModule,
     CheckinAcceptanceModule,
     BoardingPassModule,
+    RegulatoryDetailsModule,
   ],
   controllers: [McpCheckInController],
   providers: [McpCheckInToolsService],
@@ -26,6 +28,7 @@ import { McpCheckInToolsService } from './common/mcp-check-in.tools-service';
     ValidateProcesscheckinModule,
     CheckinAcceptanceModule,
     BoardingPassModule,
+    RegulatoryDetailsModule,
   ],
 })
 export class McpCheckInModule {}

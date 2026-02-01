@@ -23,6 +23,7 @@ export interface SessionState {
   processCheckInState?: BaseState;
   checkinAcceptanceState?: BaseState;
   boardingPassState?: BaseState;
+  regulatoryDetailsState?: BaseState;
   lastStep?: string;
   data?: Record<string, unknown>;
 }

@@ -8,6 +8,7 @@ export enum CheckInState {
   PASSENGER_SELECTION = 'passengerSelection',
   PASSENGER_INFORMATION = 'passengerInformation',
   DANGEROUS_GOODS = 'dangerousGoods',
+  REGULATORY_DETAILS = 'regulatoryDetails',
   VALIDATE_PROCESS_CHECKIN = 'validateProcessCheckin',
   PROCESS_CHECK_IN = 'processCheckIn',
   CHECKIN_ACCEPTANCE = 'checkinAcceptance',
