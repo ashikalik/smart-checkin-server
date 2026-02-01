@@ -49,6 +49,12 @@ export class JourneyIdentificationAgentService {
     const payload = this.stateHelper.extractFinalObject(result.final) ?? result.final;
     const record = payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : undefined;
     if (record) {
+      const journeySummary = this.extractJourneySummary(result.steps);
+      if (journeySummary) {
+        record.origin = journeySummary.origin;
+        record.destination = journeySummary.destination;
+        record.departureDate = journeySummary.departureDate;
+      }
       const hasEligibility = record.eligibility !== undefined && record.eligibility !== null;
       const hasError = Boolean(record.error);
       if (hasEligibility && !hasError) {
@@ -71,6 +77,49 @@ export class JourneyIdentificationAgentService {
       payload,
       result.steps,
     );
+  }
+
+  private extractJourneySummary(
+    steps: AiAgentStep[],
+  ): { origin: string; destination: string; departureDate: string } | undefined {
+    const lastCall = [...steps]
+      .reverse()
+      .find(
+        (step) =>
+          step &&
+          typeof step === 'object' &&
+          (step as { action?: string }).action === 'call-tool' &&
+          (step as { tool?: string }).tool === 'ssci_identification_journey' &&
+          (step as { result?: unknown }).result,
+      ) as { result?: { content?: Array<{ text?: string }> } } | undefined;
+    const text = lastCall?.result?.content?.[0]?.text;
+    if (!text) {
+      return undefined;
+    }
+    try {
+      const parsed = JSON.parse(text) as {
+        journeys?: Array<{
+          flights?: Array<{
+            departure?: { locationCode?: string; dateTime?: string };
+            arrival?: { locationCode?: string };
+          }>;
+        }>;
+      };
+      const flight = parsed.journeys?.[0]?.flights?.[0];
+      const origin = flight?.departure?.locationCode;
+      const destination = flight?.arrival?.locationCode;
+      const departureDate = flight?.departure?.dateTime;
+      if (
+        typeof origin === 'string' &&
+        typeof destination === 'string' &&
+        typeof departureDate === 'string'
+      ) {
+        return { origin, destination, departureDate };
+      }
+    } catch {
+      return undefined;
+    }
+    return undefined;
   }
 
   private parseNumber(value?: string): number | undefined {

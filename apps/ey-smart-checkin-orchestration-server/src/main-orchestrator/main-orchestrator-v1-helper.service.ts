@@ -88,16 +88,23 @@ export class MainOrchestratorV1HelperService {
     state: OrchestratorState,
     goal: string,
   ): Promise<StageResponse> {
-    const bookingReference = state.beginConversation?.bookingReference;
-    const lastName = state.beginConversation?.lastName;
+    const bookingReference =
+      state.beginConversation?.bookingReference ??
+      goal.match(/\b(bookingReference|pnr)\s+([A-Za-z0-9]{5,8})\b/i)?.[2];
+    const lastName =
+      state.beginConversation?.lastName ??
+      goal.match(/\blastName\s+([A-Za-z]+)/i)?.[1];
     if (!bookingReference || !lastName) {
+      const missingParts: string[] = [];
+      if (!bookingReference) missingParts.push('PNR/bookingReference');
+      if (!lastName) missingParts.push('lastName');
       return this.stateHelper.toStageResponse(
         state.sessionId,
         CheckInState.JOURNEY_IDENTIFICATION,
         {
           status: 'USER_INPUT_REQUIRED',
           continue: false,
-          userMessage: 'PNR (booking reference) and last name are required.',
+          userMessage: `Please provide ${missingParts.join(' and ')}.`,
         },
         [],
       );
