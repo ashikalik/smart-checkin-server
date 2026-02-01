@@ -48,13 +48,32 @@ export class ValidateProcessCheckInAgentService {
     const payload = this.stateHelper.extractFinalObject(result.final) ?? result.final;
     const record = payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : undefined;
     if (record) {
+      const state = await this.stateHelper.stateService.getState(sessionId);
+      const userLastName = state?.beginConversation?.lastName;
+      const passengers = Array.isArray(record.passengersToCheckIn)
+        ? (record.passengersToCheckIn as Array<Record<string, unknown>>)
+        : [];
+      const firstName =
+        typeof passengers[0]?.firstName === 'string' && passengers[0]?.firstName.trim().length > 0
+          ? String(passengers[0].firstName)
+          : undefined;
+      const lastName =
+        typeof userLastName === 'string' && userLastName.trim().length > 0
+          ? userLastName.trim()
+          : typeof passengers[0]?.lastName === 'string'
+            ? String(passengers[0].lastName)
+            : undefined;
+      const personalizedPrompt =
+        firstName || lastName
+          ? `Do you want to check in this passenger: ${[firstName, lastName].filter(Boolean).join(' ')}?`
+          : undefined;
       const prompt = typeof record.prompt === 'string' ? record.prompt : undefined;
       const hasError = Boolean(record.error);
       if (prompt) {
         record.status = STAGE_STATUS.USER_INPUT_REQUIRED;
         record.continue = false;
         if (!record.userMessage) {
-          record.userMessage = prompt;
+          record.userMessage = personalizedPrompt ?? prompt;
         }
       } else if (hasError) {
         record.status = STAGE_STATUS.FAILED;

@@ -30,7 +30,16 @@ export class MainOrchestratorV1RegistryService {
         return result;
       },
       [CheckInState.TRIP_IDENTIFICATION]: (state, goal) =>
-        this.helper.runTripIdentification(state, goal),
+        (async () => {
+          const hasFfp =
+            typeof state.beginConversation?.frequentFlyerNumber === 'string' &&
+            state.beginConversation.frequentFlyerNumber.trim().length > 0;
+          const hasBookingRef = /\b(bookingReference|pnr)\s+[A-Za-z0-9]{5,8}\b/i.test(goal);
+          if (!hasFfp && hasBookingRef) {
+            return this.helper.navigate(state, goal, CheckInState.JOURNEY_IDENTIFICATION);
+          }
+          return this.helper.runTripIdentification(state, goal);
+        })(),
       [CheckInState.JOURNEY_IDENTIFICATION]: (state, goal) =>
         (async () => {
           const result = await this.helper.runJourneyIdentification(state, goal);
