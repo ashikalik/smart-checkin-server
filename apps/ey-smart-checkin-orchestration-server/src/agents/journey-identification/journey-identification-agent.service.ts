@@ -54,6 +54,8 @@ export class JourneyIdentificationAgentService {
         record.origin = journeySummary.origin;
         record.destination = journeySummary.destination;
         record.departureDate = journeySummary.departureDate;
+        record.arrivalDate = journeySummary.arrivalDate;
+        record.durationMinutes = journeySummary.durationMinutes;
       }
       const journeyId = this.extractJourneyId(result.steps);
       if (journeyId) {
@@ -89,7 +91,13 @@ export class JourneyIdentificationAgentService {
 
   private extractJourneySummary(
     steps: AiAgentStep[],
-  ): { origin: string; destination: string; departureDate: string } | undefined {
+  ): {
+    origin: string;
+    destination: string;
+    departureDate: string;
+    arrivalDate: string;
+    durationMinutes: number;
+  } | undefined {
     const lastCall = [...steps]
       .reverse()
       .find(
@@ -117,12 +125,16 @@ export class JourneyIdentificationAgentService {
       const origin = flight?.departure?.locationCode;
       const destination = flight?.arrival?.locationCode;
       const departureDate = flight?.departure?.dateTime;
+      const arrivalDate = flight?.arrival?.dateTime;
+      const durationMinutes = this.computeDurationMinutes(departureDate, arrivalDate);
       if (
         typeof origin === 'string' &&
         typeof destination === 'string' &&
-        typeof departureDate === 'string'
+        typeof departureDate === 'string' &&
+        typeof arrivalDate === 'string' &&
+        typeof durationMinutes === 'number'
       ) {
-        return { origin, destination, departureDate };
+        return { origin, destination, departureDate, arrivalDate, durationMinutes };
       }
     } catch {
       return undefined;
@@ -134,6 +146,20 @@ export class JourneyIdentificationAgentService {
     const parsed = this.extractJourneyPayload(steps);
     const journeyId = parsed?.journeys?.[0]?.id;
     return typeof journeyId === 'string' && journeyId.length > 0 ? journeyId : undefined;
+  }
+
+  private computeDurationMinutes(departure?: unknown, arrival?: unknown): number | undefined {
+    if (typeof departure !== 'string' || typeof arrival !== 'string') {
+      return undefined;
+    }
+    const dep = new Date(departure);
+    const arr = new Date(arrival);
+    if (!Number.isFinite(dep.getTime()) || !Number.isFinite(arr.getTime())) {
+      return undefined;
+    }
+    const diffMs = arr.getTime() - dep.getTime();
+    if (!Number.isFinite(diffMs)) return undefined;
+    return Math.round(diffMs / 60000);
   }
 
   private extractTravelerId(steps: AiAgentStep[]): string | undefined {
