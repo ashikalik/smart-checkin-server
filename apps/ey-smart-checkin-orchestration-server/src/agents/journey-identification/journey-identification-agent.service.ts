@@ -71,6 +71,22 @@ export class JourneyIdentificationAgentService {
       if (hasEligibility && !hasError) {
         record.status = STAGE_STATUS.SUCCESS;
         record.continue = true;
+        if (!record.userMessage && typeof record.eligibility === 'object' && record.eligibility) {
+          const isEligible =
+            typeof (record.eligibility as { isEligible?: unknown }).isEligible === 'boolean'
+              ? (record.eligibility as { isEligible?: boolean }).isEligible
+              : undefined;
+          if (isEligible === true) {
+            if (this.isUserConfirming(goal)) {
+              record.userMessage = 'Thank you confirming we are proceeding with your check in process';
+            } else {
+              const identifier = this.extractIdentifier(result.steps);
+              record.userMessage = identifier
+                ? `Check-in is open for booking ${identifier}. Do you want to proceed with check-in?`
+                : 'Check-in is open. Do you want to proceed with check-in?';
+            }
+          }
+        }
       } else if (hasError) {
         record.status = STAGE_STATUS.USER_INPUT_REQUIRED;
         record.continue = false;
@@ -150,6 +166,30 @@ export class JourneyIdentificationAgentService {
     const parsed = this.extractJourneyPayload(steps);
     const journeyId = parsed?.journeys?.[0]?.id;
     return typeof journeyId === 'string' && journeyId.length > 0 ? journeyId : undefined;
+  }
+
+  private extractIdentifier(steps: AiAgentStep[]): string | undefined {
+    const lastCall = [...steps]
+      .reverse()
+      .find(
+        (step) =>
+          step &&
+          typeof step === 'object' &&
+          (step as { action?: string }).action === 'call-tool' &&
+          (step as { tool?: string }).tool === 'ssci_identification_journey' &&
+          (step as { args?: unknown }).args,
+      ) as { args?: { identifier?: string } } | undefined;
+    const identifier = lastCall?.args?.identifier;
+    return typeof identifier === 'string' && identifier.trim().length > 0 ? identifier : undefined;
+  }
+
+  private isUserConfirming(goal: string): boolean {
+    const text = goal.trim().toLowerCase();
+    if (!text) return false;
+    if (/\b(no|dont|don't|decline|cancel|stop)\b/.test(text)) {
+      return false;
+    }
+    return /\b(yes|yep|yeah|confirm|confirmed|proceed|ok|okay|sure|continue)\b/.test(text);
   }
 
   private computeDurationMinutes(departure?: unknown, arrival?: unknown): number | undefined {

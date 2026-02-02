@@ -1,8 +1,10 @@
 // apps/ey-smart-checkin-mcp-server/src/mcp-check-in/common/ssci-mock.util.ts
-export function isMockEnabled(): boolean {
-    //return String(process.env.MOCK_SSCI ?? '').toLowerCase() === 'true';
-    return true;
-  }
+export function isMockEnabled(override?: boolean): boolean {
+  if (typeof override === 'boolean') return override;
+  const env = String(process.env.MOCK_SSCI ?? '').toLowerCase();
+  if (!env) return true;
+  return env === 'true';
+}
   
   export async function maybeMockDelay(): Promise<void> {
     const ms = Number(process.env.MOCK_SSCI_DELAY_MS ?? 0);

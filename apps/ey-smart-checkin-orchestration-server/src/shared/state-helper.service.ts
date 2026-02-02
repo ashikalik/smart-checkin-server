@@ -32,12 +32,15 @@ export class StateHelperService {
     const base = this.normalizeBaseState(payload);
     const data = this.buildDataPayload(payload);
     const sanitized = this.sanitizePayload(payload);
+    const userMessage =
+      base.userMessage ?? this.defaultUserMessage(stage, base, data && typeof data === 'object' ? data : undefined);
     return {
       sessionId,
       stage: this.toStageKey(stage),
       ...(sanitized ?? {}),
       ...(data !== undefined ? { data } : {}),
       ...base,
+      ...(userMessage ? { userMessage } : {}),
     };
   }
 
@@ -131,6 +134,51 @@ export class StateHelperService {
       extras[key] = value;
     }
     return Object.keys(extras).length > 0 ? extras : null;
+  }
+
+  private defaultUserMessage(
+    stage: CheckInState,
+    base: BaseState,
+    data?: Record<string, unknown>,
+  ): string | undefined {
+    const isSuccess = base.status === STAGE_STATUS.SUCCESS && base.continue === true;
+    const isUserInput = base.status === STAGE_STATUS.USER_INPUT_REQUIRED && base.continue === false;
+
+    switch (stage) {
+      case CheckInState.BEGIN_CONVERSATION:
+        return 'Please provide your frequent flyer number or booking reference, plus your last name.';
+      case CheckInState.TRIP_IDENTIFICATION:
+        if (isUserInput) {
+          return 'Please choose a PNR to retrieve.';
+        }
+        return isSuccess ? 'Trip identified. Proceed to journey selection.' : undefined;
+      case CheckInState.JOURNEY_SELECTION:
+        return isUserInput ? 'Please select a PNR/booking reference.' : undefined;
+      case CheckInState.JOURNEY_IDENTIFICATION:
+        return isSuccess ? 'Journey identified. Proceeding to validate check-in.' : undefined;
+      case CheckInState.VALIDATE_PROCESS_CHECKIN:
+      case CheckInState.PROCESS_CHECK_IN:
+        return isUserInput ? 'Do you want to check in this passenger?' : undefined;
+      case CheckInState.REGULATORY_DETAILS:
+        return isUserInput ? 'Please provide required regulatory details.' : undefined;
+      case CheckInState.CHECKIN_ACCEPTANCE:
+        return isUserInput
+          ? 'Check-in is successfully completed. Do you want to generate the boarding pass?'
+          : undefined;
+      case CheckInState.BOARDING_PASS:
+        return isUserInput ? 'Your boarding pass is generated. Would you like to add it to your wallet?' : undefined;
+      case CheckInState.ANCILLARY_SELECTION:
+        if (isUserInput) {
+          const available = Array.isArray(data?.availableServices) ? (data?.availableServices as Array<{ key?: string }>) : [];
+          if (available.length > 0) {
+            return 'Ancillary services are available. Would you like to purchase priority access?';
+          }
+          return 'No ancillary services available for purchase.';
+        }
+        return undefined;
+      default:
+        return isUserInput ? 'Please provide the required information to continue.' : undefined;
+    }
   }
 
   private sanitizePayload(payload: unknown): Record<string, unknown> | undefined {

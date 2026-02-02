@@ -63,8 +63,9 @@ export class ValidateProcessCheckinService {
     areSecurityQuestionsAnswered?: boolean;
     rawBody?: unknown;
     headers?: Partial<Record<string, string>>;
+    useMock?: boolean;
   }): Promise<ValidateProcessCheckinApiResponse> {
-    if (isMockEnabled()) {
+    if (isMockEnabled(params.useMock)) {
       await maybeMockDelay();
       return this.getMock();
     }

@@ -6,6 +6,7 @@ export const RegulatoryDetailsSchema = z.object({
   url: z.string().url().optional().describe('Optional full endpoint URL override'),
   id: z.string().min(1).optional().describe('Journey id'),
   travelerId: z.string().min(1).optional().describe('Traveler id'),
+  useMock: z.boolean().optional(),
   headers: z
     .object({
       'x-correlation-id': z.string().optional(),
@@ -94,6 +95,7 @@ export const ssciRegulatoryDetailsMcpTool = {
           id: input.id,
           travelerId: input.travelerId,
           headers: headerOverrides,
+          useMock: input.useMock,
         });
 
         return toToolResponse(computeRegulatoryDetailsResult(apiRes));

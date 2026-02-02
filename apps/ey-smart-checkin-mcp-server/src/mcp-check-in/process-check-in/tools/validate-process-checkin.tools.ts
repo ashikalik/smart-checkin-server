@@ -9,6 +9,7 @@ export const ValidateProcessCheckinSchema = z.object({
   resourceId: z.string().min(1).optional().describe('Optional path id appended to base URL'),
   areSecurityQuestionsAnswered: z.boolean().optional(),
   rawBody: z.string().optional().describe('Optional raw JSON string forwarded to upstream POST'),
+  useMock: z.boolean().optional(),
   headers: z
     .object({
       'x-correlation-id': z.string().optional(),
@@ -137,6 +138,7 @@ export const ssciValidateProcessCheckinMcpTool = {
           areSecurityQuestionsAnswered: input.areSecurityQuestionsAnswered,
           rawBody: body,
           headers: headerOverrides,
+          useMock: input.useMock,
         });
 
         return toToolResponse(computePassengersToCheckIn(apiRes));

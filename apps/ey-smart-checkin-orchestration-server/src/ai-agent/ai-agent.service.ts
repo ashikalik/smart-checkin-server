@@ -445,8 +445,13 @@ return {
   private formatToolNote(name: string, args: Record<string, unknown>, result: unknown): string {
     const argsText = JSON.stringify(args);
     const resultText = this.extractTextFromToolResult(result);
-    const display = resultText ?? JSON.stringify(result);
+    const display = this.truncateNote(resultText ?? JSON.stringify(result));
     return `${name}(${argsText}) => ${display}`;
+  }
+
+  private truncateNote(value: string, maxChars = 2000): string {
+    if (value.length <= maxChars) return value;
+    return `${value.slice(0, maxChars)}…(truncated)`;
   }
 
   private extractTextFromToolResult(result: unknown): string | undefined {

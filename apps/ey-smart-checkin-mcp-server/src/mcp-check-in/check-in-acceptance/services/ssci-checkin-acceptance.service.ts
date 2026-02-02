@@ -64,8 +64,9 @@ export class CheckinAcceptanceService {
     areSecurityQuestionsAnswered?: boolean;
     rawBody?: unknown;
     headers?: Partial<Record<string, string>>;
+    useMock?: boolean;
   }): Promise<CheckinAcceptanceApiResponse> {
-    if (isMockEnabled()) {
+    if (isMockEnabled(params.useMock)) {
       await maybeMockDelay();
       return this.getMock();
     }

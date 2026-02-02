@@ -7,6 +7,7 @@ export const AncillaryCatalogueSchema = z.object({
   journeyId: z.string().min(1).optional().describe('Journey id'),
   journeyElementId: z.string().min(1).optional().describe('Journey element id'),
   rawBody: z.string().optional().describe('Optional raw JSON string forwarded to upstream POST'),
+  useMock: z.boolean().optional(),
   headers: z
     .object({
       'x-correlation-id': z.string().optional(),
@@ -36,19 +37,35 @@ const toToolError = (message: string): McpToolResponse => ({
 
 type AncillaryCatalogueResult = {
   hasAncillaryForPurchase: boolean;
-  availableServices: Array<{ key: string }>;
+  availableServices: Array<{ key: string; label: string }>;
   serviceDetails?: Record<string, unknown>;
   error: string | null;
   raw?: AncillaryCatalogueApiResponse;
 };
+
+function mapServiceLabel(key: string): string {
+  switch (key) {
+    case 'businessClassLoungeAccessDetails':
+      return 'Business class lounge available for purchase';
+    case 'firstClassLoungeAccessDetails':
+      return 'First class lounge available for purchase';
+    case 'priorityAccessDetails':
+      return 'Priority access available for purchase';
+    default:
+      return key;
+  }
+}
 
 function extractAvailableServices(payload: AncillaryCatalogueApiResponse) {
   const serviceDetails = (payload as { serviceDetails?: Record<string, unknown> }).serviceDetails ?? {};
   const entries = Object.entries(serviceDetails);
   const available = entries
     .filter(([, value]) => typeof value === 'object' && value && (value as any).showService === true)
-    .map(([key]) => ({ key }));
-  return { serviceDetails, available };
+    .map(([key]) => ({ key, label: mapServiceLabel(key) }));
+  const filteredDetails = Object.fromEntries(
+    available.map(({ key }) => [key, serviceDetails[key]]),
+  );
+  return { serviceDetails: filteredDetails, available };
 }
 
 export function computeAncillaryCatalogueResult(payload: AncillaryCatalogueApiResponse): AncillaryCatalogueResult {
@@ -59,7 +76,6 @@ export function computeAncillaryCatalogueResult(payload: AncillaryCatalogueApiRe
       availableServices: available,
       serviceDetails,
       error: null,
-      raw: payload,
     };
   } catch (e: any) {
     return {
@@ -100,6 +116,7 @@ export const ssciAncillaryCatalogueMcpTool = {
           journeyElementId: input.journeyElementId,
           rawBody: body,
           headers: headerOverrides,
+          useMock: input.useMock,
         });
 
         return toToolResponse(computeAncillaryCatalogueResult(apiRes));

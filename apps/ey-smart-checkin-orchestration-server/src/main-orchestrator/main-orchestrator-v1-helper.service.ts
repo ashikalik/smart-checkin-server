@@ -45,9 +45,14 @@ export class MainOrchestratorV1HelperService {
         state.beginConversation,
         response as unknown as Partial<import('../shared/begin-conversation-state').BeginConversationState>,
       );
+      const useMock = merged.bookingReference === '7MHQTY';
       const nextState: OrchestratorState = {
         ...state,
         beginConversation: merged,
+        data: {
+          ...state.data,
+          ...(useMock ? { useMock: true } : {}),
+        },
       };
       await this.stateHelper.stateService.saveState(state.sessionId, nextState);
       return {
@@ -94,13 +99,29 @@ export class MainOrchestratorV1HelperService {
     const lastNameFromGoal = goal.match(/\blastName\s+([A-Za-z]+)/i)?.[1];
     const bookingReference = state.beginConversation?.bookingReference ?? bookingReferenceFromGoal;
     const lastName = state.beginConversation?.lastName ?? lastNameFromGoal;
+    if (bookingReference === '7MHQTY' && state.data?.useMock !== true) {
+      const nextState: OrchestratorState = {
+        ...state,
+        data: {
+          ...state.data,
+          useMock: true,
+        },
+      };
+      await this.stateHelper.stateService.saveState(state.sessionId, nextState);
+      state = nextState;
+    }
     if ((bookingReferenceFromGoal || lastNameFromGoal) && state.beginConversation) {
+      const useMock = bookingReferenceFromGoal === '7MHQTY';
       const nextState: OrchestratorState = {
         ...state,
         beginConversation: {
           ...state.beginConversation,
           bookingReference: bookingReferenceFromGoal ?? state.beginConversation.bookingReference,
           lastName: lastNameFromGoal ?? state.beginConversation.lastName,
+        },
+        data: {
+          ...state.data,
+          ...(useMock ? { useMock: true } : {}),
         },
       };
       await this.stateHelper.stateService.saveState(state.sessionId, nextState);
@@ -123,7 +144,7 @@ export class MainOrchestratorV1HelperService {
     }
     const response = await this.journeyIdentification.handleStage(
       state.sessionId,
-      goal,
+      this.appendMockFlag(goal, state),
       CheckInState.JOURNEY_IDENTIFICATION,
     );
     if (state.journeyIdentificationState && response) {
@@ -172,28 +193,35 @@ export class MainOrchestratorV1HelperService {
     state: OrchestratorState,
     goal: string,
   ): Promise<StageResponse> {
-    return this.journeyIdentification.handleStage(state.sessionId, goal, CheckInState.JOURNEY_SELECTION);
+    const trimmed = goal.trim();
+    const looksLikePnr = /^[A-Za-z0-9]{5,8}$/.test(trimmed);
+    const enrichedGoal = looksLikePnr ? `bookingReference ${trimmed}` : goal;
+    return this.journeyIdentification.handleStage(
+      state.sessionId,
+      this.appendMockFlag(enrichedGoal, state),
+      CheckInState.JOURNEY_SELECTION,
+    );
   }
 
   async runValidateProcessCheckin(
     state: OrchestratorState,
     goal: string,
   ): Promise<StageResponse> {
-    return this.validateProcessCheckin.handleStage(state.sessionId, goal);
+    return this.validateProcessCheckin.handleStage(state.sessionId, this.appendMockFlag(goal, state));
   }
 
   async runCheckinAcceptance(
     state: OrchestratorState,
     goal: string,
   ): Promise<StageResponse> {
-    return this.checkinAcceptance.handleStage(state.sessionId, goal);
+    return this.checkinAcceptance.handleStage(state.sessionId, this.appendMockFlag(goal, state));
   }
 
   async runBoardingPass(
     state: OrchestratorState,
     goal: string,
   ): Promise<StageResponse> {
-    return this.boardingPass.handleStage(state.sessionId, goal);
+    return this.boardingPass.handleStage(state.sessionId, this.appendMockFlag(goal, state));
   }
 
   async runAncillaryCatalogue(
@@ -207,7 +235,10 @@ export class MainOrchestratorV1HelperService {
       journeyId && journeyElementId
         ? `ancillary catalogue for journey ${journeyId} journeyElementId ${journeyElementId}`
         : goal;
-    return this.ancillaryCatalogue.handleStage(state.sessionId, enrichedGoal);
+    return this.ancillaryCatalogue.handleStage(
+      state.sessionId,
+      this.appendMockFlag(enrichedGoal, state),
+    );
   }
 
   async runRegulatoryDetails(
@@ -221,7 +252,16 @@ export class MainOrchestratorV1HelperService {
       journeyId && travelerId
         ? `regulatory details for journey ${journeyId} travelerId ${travelerId}`
         : goal;
-    return this.regulatoryDetails.handleStage(state.sessionId, enrichedGoal);
+    return this.regulatoryDetails.handleStage(
+      state.sessionId,
+      this.appendMockFlag(enrichedGoal, state),
+    );
+  }
+
+  private appendMockFlag(goal: string, state: OrchestratorState): string {
+    const useMock = Boolean(state.data && state.data.useMock === true);
+    if (!useMock) return goal;
+    return /\buseMock\b/i.test(goal) ? goal : `${goal} useMock true`;
   }
 
   resolveSession(

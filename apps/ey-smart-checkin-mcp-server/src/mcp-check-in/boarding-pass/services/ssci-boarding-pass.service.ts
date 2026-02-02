@@ -51,8 +51,9 @@ export class BoardingPassService {
     resourceId?: string;
     rawBody?: unknown;
     headers?: Partial<Record<string, string>>;
+    useMock?: boolean;
   }): Promise<BoardingPassApiResponse> {
-    if (isMockEnabled()) {
+    if (isMockEnabled(params.useMock)) {
       await maybeMockDelay();
       return this.getMock();
     }

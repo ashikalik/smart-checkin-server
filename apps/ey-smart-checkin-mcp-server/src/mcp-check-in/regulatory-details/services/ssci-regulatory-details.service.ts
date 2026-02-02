@@ -47,8 +47,9 @@ export class RegulatoryDetailsService {
     id?: string;
     travelerId?: string;
     headers?: Partial<Record<string, string>>;
+    useMock?: boolean;
   }): Promise<RegulatoryDetailsApiResponse> {
-    if (isMockEnabled()) {
+    if (isMockEnabled(params.useMock)) {
       await maybeMockDelay();
       return this.getMock();
     }
@@ -61,8 +62,9 @@ export class RegulatoryDetailsService {
     travelerId?: string;
     rawBody?: unknown;
     headers?: Partial<Record<string, string>>;
+    useMock?: boolean;
   }): Promise<unknown> {
-    if (isMockEnabled()) {
+    if (isMockEnabled(params.useMock)) {
       await maybeMockDelay();
       return this.getUpdateMock();
     }

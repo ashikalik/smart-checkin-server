@@ -30,8 +30,9 @@ export class AncillaryCatalogueService {
     journeyElementId?: string;
     rawBody?: unknown;
     headers?: Partial<Record<string, string>>;
+    useMock?: boolean;
   }): Promise<AncillaryCatalogueApiResponse> {
-    if (isMockEnabled()) {
+    if (isMockEnabled(params.useMock)) {
       await maybeMockDelay();
       return this.getMock();
     }

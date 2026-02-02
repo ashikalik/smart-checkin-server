@@ -34,8 +34,9 @@ export class MainOrchestratorV1RegistryService {
       [CheckInState.TRIP_IDENTIFICATION]: (state, goal) =>
         (async () => {
           const hasBookingRef = /\b(bookingReference|pnr)\s+[A-Za-z0-9]{5,8}\b/i.test(goal);
-          if (hasBookingRef) {
-            return this.helper.navigate(state, goal, CheckInState.JOURNEY_IDENTIFICATION);
+          const looksLikePnrOnly = /^[A-Za-z0-9]{5,8}$/.test(goal.trim());
+          if (hasBookingRef || looksLikePnrOnly) {
+            return this.helper.navigate(state, goal, CheckInState.JOURNEY_SELECTION);
           }
           return this.helper.runTripIdentification(state, goal);
         })(),
@@ -53,7 +54,11 @@ export class MainOrchestratorV1RegistryService {
         (async () => {
           const result = await this.helper.runValidateProcessCheckin(state, goal);
           if (this.isUserConfirming(goal)) {
-            return this.helper.navigate(state, goal, CheckInState.REGULATORY_DETAILS);
+            const next = await this.helper.navigate(state, goal, CheckInState.REGULATORY_DETAILS);
+            return {
+              ...next,
+              userMessage: 'Thank you confirming we are proceeding with your check in process',
+            };
           }
           return result;
         })(),

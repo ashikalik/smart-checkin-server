@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { isMockEnabled, maybeMockDelay } from '../../common/ssci-mock.util';
 
 import type { JourneyIdentificationRequestPayload, JourneysListReply } from '@etihad-core/models';
 
@@ -65,8 +66,9 @@ export class SsciJourneyIdentificationService {
   async getJourney(
     payload: JourneyIdentificationRequestPayload,
     headerOverrides?: Partial<Record<string, string>>,
+    useMock?: boolean,
   ): Promise<JourneysListReply & { derived: Derived }> {
-    const apiRes = this.isMockEnabled()
+    const apiRes = isMockEnabled(useMock)
       ? await this.getMockJourney(payload.identifier, payload.lastName)
       : await this.fetchJourneyIdentification(payload, headerOverrides);
 
@@ -79,28 +81,10 @@ export class SsciJourneyIdentificationService {
     };
   }
 
-  // -------------------------
-  // MOCK helpers
-  // -------------------------
-
-  isMockEnabled(): boolean {
-    // set MOCK_SSCI=true to enable
-    //return String(process.env.MOCK_SSCI ?? '').toLowerCase() === 'true';
-    // if you still want always-mock during dev:
- return true;
-  }
-
   private async getMockJourney(identifier: string, lastName: string): Promise<JourneysListReply> {
-    await this.maybeMockDelay();
+    await maybeMockDelay();
     const base = await this.loadMockData();
     return this.patchMockJourney(base, identifier, lastName);
-  }
-
-  private async maybeMockDelay(): Promise<void> {
-    const ms = Number(process.env.MOCK_SSCI_DELAY_MS ?? 0);
-    if (Number.isFinite(ms) && ms > 0) {
-      await new Promise((resolve) => setTimeout(resolve, ms));
-    }
   }
 
   private deepClone<T>(obj: T): T {

@@ -28,6 +28,7 @@ export interface RetrieveOrderInputDto {
 export const SsciRetrieveOrderGqlSchema = z.object({
   lastName: z.string().min(1),
   recordLocator: z.string().min(1),
+  useMock: z.boolean().optional(),
   // Avoid z.record(...) because it generates JSON Schema with `propertyNames`,
   // which OpenAI rejects for function parameters.
   headers: z
@@ -258,7 +259,8 @@ function toToolError(message: string): McpToolResponse {
   return { isError: true, content: [{ type: 'text', text: message }] };
 }
 
-function isMockEnabled(): boolean {
+function isMockEnabled(override?: boolean): boolean {
+  if (typeof override === 'boolean') return override;
   return String(process.env.MOCK_SSCI ?? '').toLowerCase() === 'true';
 }
 
@@ -308,8 +310,8 @@ export const ssciRetrieveOrderGqlMcpTool = {
     (orderService: SsciRetrieveOrderGqlService) =>
     async (input: SsciRetrieveOrderGqlToolInput): Promise<McpToolResponse> => {
       try {
-        const { headers, lastName, recordLocator } = input;
-        if (isMockEnabled()) {
+        const { headers, lastName, recordLocator, useMock } = input;
+        if (isMockEnabled(useMock)) {
           await maybeMockDelay();
           return toToolResponse(buildMockRetrieveOrderResponse(recordLocator, lastName));
         }
@@ -330,4 +332,3 @@ export const ssciRetrieveOrderGqlMcpTool = {
       }
     },
 } as const;
-

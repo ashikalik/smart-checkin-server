@@ -15,6 +15,7 @@ export const SsciJourneyIdentificationSchema = z.object({
   firstName: z.string().nullable().optional().default(null),
   program: z.string().nullable().optional().default(null),
   encryptedParameters: z.null().optional().default(null),
+  useMock: z.boolean().optional(),
 
   headers: z
     .object({
@@ -67,7 +68,7 @@ export const ssciIdentificationJourneyMcpTool = {
     (service: SsciJourneyIdentificationService) =>
     async (input: SsciJourneyIdentificationToolInput): Promise<McpToolResponse> => {
       try {
-        const { headers, ...payload } = input;
+        const { headers, useMock, ...payload } = input;
 
         const apiPayload: JourneyIdentificationRequestPayload = {
           identifier: payload.identifier,
@@ -80,7 +81,7 @@ export const ssciIdentificationJourneyMcpTool = {
 
         const headerOverrides = normalizeHeaderOverrides(headers as Record<string, unknown>);
 
-        const res = await service.getJourney(apiPayload, headerOverrides);
+        const res = await service.getJourney(apiPayload, headerOverrides, useMock);
         return toToolResponse(res);
       } catch (e: any) {
         return toToolError(e?.message ?? 'ssci_identification_journey failed');

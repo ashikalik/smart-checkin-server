@@ -311,7 +311,7 @@ export const ssciIdentificationJourneyEligibilityMcpTool = {
     (journeyService: SsciJourneyIdentificationService) =>
     async (input: SsciJourneyIdentificationToolInput): Promise<McpToolResponse> => {
       try {
-        const { headers, ...payload } = input;
+        const { headers, useMock, ...payload } = input;
 
         const apiPayload: JourneyIdentificationRequestPayload = {
           identifier: payload.identifier,
@@ -328,6 +328,7 @@ export const ssciIdentificationJourneyEligibilityMcpTool = {
         const apiRes: JourneysListReply = await journeyService.getJourney(
           apiPayload,
           headerOverrides,
+          useMock,
         );
 
         return toToolResponse(computeJourneyEligibility(apiRes));

@@ -10,6 +10,7 @@ export const RegulatoryDetailsUpdateSchema = z.object({
     .string()
     .optional()
     .describe('Required JSON body string for POST update'),
+  useMock: z.boolean().optional(),
   headers: z
     .object({
       'x-correlation-id': z.string().optional(),
@@ -65,6 +66,7 @@ export const ssciRegulatoryDetailsUpdateMcpTool = {
           travelerId: input.travelerId,
           rawBody: body,
           headers: headerOverrides,
+          useMock: input.useMock,
         });
 
         return toToolResponse(apiRes);

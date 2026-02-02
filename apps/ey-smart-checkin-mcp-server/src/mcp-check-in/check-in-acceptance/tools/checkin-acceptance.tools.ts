@@ -12,6 +12,7 @@ export const CheckinAcceptanceSchema = z.object({
     .string()
     .optional()
     .describe('Optional raw JSON string forwarded to upstream POST. If omitted, a GET is used.'),
+  useMock: z.boolean().optional(),
   headers: z
     .object({
       'x-correlation-id': z.string().optional(),
@@ -164,6 +165,7 @@ export const ssciCheckinAcceptanceMcpTool = {
           areSecurityQuestionsAnswered: input.areSecurityQuestionsAnswered,
           rawBody: body,
           headers: headerOverrides,
+          useMock: input.useMock,
         });
 
         return toToolResponse(computeCheckinAcceptanceResult(apiRes));
