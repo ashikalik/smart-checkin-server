@@ -55,7 +55,6 @@ export class MainOrchestratorV1HelperService {
         ...merged,
         sessionId: state.sessionId,
         stage: response.stage,
-        steps: response.steps,
       };
     }
     return response;
@@ -82,7 +81,6 @@ export class MainOrchestratorV1HelperService {
         ...merged,
         sessionId: state.sessionId,
         stage: response.stage,
-        steps: response.steps,
       };
     }
     return response;
@@ -165,7 +163,6 @@ export class MainOrchestratorV1HelperService {
         ...response,
         sessionId: state.sessionId,
         stage: response.stage,
-        steps: response.steps,
       };
     }
     return response;

@@ -35,7 +35,6 @@ export class StateHelperService {
     return {
       sessionId,
       stage: this.toStageKey(stage),
-      steps,
       ...(sanitized ?? {}),
       ...(data !== undefined ? { data } : {}),
       ...base,

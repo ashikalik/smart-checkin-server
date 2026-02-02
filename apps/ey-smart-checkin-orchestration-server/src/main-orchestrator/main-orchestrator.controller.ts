@@ -12,6 +12,7 @@ export class MainOrchestratorController {
 
   @Post('run')
   async run(@Body() body: RunRequest) {
-    return this.orchestrator.run(body.goal, body.sessionId);
+    const response = await this.orchestrator.run(body.goal, body.sessionId);
+    return { ...response, steps: null };
   }
 }

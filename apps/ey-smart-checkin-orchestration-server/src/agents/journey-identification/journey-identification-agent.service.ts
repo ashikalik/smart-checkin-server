@@ -56,6 +56,7 @@ export class JourneyIdentificationAgentService {
         record.departureDate = journeySummary.departureDate;
         record.arrivalDate = journeySummary.arrivalDate;
         record.durationMinutes = journeySummary.durationMinutes;
+        record.durationText = journeySummary.durationText;
       }
       const journeyId = this.extractJourneyId(result.steps);
       if (journeyId) {
@@ -97,6 +98,7 @@ export class JourneyIdentificationAgentService {
     departureDate: string;
     arrivalDate: string;
     durationMinutes: number;
+    durationText: string;
   } | undefined {
     const lastCall = [...steps]
       .reverse()
@@ -117,7 +119,7 @@ export class JourneyIdentificationAgentService {
         journeys?: Array<{
           flights?: Array<{
             departure?: { locationCode?: string; dateTime?: string };
-            arrival?: { locationCode?: string };
+            arrival?: { locationCode?: string; dateTime?: string };
           }>;
         }>;
       };
@@ -127,14 +129,16 @@ export class JourneyIdentificationAgentService {
       const departureDate = flight?.departure?.dateTime;
       const arrivalDate = flight?.arrival?.dateTime;
       const durationMinutes = this.computeDurationMinutes(departureDate, arrivalDate);
+      const durationText = typeof durationMinutes === 'number' ? this.formatDuration(durationMinutes) : undefined;
       if (
         typeof origin === 'string' &&
         typeof destination === 'string' &&
         typeof departureDate === 'string' &&
         typeof arrivalDate === 'string' &&
-        typeof durationMinutes === 'number'
+        typeof durationMinutes === 'number' &&
+        typeof durationText === 'string'
       ) {
-        return { origin, destination, departureDate, arrivalDate, durationMinutes };
+        return { origin, destination, departureDate, arrivalDate, durationMinutes, durationText };
       }
     } catch {
       return undefined;
@@ -160,6 +164,13 @@ export class JourneyIdentificationAgentService {
     const diffMs = arr.getTime() - dep.getTime();
     if (!Number.isFinite(diffMs)) return undefined;
     return Math.round(diffMs / 60000);
+  }
+
+  private formatDuration(totalMinutes: number): string {
+    const minutes = Math.max(0, Math.round(totalMinutes));
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
   }
 
   private extractTravelerId(steps: AiAgentStep[]): string | undefined {
