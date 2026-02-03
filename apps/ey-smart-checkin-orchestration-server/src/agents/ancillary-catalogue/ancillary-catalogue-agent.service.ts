@@ -58,11 +58,25 @@ export class AncillaryCatalogueAgentService {
         const labels = services.map((key) => this.toFriendlyServiceName(key as string)).filter(Boolean);
         record.status = STAGE_STATUS.USER_INPUT_REQUIRED;
         record.continue = false;
-        const suffix =
-          labels.length > 0
-            ? `Do you want to purchase ${labels.join(', ')}?`
-            : 'Do you want to purchase ancillary services?';
-        record.userMessage = `Boarding pass added to wallet. ${suffix}`;
+        if (this.isUserConfirming(goal)) {
+          const payment = this.extractPaymentInfo(record);
+          const amountText =
+            payment?.amount && payment?.currency
+              ? `The amount is ${payment.amount} ${payment.currency}.`
+              : 'Please proceed to payment.';
+          const link = payment?.paymentLink ?? this.defaultPaymentLink();
+          record.userMessage = `Payment required for ancillary purchase. ${amountText} Please complete payment at ${link}.`;
+          record.data = {
+            ...(record.data && typeof record.data === 'object' ? (record.data as Record<string, unknown>) : {}),
+            ...(payment ? { payment } : {}),
+          };
+        } else {
+          const suffix =
+            labels.length > 0
+              ? `Do you want to purchase ${labels.join(', ')}?`
+              : 'Do you want to purchase ancillary services?';
+          record.userMessage = `Boarding pass added to wallet. ${suffix}`;
+        }
       } else if (hasError) {
         record.status = STAGE_STATUS.FAILED;
         record.continue = false;
@@ -113,5 +127,30 @@ export class AncillaryCatalogueAgentService {
       default:
         return key;
     }
+  }
+
+  private isUserConfirming(goal: string): boolean {
+    const text = goal.trim().toLowerCase();
+    if (!text) return false;
+    if (/\b(no|dont|don't|decline|cancel|stop)\b/.test(text)) {
+      return false;
+    }
+    return /\b(yes|yep|yeah|confirm|confirmed|proceed|ok|okay|sure|continue|buy|purchase)\b/.test(text);
+  }
+
+  private extractPaymentInfo(record: Record<string, unknown>): { amount?: number; currency?: string; paymentLink?: string } | null {
+    const serviceDetails = record.serviceDetails as Record<string, any> | undefined;
+    const priority = serviceDetails?.priorityAccessDetails;
+    const business = serviceDetails?.businessClassLoungeAccessDetails;
+    const first = serviceDetails?.firstClassLoungeAccessDetails;
+    const detail = priority ?? business ?? first;
+    if (!detail || typeof detail !== 'object') return null;
+    const amount = typeof detail.totalAmount === 'number' ? detail.totalAmount : undefined;
+    const currency = typeof detail.currency === 'string' ? detail.currency : undefined;
+    return { amount, currency, paymentLink: this.defaultPaymentLink() };
+  }
+
+  private defaultPaymentLink(): string {
+    return 'https://payments.etihad.com/ancillaries/checkout';
   }
 }
