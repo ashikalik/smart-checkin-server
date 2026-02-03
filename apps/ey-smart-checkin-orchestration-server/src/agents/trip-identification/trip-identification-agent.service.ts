@@ -48,38 +48,40 @@ export class TripIdentificationAgentService {
     goal: string,
     context?: string,
   ): Promise<StageResponse> {
-    const result = await this.runAgentLoop(goal, context);
-    const payload = this.stateHelper.extractFinalObject(result.final) ?? result.final;
-    const record = payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : undefined;
-    const selections = this.extractPnrs(result.steps);
-    if (record && selections.length > 0) {
-      record.choices = selections;
-      record.recommendedPnr = selections.includes('7MHQTY') ? '7MHQTY' : selections[0];
-      if (selections.length === 1) {
-        record.selectedPnr = selections[0];
-        record.status = STAGE_STATUS.SUCCESS;
-        record.continue = true;
-      } else {
+    const directArgs = this.extractFfpArgs(goal);
+    if (directArgs) {
+      const toolResult = await this.agent.runTool('trip_identification', directArgs);
+      const record: Record<string, unknown> = {};
+      if (this.isToolError(toolResult)) {
         record.status = STAGE_STATUS.USER_INPUT_REQUIRED;
         record.continue = false;
-        record.userMessage =
-          selections.includes('7MHQTY')
-            ? `Two PNRs available: ${selections.join(
-                ', ',
-              )}. 7MHQTY is available for check-in. Which PNR would you like to retrieve?`
-            : `Two PNRs available: ${selections.join(
-                ', ',
-              )}. Which PNR would you like to retrieve?`;
+        record.userMessage = this.extractToolText(toolResult) ?? 'Frequent flyer number or last name not found.';
+      } else {
+        const selections = this.extractPnrsFromTool(toolResult);
+        this.applyPnrSelection(record, selections);
+        record.data = {
+          ...(record.data && typeof record.data === 'object' ? (record.data as Record<string, unknown>) : {}),
+          lastName: directArgs.lastName,
+        };
       }
-      const data = (record.data && typeof record.data === 'object') ? (record.data as Record<string, unknown>) : {};
-      record.data = {
-        ...data,
-        choices: record.choices,
-        recommendedPnr: record.recommendedPnr,
-        ...(record.selectedPnr ? { selectedPnr: record.selectedPnr } : {}),
-      };
+      return this.stateHelper.toStageResponse(sessionId, CheckInState.TRIP_IDENTIFICATION, record, []);
     }
-    return this.stateHelper.toStageResponse(sessionId, CheckInState.TRIP_IDENTIFICATION, payload, result.steps);
+
+    const result = await this.runAgentLoop(goal, context);
+    const payload = this.stateHelper.extractFinalObject(result.final) ?? result.final;
+    const record =
+      payload && typeof payload === 'object'
+        ? (payload as Record<string, unknown>)
+        : ({} as Record<string, unknown>);
+    const selections = this.extractPnrs(result.steps);
+    if (record) {
+      this.applyPnrSelection(record, selections);
+    } else {
+      record.status = STAGE_STATUS.USER_INPUT_REQUIRED;
+      record.continue = false;
+      record.userMessage = 'Please provide your frequent flyer number and last name.';
+    }
+    return this.stateHelper.toStageResponse(sessionId, CheckInState.TRIP_IDENTIFICATION, record, result.steps);
   }
 
   updateTripIdentificationState(
@@ -174,6 +176,87 @@ export class TripIdentificationAgentService {
     } catch {
       return [];
     }
+  }
+
+  private extractPnrsFromTool(result: unknown): string[] {
+    const text = this.extractToolText(result);
+    if (!text) return [];
+    try {
+      const parsed = JSON.parse(text) as { data?: Array<{ id?: string }> };
+      const ids = (parsed.data ?? [])
+        .map((item) => (typeof item?.id === 'string' ? item.id.trim() : ''))
+        .filter((id) => id.length > 0);
+      return Array.from(new Set(ids));
+    } catch {
+      return [];
+    }
+  }
+
+  private extractToolText(result: unknown): string | undefined {
+    if (!result || typeof result !== 'object') return undefined;
+    const content = (result as { content?: Array<{ text?: string }> }).content;
+    return content?.[0]?.text;
+  }
+
+  private isToolError(result: unknown): boolean {
+    return Boolean(result && typeof result === 'object' && (result as { isError?: boolean }).isError);
+  }
+
+  private applyPnrSelection(record: Record<string, unknown>, selections: string[]): void {
+    if (selections.length > 0) {
+      record.choices = selections;
+      record.recommendedPnr = selections.includes('7MHQTY') ? '7MHQTY' : selections[0];
+      if (selections.length === 1) {
+        record.selectedPnr = selections[0];
+        record.status = STAGE_STATUS.SUCCESS;
+        record.continue = true;
+      } else {
+        record.status = STAGE_STATUS.USER_INPUT_REQUIRED;
+        record.continue = false;
+        record.userMessage =
+          selections.includes('7MHQTY')
+            ? `Two PNRs available: ${selections.join(
+                ', ',
+              )}. 7MHQTY is available for check-in. Which PNR would you like to retrieve?`
+            : `Two PNRs available: ${selections.join(
+                ', ',
+              )}. Which PNR would you like to retrieve?`;
+      }
+      const data =
+        record.data && typeof record.data === 'object' ? (record.data as Record<string, unknown>) : {};
+      record.data = {
+        ...data,
+        choices: record.choices,
+        recommendedPnr: record.recommendedPnr,
+        ...(record.selectedPnr ? { selectedPnr: record.selectedPnr } : {}),
+      };
+      return;
+    }
+    record.status = STAGE_STATUS.USER_INPUT_REQUIRED;
+    record.continue = false;
+    record.userMessage = 'Please provide your frequent flyer number and last name.';
+  }
+
+  private extractFfpArgs(goal: string): { frequentFlyerCardNumber: string; lastName: string } | null {
+    const ffpPatterns = [
+      /\bfrequent\s*flyer(?:\s*card)?\s*(?:number)?\s*(?:is|:)?\s*([0-9]{4,})\b/i,
+      /\bffp\s*[:#]?\s*([0-9]{4,})\b/i,
+      /\bff\s*[:#]?\s*([0-9]{4,})\b/i,
+    ];
+    const lastNamePatterns = [
+      /\blast\s*name\s*(?:is|:)?\s*([A-Za-z]+)\b/i,
+      /\bln\s*[:#]?\s*([A-Za-z]+)\b/i,
+      /\/\s*([A-Za-z]+)\b/,
+      /\bff\s*[:#]?\s*[0-9]{4,}\s+([A-Za-z]+)\b/i,
+    ];
+
+    const ffpMatch = ffpPatterns.map((re) => goal.match(re)).find((m) => m?.[1]);
+    const lastNameMatch = lastNamePatterns.map((re) => goal.match(re)).find((m) => m?.[1]);
+    if (!ffpMatch || !lastNameMatch) return null;
+    return {
+      frequentFlyerCardNumber: ffpMatch[1],
+      lastName: lastNameMatch[1],
+    };
   }
 
   private parseNumber(value?: string): number | undefined {

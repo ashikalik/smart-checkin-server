@@ -36,9 +36,45 @@ export class MainOrchestratorV1RegistryService {
           const hasBookingRef = /\b(bookingReference|pnr)\s+[A-Za-z0-9]{5,8}\b/i.test(goal);
           const looksLikePnrOnly = /^[A-Za-z0-9]{5,8}$/.test(goal.trim());
           if (hasBookingRef || looksLikePnrOnly) {
-            return this.helper.navigate(state, goal, CheckInState.JOURNEY_SELECTION);
+            return this.helper.navigate(state, goal, CheckInState.JOURNEY_IDENTIFICATION);
           }
-          return this.helper.runTripIdentification(state, goal);
+          const result = await this.helper.runTripIdentification(state, goal);
+          if (result.status === STAGE_STATUS.SUCCESS && result.continue === true) {
+            const selectedPnr =
+              typeof (result as { selectedPnr?: string }).selectedPnr === 'string'
+                ? (result as { selectedPnr?: string }).selectedPnr
+                : undefined;
+            const lastName =
+              typeof state.beginConversation?.lastName === 'string'
+                ? state.beginConversation.lastName
+                : typeof (result as { data?: { lastName?: string } }).data?.lastName === 'string'
+                  ? (result as { data?: { lastName?: string } }).data!.lastName
+                  : undefined;
+            if (selectedPnr && lastName) {
+              return this.helper.navigate(
+                state,
+                `bookingReference ${selectedPnr} lastName ${lastName}`,
+                CheckInState.JOURNEY_IDENTIFICATION,
+              );
+            }
+          }
+          // fallback: if prior selection exists in state, use it
+          const prevSelectedPnr =
+            typeof state.tripIdentificationState?.selectedPnr === 'string'
+              ? state.tripIdentificationState.selectedPnr
+              : undefined;
+          const prevLastName =
+            typeof state.beginConversation?.lastName === 'string'
+              ? state.beginConversation.lastName
+              : undefined;
+          if (prevSelectedPnr && prevLastName) {
+            return this.helper.navigate(
+              state,
+              `bookingReference ${prevSelectedPnr} lastName ${prevLastName}`,
+              CheckInState.JOURNEY_IDENTIFICATION,
+            );
+          }
+          return result;
         })(),
       [CheckInState.JOURNEY_IDENTIFICATION]: (state, goal) =>
         (async () => {

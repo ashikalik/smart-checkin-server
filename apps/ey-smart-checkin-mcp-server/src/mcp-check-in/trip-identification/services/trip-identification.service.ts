@@ -28,15 +28,11 @@ export class TripIdentificationService {
   }
 
   async isValidFrequentFlyerCardNumber(value: string, useMock?: boolean): Promise<boolean> {
-    const data = await this.loadData(useMock);
-    const expected = data?.data?.[0]?.frequentFlyerCardNumber;
-    return Boolean(expected && expected === value);
+    return /^[0-9]+$/.test(value.trim());
   }
 
   async isValidLastName(value: string, useMock?: boolean): Promise<boolean> {
-    const data = await this.loadData(useMock);
-    const expected = data?.data?.[0]?.travelers?.[0]?.names?.[0]?.lastName;
-    return Boolean(expected && expected.toLowerCase() === value.trim().toLowerCase());
+    return value.trim().length > 0;
   }
 
   private async loadData(useMock?: boolean): Promise<TripIdentificationData> {

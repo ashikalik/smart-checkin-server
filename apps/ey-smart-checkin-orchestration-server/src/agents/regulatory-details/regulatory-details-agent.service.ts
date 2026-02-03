@@ -58,7 +58,11 @@ export class RegulatoryDetailsAgentService {
       if (required.length > 0) {
         record.status = STAGE_STATUS.USER_INPUT_REQUIRED;
         record.continue = false;
-        record.userMessage = `Please provide ${required.map(this.toFriendlyFieldName).join(', ')}.`;
+        if (required.includes('nationalityCountryCode')) {
+          record.userMessage = 'Please provide nationality country code (e.g., AE).';
+        } else {
+          record.userMessage = `Please provide ${required.map(this.toFriendlyFieldName).join(', ')}.`;
+        }
         record.missingFields = required;
       } else if (hasError) {
         record.status = STAGE_STATUS.FAILED;

@@ -216,6 +216,7 @@ export class StateHelperService {
     return {
       sessionId,
       currentStage: CheckInState.BEGIN_CONVERSATION,
+      data: { useMock: true },
       beginConversation: { ...base },
       tripIdentificationState: { ...base },
       tripSelectionState: { ...base },

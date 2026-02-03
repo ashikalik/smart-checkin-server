@@ -62,6 +62,9 @@ export class BeginConversationAgentService {
       if (lastNameFromGoal && !record.lastName) {
         record.lastName = lastNameFromGoal;
       }
+      if (Array.isArray(record.missing)) {
+        record.missing = record.missing.filter((field) => field !== 'firstName');
+      }
     }
     console.log("--------------------------------------------------------")
     console.log(payload);

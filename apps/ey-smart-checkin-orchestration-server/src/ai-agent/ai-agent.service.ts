@@ -304,6 +304,23 @@ export class AiAgentService implements OnModuleInit, OnModuleDestroy {
     };
   }
 
+  async runTool(name: string, args: Record<string, unknown>): Promise<unknown> {
+    await this.initializeMcpServers();
+    const tools = await this.listTools();
+    const resolved = this.resolveToolNameForCall(name, tools.tools);
+    return this.callTool(resolved, args);
+  }
+
+  private resolveToolNameForCall(name: string, tools: Array<Record<string, unknown>>): string {
+    const exact = tools.find((tool) => tool?.name === name);
+    if (exact) return name;
+    const sep = this.config.toolNamespaceSeparator ?? '::';
+    const candidate = tools.find(
+      (tool) => typeof tool?.name === 'string' && (tool.name as string).endsWith(`${sep}${name}`),
+    );
+    return typeof candidate?.name === 'string' ? (candidate.name as string) : name;
+  }
+
   async buildChatModelTools(): Promise<unknown[]> {
     const result = await this.listTools();
     const tools = (result as { tools?: Array<Record<string, unknown>> }).tools ?? [];

@@ -76,9 +76,28 @@ export class MainOrchestratorV1HelperService {
         state.tripIdentificationState,
         response as unknown as Partial<import('../shared/trip-identification-state.interface').TripIdentificationState>,
       );
+      const selectedPnr =
+        typeof merged.selectedPnr === 'string' && merged.selectedPnr.trim().length > 0
+          ? merged.selectedPnr.trim()
+          : undefined;
+      const responseLastName =
+        typeof (response as { data?: { lastName?: string } }).data?.lastName === 'string'
+          ? (response as { data?: { lastName?: string } }).data!.lastName
+          : undefined;
       const nextState: OrchestratorState = {
         ...state,
         tripIdentificationState: merged,
+        beginConversation: selectedPnr
+          ? {
+              ...state.beginConversation,
+              bookingReference: selectedPnr,
+            }
+          : state.beginConversation,
+        data: {
+          ...state.data,
+          ...(selectedPnr ? { bookingReference: selectedPnr } : {}),
+          ...(responseLastName ? { lastName: responseLastName } : {}),
+        },
       };
       await this.stateHelper.stateService.saveState(state.sessionId, nextState);
       return {
@@ -95,10 +114,22 @@ export class MainOrchestratorV1HelperService {
     state: OrchestratorState,
     goal: string,
   ): Promise<StageResponse> {
-    const bookingReferenceFromGoal = goal.match(/\b(bookingReference|pnr)\s+([A-Za-z0-9]{5,8})\b/i)?.[2];
-    const lastNameFromGoal = goal.match(/\blastName\s+([A-Za-z]+)/i)?.[1];
-    const bookingReference = state.beginConversation?.bookingReference ?? bookingReferenceFromGoal;
-    const lastName = state.beginConversation?.lastName ?? lastNameFromGoal;
+    let bookingReferenceFromGoal = goal.match(/\b(bookingReference|pnr)\s+([A-Za-z0-9]{5,8})\b/i)?.[2];
+    if (!bookingReferenceFromGoal) {
+      const pnrOnly = goal.trim();
+      if (/^[A-Za-z0-9]{5,8}$/.test(pnrOnly)) {
+        bookingReferenceFromGoal = pnrOnly;
+      }
+    }
+    let lastNameFromGoal = goal.match(/\blastName\s+([A-Za-z]+)/i)?.[1];
+    const bookingReference =
+      state.beginConversation?.bookingReference ??
+      (state.data && typeof state.data.bookingReference === 'string' ? (state.data.bookingReference as string) : undefined) ??
+      bookingReferenceFromGoal;
+    const lastName =
+      state.beginConversation?.lastName ??
+      (state.data && typeof state.data.lastName === 'string' ? (state.data.lastName as string) : undefined) ??
+      lastNameFromGoal;
     if (bookingReference === '7MHQTY' && state.data?.useMock !== true) {
       const nextState: OrchestratorState = {
         ...state,
@@ -112,6 +143,12 @@ export class MainOrchestratorV1HelperService {
     }
     if ((bookingReferenceFromGoal || lastNameFromGoal) && state.beginConversation) {
       const useMock = bookingReferenceFromGoal === '7MHQTY';
+      if (bookingReferenceFromGoal) {
+        const isPnrOnly = /^[A-Za-z0-9]{5,8}$/.test(goal.trim());
+        if (isPnrOnly && !lastNameFromGoal && state.beginConversation.lastName) {
+          lastNameFromGoal = state.beginConversation.lastName;
+        }
+      }
       const nextState: OrchestratorState = {
         ...state,
         beginConversation: {
@@ -122,6 +159,20 @@ export class MainOrchestratorV1HelperService {
         data: {
           ...state.data,
           ...(useMock ? { useMock: true } : {}),
+          ...(bookingReferenceFromGoal ? { bookingReference: bookingReferenceFromGoal } : {}),
+          ...(lastNameFromGoal ? { lastName: lastNameFromGoal } : {}),
+        },
+      };
+      await this.stateHelper.stateService.saveState(state.sessionId, nextState);
+      state = nextState;
+    }
+    if ((bookingReferenceFromGoal || lastNameFromGoal) && !state.beginConversation) {
+      const nextState: OrchestratorState = {
+        ...state,
+        data: {
+          ...state.data,
+          ...(bookingReferenceFromGoal ? { bookingReference: bookingReferenceFromGoal } : {}),
+          ...(lastNameFromGoal ? { lastName: lastNameFromGoal } : {}),
         },
       };
       await this.stateHelper.stateService.saveState(state.sessionId, nextState);
