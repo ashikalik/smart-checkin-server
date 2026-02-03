@@ -116,7 +116,7 @@ export class MainOrchestratorV1HelperService {
   ): Promise<StageResponse> {
     let bookingReferenceFromGoal = goal.match(/\b(bookingReference|pnr)\s+([A-Za-z0-9]{5,8})\b/i)?.[2];
     if (!bookingReferenceFromGoal) {
-      const pnrOnly = goal.trim();
+      const pnrOnly = goal.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
       if (/^[A-Za-z0-9]{5,8}$/.test(pnrOnly)) {
         bookingReferenceFromGoal = pnrOnly;
       }
@@ -193,9 +193,13 @@ export class MainOrchestratorV1HelperService {
         [],
       );
     }
+    const enrichedGoal =
+      bookingReference && lastName
+        ? `bookingReference ${bookingReference} lastName ${lastName}`
+        : goal;
     const response = await this.journeyIdentification.handleStage(
       state.sessionId,
-      this.appendMockFlag(goal, state),
+      this.appendMockFlag(enrichedGoal, state),
       CheckInState.JOURNEY_IDENTIFICATION,
     );
     if (state.journeyIdentificationState && response) {

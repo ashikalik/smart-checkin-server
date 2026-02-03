@@ -259,6 +259,10 @@ export class TripIdentificationAgentService {
     };
   }
 
+  private normalizePnrText(goal: string): string {
+    return goal.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  }
+
   private parseNumber(value?: string): number | undefined {
     if (!value) {
       return undefined;

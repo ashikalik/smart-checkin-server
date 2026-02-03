@@ -33,10 +33,12 @@ export class MainOrchestratorV1RegistryService {
       },
       [CheckInState.TRIP_IDENTIFICATION]: (state, goal) =>
         (async () => {
+          const normalizedPnr = goal.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
           const hasBookingRef = /\b(bookingReference|pnr)\s+[A-Za-z0-9]{5,8}\b/i.test(goal);
-          const looksLikePnrOnly = /^[A-Za-z0-9]{5,8}$/.test(goal.trim());
+          const looksLikePnrOnly = /^[A-Za-z0-9]{5,8}$/.test(normalizedPnr);
           if (hasBookingRef || looksLikePnrOnly) {
-            return this.helper.navigate(state, goal, CheckInState.JOURNEY_IDENTIFICATION);
+            const nextGoal = looksLikePnrOnly ? normalizedPnr : goal;
+            return this.helper.navigate(state, nextGoal, CheckInState.JOURNEY_IDENTIFICATION);
           }
           const result = await this.helper.runTripIdentification(state, goal);
           if (result.status === STAGE_STATUS.SUCCESS && result.continue === true) {
@@ -93,7 +95,8 @@ export class MainOrchestratorV1RegistryService {
             const next = await this.helper.navigate(state, goal, CheckInState.REGULATORY_DETAILS);
             return {
               ...next,
-              userMessage: 'Thank you confirming we are proceeding with your check in process',
+              userMessage:
+                'Thank you for confirming. To continue with check-in, please confirm your consent for the dangerous goods declaration.',
             };
           }
           return result;
@@ -106,7 +109,10 @@ export class MainOrchestratorV1RegistryService {
             return this.helper.navigate(state, goal, CheckInState.BOARDING_PASS);
           }
           const result = await this.helper.runCheckinAcceptance(state, goal);
-          if ((result as { isAccepted?: boolean }).isAccepted === true && this.isUserConfirming(goal)) {
+          const acceptedTop = (result as { isAccepted?: boolean }).isAccepted === true;
+          const acceptedData =
+            (result as { data?: { isAccepted?: boolean } }).data?.isAccepted === true;
+          if ((acceptedTop || acceptedData) && this.isUserConfirming(goal)) {
             return this.helper.navigate(state, goal, CheckInState.BOARDING_PASS);
           }
           return result;
@@ -136,6 +142,13 @@ export class MainOrchestratorV1RegistryService {
               },
             };
             await this.stateHelper.stateService.saveState(state.sessionId, nextState);
+            if (missingFields.includes('nationalityCountryCode')) {
+              return {
+                ...result,
+                userMessage:
+                  'Thank you for confirming. To continue with check-in, please confirm your consent for the dangerous goods declaration. Please provide nationality country code (e.g., AE).',
+              };
+            }
           }
           if (result.status === STAGE_STATUS.SUCCESS && result.continue === true) {
             return this.helper.navigate(state, goal, CheckInState.CHECKIN_ACCEPTANCE);

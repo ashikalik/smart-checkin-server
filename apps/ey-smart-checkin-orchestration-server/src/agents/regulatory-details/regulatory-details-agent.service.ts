@@ -58,11 +58,22 @@ export class RegulatoryDetailsAgentService {
       if (required.length > 0) {
         record.status = STAGE_STATUS.USER_INPUT_REQUIRED;
         record.continue = false;
-        if (required.includes('nationalityCountryCode')) {
-          record.userMessage = 'Please provide nationality country code (e.g., AE).';
-        } else {
-          record.userMessage = `Please provide ${required.map(this.toFriendlyFieldName).join(', ')}.`;
-        }
+        const acknowledgement =
+          this.isUserConfirming(goal)
+            ? 'Thank you confirming we are proceeding with your check in process.'
+            : '';
+        const existing =
+          typeof record.userMessage === 'string' && record.userMessage.trim().length > 0
+            ? record.userMessage.trim()
+            : '';
+        const prefix = existing || acknowledgement;
+        const needNationality = required.includes('nationalityCountryCode');
+        const prompt = needNationality
+          ? 'Please provide nationality country code (e.g., AE).'
+          : `Please provide ${required.map(this.toFriendlyFieldName).join(', ')}.`;
+        const consent =
+          'Thank you for confirming. To continue with check-in, please confirm your consent for the dangerous goods declaration.';
+        record.userMessage = prefix ? `${prefix} ${prompt} ${consent}`.trim() : `${prompt} ${consent}`;
         record.missingFields = required;
       } else if (hasError) {
         record.status = STAGE_STATUS.FAILED;
@@ -131,5 +142,14 @@ export class RegulatoryDetailsAgentService {
       return goal;
     }
     return `${goal} nationalityCountryCode ${code}`;
+  }
+
+  private isUserConfirming(goal: string): boolean {
+    const text = goal.trim().toLowerCase();
+    if (!text) return false;
+    if (/\b(no|dont|don't|decline|cancel|stop)\b/.test(text)) {
+      return false;
+    }
+    return /\b(yes|yep|yeah|confirm|confirmed|proceed|ok|okay|sure|continue)\b/.test(text);
   }
 }

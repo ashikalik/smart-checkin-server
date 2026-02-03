@@ -3,23 +3,7 @@
     "journeyElementIds": [
       "600E15D7000BDE59"
     ],
-    "missingDetails": [
-      {
-        "detailsCategory": "personalDetails",
-        "detailsChoices": [
-          {
-            "canBeDeclined": false,
-            "detailsType": "personalDetails",
-            "regulatoryType": "personalDetails",
-            "requiredDetailsFields": [
-              "nationalityCountryCode"
-            ]
-          }
-        ],
-        "isOptional": false
-      }
-    ],
-    "statusCleared": false,
+    "statusCleared": true,
     "storedDetails": [
       {
         "personalDetails": {
