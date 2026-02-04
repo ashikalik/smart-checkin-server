@@ -79,11 +79,9 @@ export class ValidateProcessCheckInAgentService {
           ? String(passengers[0].firstName)
           : undefined;
       const lastName =
-        typeof userLastName === 'string' && userLastName.trim().length > 0
-          ? userLastName.trim()
-          : typeof passengers[0]?.lastName === 'string'
-            ? String(passengers[0].lastName)
-            : undefined;
+        typeof passengers[0]?.lastName === 'string' && passengers[0]?.lastName.trim().length > 0
+          ? String(passengers[0].lastName)
+          : undefined;
       const personalizedPrompt =
         firstName || lastName
           ? `Do you want to check in this passenger: ${[firstName, lastName].filter(Boolean).join(' ')}?`
