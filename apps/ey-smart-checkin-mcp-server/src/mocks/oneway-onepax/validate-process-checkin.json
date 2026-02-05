@@ -114,8 +114,8 @@
                 "isPilgrimConfirmationProvided": false,
                 "names": [
                     {
-                        "firstName": "PAVITHRA",
-                        "lastName": "PARTHASARATHY",
+                        "firstName": "John",
+                        "lastName": "Test",
                         "nameType": "universal",
                         "title": "MS"
                     }

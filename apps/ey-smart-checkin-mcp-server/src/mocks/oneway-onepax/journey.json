@@ -23,7 +23,7 @@
             },
             "contacts": [
                 {
-                    "address": "JACOBJAMES@GMAIL.COM",
+                    "address": "Johntest@GMAIL.COM",
                     "category": "personal",
                     "contactType": "Email",
                     "id": "610D05D700054BEE_dbf8ee93",
@@ -127,8 +127,8 @@
                     "isPilgrimConfirmationProvided": false,
                     "names": [
                         {
-                            "firstName": "JACOB",
-                            "lastName": "JAMES",
+                            "firstName": "John",
+                            "lastName": "Test",
                             "nameType": "universal",
                             "title": "MR"
                         }
@@ -248,8 +248,8 @@
                 "isPilgrimConfirmationProvided": false,
                 "names": [
                     {
-                        "firstName": "JACOB",
-                        "lastName": "JAMES",
+                        "firstName": "John",
+                        "lastName": "test",
                         "nameType": "universal",
                         "title": "MR"
                     }

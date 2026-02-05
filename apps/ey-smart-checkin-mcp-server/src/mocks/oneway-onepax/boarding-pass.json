@@ -7,13 +7,13 @@
     "boardingPasses": [
         {
             "travelerId": "610D25D70006CCF7",
-            "travelerName": "PAVITHRA PARTHASARATHY",
+            "travelerName": "John Test",
             "legs": [
                 {
                     "travelerInfo": {
                         "travelerId": "610D25D70006CCF7",
                         "travelerTitle": "MS",
-                        "travelerName": "PAVITHRA PARTHASARATHY",
+                        "travelerName": "John Test",
                         "ticketNumber": "6072412970663",
                         "orderId": "7ML9OV",
                         "ffpNo": "",
@@ -62,7 +62,7 @@
                         "fareBrandCode": "C",
                         "fareBrandName": "Comfort"
                     },
-                    "barcodeMessage": "M1PARTHASARATHY/PAVITHRA E7ML9OV AUHLHREY 0065 031Y037G0001 348>5180 M6030BEY              2A60724129706630 EY                        N",
+                    "barcodeMessage": "M1Test/John E7ML9OV AUHLHREY 0065 031Y037G0001 348>5180 M6030BEY              2A60724129706630 EY                        N",
                     "journeyElementId": "600E15D7000BDE59",
                     "eligibility": "BOARDING_PASS_ELIGIBLE",
                     "staffServiceCode": ""

@@ -10,7 +10,7 @@ import { STAGE_STATUS } from '../../shared/stage-status.type';
 
 @Injectable()
 export class TripIdentificationAgentService {
-  private readonly requiredFields: Array<string> = ['selectedPnr'];
+  private readonly requiredFields: Array<string> = [];
 
   constructor(
     private readonly agent: AiAgentService,
